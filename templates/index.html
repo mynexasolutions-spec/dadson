@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DADSON | Premium Jewellery</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-left">
+                <a href="#" class="logo" aria-label="Go to homepage">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="DADSON logo" class="logo-image">
+                    <span class="logo-text-wrap">
+                        <span class="logo-text">DADSON</span>
+                        <span class="logo-tagline">Get the door - it's DADSON</span>
+                    </span>
+                </a>
+            </div>
+
+            <div class="navbar-center">
+                <ul class="nav-links">
+                    <li class="nav-item"><a href="{{ url_for('public.shop') }}">Shop</a></li>
+                    <li class="nav-item"><a href="#categories">Categories</a></li>
+                    <li class="nav-item"><a href="#best-sellers">Best Sellers</a></li>
+                    <li class="nav-item"><a href="#newsletter">Newsletter</a></li>
+                    <li class="nav-item"><a href="{{ url_for('public.about') }}">About</a></li>
+                    <li class="nav-item"><a href="{{ url_for('public.contact') }}">Contact</a></li>
+                </ul>
+            </div>
+
+            <div class="navbar-right">
+                <button class="icon-btn search-btn" aria-label="Search">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                </button>
+                <a href="{{ url_for('auth.profile') if session.get('user_id') else url_for('auth.login') }}"
+                    class="icon-btn" aria-label="Account">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </a>
+                <a href="{{ url_for('public.wishlist') }}" class="icon-btn" aria-label="Wishlist">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path
+                            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                        </path>
+                    </svg>
+                    <span class="wishlist-count">{{ wishlist_count }}</span>
+                </a>
+                <a href="{{ url_for('cart.view_cart') }}" class="icon-btn cart-btn" aria-label="Cart">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    <span class="cart-count">{{ cart_count }}</span>
+                </a>
+                <button class="mobile-menu-btn" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1600&q=80"
+            alt="Premium jewellery set" class="hero-background-img">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <span class="eyebrow">Signature Edit</span>
+            <h1 class="hero-title">Jewellery That Feels Like A Signature</h1>
+            <p class="hero-subtitle">Discover elegant rings, necklaces, and earrings by DADSON, crafted to bring warmth,
+                polish, and a premium finish to every look.</p>
+            <a href="{{ url_for('public.shop') }}" class="btn btn-primary">Shop Now</a>
+        </div>
+    </section>
+
+    <section class="categories" id="categories">
+        <div class="container">
+            <span class="eyebrow centered-eyebrow">Shop First</span>
+            <h2 class="section-title">Explore By Category</h2>
+            <p class="section-intro">Browse the collections that define DADSON, from sculpted earrings and layered
+                necklaces to statement rings and gifting favourites.</p>
+            <div class="category-grid">
+                <div class="category-card">
+                    <img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=700&q=80"
+                        alt="Gold rings collection">
+                    <div class="category-overlay">
+                        <h3>Rings</h3>
+                        <a href="{{ url_for('public.shop', category='Rings') }}" class="btn btn-outline">Explore</a>
+                    </div>
+                </div>
+
+                <div class="category-card">
+                    <img src="https://images.unsplash.com/photo-1635767798638-3e25273a8236?auto=format&fit=crop&w=700&q=80"
+                        alt="Elegant earrings">
+                    <div class="category-overlay">
+                        <h3>Earrings</h3>
+                        <a href="{{ url_for('public.shop', category='Earrings') }}" class="btn btn-outline">Explore</a>
+                    </div>
+                </div>
+
+                <div class="category-card">
+                    <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=700&q=80"
+                        alt="Layered necklaces">
+                    <div class="category-overlay">
+                        <h3>Necklaces</h3>
+                        <a href="{{ url_for('public.shop', category='Necklaces') }}" class="btn btn-outline">Explore</a>
+                    </div>
+                </div>
+
+                <div class="category-card">
+                    <img src="https://images.unsplash.com/photo-1611085583191-a3b181a88401?auto=format&fit=crop&w=700&q=80"
+                        alt="Gold bracelets">
+                    <div class="category-overlay">
+                        <h3>Bracelets</h3>
+                        <a href="{{ url_for('public.shop', category='Bracelets') }}" class="btn btn-outline">Explore</a>
+                    </div>
+                </div>
+
+                <div class="category-card">
+                    <img src="https://images.unsplash.com/photo-1588444650700-6ad8eac5dcaf?auto=format&fit=crop&w=700&q=80"
+                        alt="Modern mangalsutra necklace">
+                    <div class="category-overlay">
+                        <h3>Mangalsutra</h3>
+                        <a href="{{ url_for('public.shop', category='Mangalsutra') }}"
+                            class="btn btn-outline">Explore</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="collection-spotlight">
+        <div class="container">
+            <div class="spotlight-panel">
+                <div class="spotlight-copy">
+                    <span class="eyebrow">Featured Collection</span>
+                    <h2 class="section-title section-title-left">Golden Signatures For Every Celebration</h2>
+                    <p>Discover graceful statement pieces in polished gold finishes, made to feel memorable from gifting
+                        moments to everyday styling.</p>
+                    <button class="btn btn-primary">Explore Collection</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="products category-products" id="rings-collection">
+        <div class="container">
+            <div class="section-heading-row">
+                <div>
+                    <span class="eyebrow">Rings</span>
+                    <h2 class="section-title section-title-left">Rings Collection</h2>
+                </div>
+                <a href="{{ url_for('public.shop', category='Rings') }}" class="section-link">View All</a>
+            </div>
+            <div class="products-grid">
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1611591437282-7ac8b30f3ee9?auto=format&fit=crop&w=500&q=80"
+                        alt="Diamond Solitaire Ring" class="product-image">
+                    <div class="product-info">
+                        <h3>Diamond Solitaire Ring</h3>
+                        <p class="product-material">Lab-Grown Diamond</p>
+                        <div class="product-price">
+                            <span class="price">Rs. 5,799</span>
+                            <span class="original-price">Rs. 7,999</span>
+                        </div>
+                        <button class="btn btn-primary btn-small add-to-cart-ajax" data-id="1">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?auto=format&fit=crop&w=500&q=80"
+                        alt="Stackable Ring Set" class="product-image">
+                    <div class="product-info">
+                        <h3>Stackable Ring Set</h3>
+                        <p class="product-material">Silver & Gold Mix</p>
+                        <div class="product-price">
+                            <span class="price">Rs. 3,299</span>
+                        </div>
+                        <button class="btn btn-primary btn-small add-to-cart-ajax" data-id="2">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=500&q=80"
+                        alt="Twist Band Ring" class="product-image">
+                    <div class="product-info">
+                        <h3>Twist Band Ring</h3>
+                        <p class="product-material">18K Gold Plated</p>
+                        <div class="product-price">
+                            <span class="price">Rs. 2,699</span>
+                        </div>
+                        <button class="btn btn-primary btn-small add-to-cart-ajax" data-id="3">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1629224316810-9d8805b95e76?auto=format&fit=crop&w=500&q=80"
+                        alt="Minimal Dome Ring" class="product-image">
+                    <div class="product-info">
+                        <h3>Minimal Dome Ring</h3>
+                        <p class="product-material">Vermeil Finish</p>
+                        <div class="product-price">
+                            <span class="price">Rs. 2,999</span>
+                        </div>
+                        <button class="btn btn-primary btn-small add-to-cart-ajax" data-id="4">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="products category-products" id="necklaces-collection">
+        <div class="container">
+            <div class="section-heading-row">
+                <div>
+                    <span class="eyebrow">Necklaces</span>
+                    <h2 class="section-title section-title-left">Necklaces Collection</h2>
+                </div>
+                <a href="{{ url_for('public.shop', category='Necklaces') }}" class="section-link">View All</a>
+            </div>
+            <div class="products-grid">
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=500&q=80"
+                        alt="Minimalist Chain necklace" class="product-image">
+                    <div class="product-info">
+                        <h3>Minimalist Chain</h3>
+                        <p class="product-material">Sterling Silver</p>
+                        <div class="product-price">
+                            <span class="price">Rs. 2,299</span>
+                            <span class="original-price">Rs. 3,299</span>
+                        </div>
+                        <button class="btn btn-primary btn-small add-to-cart-ajax" data-id="5">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1599643478512-f39baa8a1a85?auto=format&fit=crop&w=500&q=80"
+                        alt="Pearl Elegance Necklace" class="product-image">
+                    <div class="product-info">
+                        <h3>Pearl Elegance Necklace</h3>
+                        <p class="product-material">Freshwater Pearl</p>
+                        <div class="product-price">
+                            <span class="price">Rs. 3,899</span>
+                        </div>
+                        <button class="btn btn-primary btn-small add-to-cart-ajax" data-id="6">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=500&q=80"
+                        alt="Layered Pendant Set" class="product-image">
+                    <div class="product-info">
+                        <h3>Layered Pendant Set</h3>
+                        <p class="product-material">Gold Plated</p>
+                        <div class="product-price">
+                            <span class="price">Rs. 2,899</span>
+                            <span class="original-price">Rs. 3,999</span>
+                        </div>
+                        <button class="btn btn-primary btn-small add-to-cart-ajax" data-id="7">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=500&q=80"
+                        alt="Bar Pendant Necklace" class="product-image">
+                    <div class="product-info">
+                        <h3>Bar Pendant Necklace</h3>
+                        <p class="product-material">Gold Vermeil</p>
+                        <div class="product-price">
+                            <span class="price">Rs. 3,199</span>
+                        </div>
+                        <button class="btn btn-primary btn-small add-to-cart-ajax" data-id="8">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="products category-products" id="earrings-collection">
+        <div class="container">
+            <div class="section-heading-row">
+                <div>
+                    <span class="eyebrow">Earrings</span>
+                    <h2 class="section-title section-title-left">Earrings Collection</h2>
+                </div>
+                <a href="{{ url_for('public.shop', category='Earrings') }}" class="section-link">View All</a>
+            </div>
+            <div class="products-grid">
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=500&q=80"
+                        alt="Stellar Glow Earrings" class="product-image">
+                    <div class="product-info">
+                        <h3>Stellar Glow Earrings</h3>
+                        <p class="product-material">18K Gold Vermeil</p>
+                        <div class="product-price">
+                            <span class="price">Rs. 3,499</span>
+                            <span class="original-price">Rs. 4,999</span>
+                        </div>
+                        <button class="btn btn-primary btn-small add-to-cart-ajax" data-id="9">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1599643478517-8b9d3c8c0bf9?auto=format&fit=crop&w=500&q=80"
+                        alt="Rose Gold Studs" class="product-image">
+                    <div class="product-info">
+                        <h3>Rose Gold Studs</h3>
+                        <p class="product-material">Rose Gold Vermeil</p>
+                        <div class="product-price">
+                            <span class="price">Rs. 2,599</span>
+                        </div>
+                        <button class="btn btn-primary btn-small add-to-cart-ajax" data-id="10">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1635767798638-3e25273a8236?auto=format&fit=crop&w=500&q=80"
+                        alt="Classic Hoop Earrings" class="product-image">
+                    <div class="product-info">
+                        <h3>Classic Hoop Earrings</h3>
+                        <p class="product-material">Gold Plated</p>
+                        <div class="product-price">
+                            <span class="price">Rs. 2,899</span>
+                        </div>
+                        <button class="btn btn-primary btn-small add-to-cart-ajax" data-id="11">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80"
+                        alt="DADSON jewelry display" class="product-image">
+                    <div class="product-info">
+                        <h3>DADSON Leaf Earrings</h3>
+                        <p class="product-material">Statement Gold Finish</p>
+                        <div class="product-price">
+                            <span class="price">Rs. 3,999</span>
+                        </div>
+                        <button class="btn btn-primary btn-small add-to-cart-ajax" data-id="12">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="products best-sellers" id="best-sellers">
+        <div class="container">
+            <div class="section-heading-row">
+                <div>
+                    <span class="eyebrow">Most Loved</span>
+                    <h2 class="section-title section-title-left">Best Sellers</h2>
+                </div>
+                <a href="#" class="section-link">Shop All</a>
+            </div>
+            <div class="products-grid">
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1611085583191-a3b181a88401?auto=format&fit=crop&w=500&q=80"
+                        alt="Golden Hour Bracelet" class="product-image">
+                    <div class="product-info">
+                        <h3>Golden Hour Bracelet</h3>
+                        <p class="product-material">18K Gold Plated</p>
+                        <div class="product-price">
+                            <span class="price">Rs. 4,199</span>
+                        </div>
+                        <button class="btn btn-primary btn-small add-to-cart-ajax" data-id="13">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1599643478512-f39baa8a1a85?auto=format&fit=crop&w=500&q=80"
+                        alt="Pearl Elegance Necklace" class="product-image">
+                    <div class="product-info">
+                        <h3>Pearl Elegance Necklace</h3>
+                        <p class="product-material">Freshwater Pearl</p>
+                        <div class="product-price">
+                            <span class="price">Rs. 3,899</span>
+                        </div>
+                        <button class="btn btn-primary btn-small add-to-cart-ajax" data-id="6">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1611591437282-7ac8b30f3ee9?auto=format&fit=crop&w=500&q=80"
+                        alt="Diamond Solitaire Ring" class="product-image">
+                    <div class="product-info">
+                        <h3>Diamond Solitaire Ring</h3>
+                        <p class="product-material">Lab-Grown Diamond</p>
+                        <div class="product-price">
+                            <span class="price">Rs. 5,799</span>
+                            <span class="original-price">Rs. 7,999</span>
+                        </div>
+                        <button class="btn btn-primary btn-small add-to-cart-ajax" data-id="1">Add to Cart</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <img src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80"
+                        alt="DADSON jewelry display" class="product-image">
+                    <div class="product-info">
+                        <h3>DADSON Leaf Earrings</h3>
+                        <p class="product-material">Statement Gold Finish</p>
+                        <div class="product-price">
+                            <span class="price">Rs. 3,999</span>
+                        </div>
+                        <button class="btn btn-primary btn-small add-to-cart-ajax" data-id="12">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="promo-banner"
+        style="background: linear-gradient(135deg, rgba(22, 17, 13, 0.74) 0%, rgba(22, 17, 13, 0.42) 100%), url('https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?auto=format&fit=crop&w=1600&q=80') center/cover;">
+        <div class="promo-content">
+            <span class="eyebrow light-eyebrow">Limited Edit</span>
+            <h2>Festive Gold Edit</h2>
+            <p>Curated pieces designed to make every celebration feel luminous and elevated.</p>
+            <a href="{{ url_for('public.shop') }}" class="btn btn-light">Shop Now</a>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <span class="eyebrow centered-eyebrow">Why DADSON</span>
+            <h2 class="section-title">Made To Be Worn, Loved, And Gifted</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3>Premium Quality</h3>
+                    <p>Crafted with sterling silver, polished finishes, and elevated details that feel special from the
+                        first wear.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5">
+                            <path
+                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z">
+                            </path>
+                            <path d="M8 13c1.2 1.6 2.53 2.4 4 2.4s2.8-.8 4-2.4"></path>
+                        </svg>
+                    </div>
+                    <h3>Everyday Comfort</h3>
+                    <p>Lightweight silhouettes and versatile styling make each piece easy to wear from day plans to
+                        evening occasions.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5">
+                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                            <polyline points="13 2 13 9 20 9"></polyline>
+                            <line x1="12" y1="13" x2="12" y2="19"></line>
+                            <line x1="9" y1="16" x2="15" y2="16"></line>
+                        </svg>
+                    </div>
+                    <h3>Gift-Ready Elegance</h3>
+                    <p>Thoughtfully presented pieces that feel memorable for birthdays, festivals, and every meaningful
+                        milestone.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="brand-story">
+        <div class="container">
+            <div class="brand-grid">
+                <img src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80"
+                    alt="DADSON jewelry display" class="brand-image">
+                <div class="brand-content">
+                    <span class="eyebrow">Our Story</span>
+                    <h2 class="section-title section-title-left">Jewellery Designed To Feel Personal</h2>
+                    <p>DADSON creates elegant jewellery that blends statement styling with everyday wearability. Each
+                        piece is chosen to feel warm, expressive, and memorable from the first glance.</p>
+                    <p>From gift-ready earrings to graceful rings and necklaces, the collection is built around premium
+                        presentation and versatile beauty.</p>
+                    <button class="btn btn-primary">Learn More About Us</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="newsletter" id="newsletter">
+        <div class="newsletter-content">
+            <span class="eyebrow centered-eyebrow">Stay Connected</span>
+            <h2>Join The DADSON Circle</h2>
+            <p>Get exclusive updates, early access to new collections, and special offers tailored to your style.</p>
+            <form class="newsletter-form" id="newsletter-form">
+                <input type="email" placeholder="Enter your email" required>
+                <button type="submit" class="btn btn-primary">Subscribe</button>
+            </form>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h4>Shop</h4>
+                    <ul>
+                        <li><a href="{{ url_for('public.shop') }}">New Arrivals</a></li>
+                        <li><a href="{{ url_for('public.shop') }}">Best Sellers</a></li>
+                        <li><a href="{{ url_for('public.shop') }}">Collections</a></li>
+                        <li><a href="{{ url_for('public.shop') }}">Gifts</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Help & Support</h4>
+                    <ul>
+                        <li><a href="{{ url_for('public.contact') }}">Contact Us</a></li>
+                        <li><a href="{{ url_for('public.contact') }}">FAQ</a></li>
+                        <li><a href="{{ url_for('public.contact') }}">Track Order</a></li>
+                        <li><a href="{{ url_for('public.shipping') }}">Shipping Info</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Policies</h4>
+                    <ul>
+                        <li><a href="{{ url_for('public.privacy') }}">Privacy Policy</a></li>
+                        <li><a href="{{ url_for('public.terms') }}">Terms of Service</a></li>
+                        <li><a href="{{ url_for('public.refund') }}">Return & Exchange</a></li>
+                        <li><a href="{{ url_for('public.shipping') }}">Warranty</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>About</h4>
+                    <ul>
+                        <li><a href="{{ url_for('public.about') }}">Our Story</a></li>
+                        <li><a href="{{ url_for('public.blogs') }}">Journal</a></li>
+                        <li><a href="{{ url_for('public.about') }}">Stores</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Follow Us</h4>
+                    <div class="social-links">
+                        <a href="#" class="social-icon" aria-label="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-icon" aria-label="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="social-icon" aria-label="Pinterest">
+                            <i class="fab fa-pinterest-p"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2024 DADSON. All rights reserved. | Crafted with elegance</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+
+</html>
+</body>
+
+</html>

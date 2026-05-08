@@ -1,0 +1,43 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div class="header-left">
+        <h1>My Profile</h1>
+        <p>Manage your account settings and credentials</p>
+    </div>
+</div>
+
+<div class="admin-card" style="max-width: 600px; margin: 0 auto;">
+    <form method="POST" class="admin-form">
+        <div class="form-section">
+            <div class="admin-label">Full Name</div>
+            <input type="text" name="username" class="admin-input" value="{{ user.username or '' }}" placeholder="Enter name">
+        </div>
+        
+        <div class="form-section" style="margin-top: 1.5rem;">
+            <div class="admin-label">Email Address</div>
+            <input type="email" name="email" class="admin-input" value="{{ user.email }}" required>
+        </div>
+        
+        <div class="form-section" style="margin-top: 1.5rem;">
+            <div class="admin-label">Role</div>
+            <input type="text" class="admin-input" value="Administrator" disabled style="background: var(--bg-main); cursor: not-allowed;">
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+            <button type="submit" class="btn btn-primary">Update Profile</button>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .form-section {
+        margin-bottom: 1.25rem;
+    }
+    .admin-form {
+        padding: 1rem;
+    }
+</style>
+{% endblock %}

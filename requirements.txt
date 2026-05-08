@@ -1,0 +1,9 @@
+Flask
+Flask-SQLAlchemy
+psycopg2-binary
+python-dotenv
+cloudinary
+werkzeug
+Jinja2
+gunicorn
+flask-cors
