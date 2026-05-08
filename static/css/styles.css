@@ -18,8 +18,8 @@
     --radius-lg: 34px;
     --transition: 0.35s ease;
     --section-space: clamp(1.5rem, 3vw, 2.5rem);
-    --content-max: 1240px;
-    --content-gutter: clamp(18px, 3vw, 48px);
+    --content-max: 1440px;
+    --content-gutter: clamp(14px, 2.5vw, 28px);
 }
 
 * {
