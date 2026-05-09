@@ -21,7 +21,7 @@ jobs:
           script: |
             cd ~/dadson
             git pull origin main
-            ./venv/bin/pip install -r requirements.txt
+            /home/ec2-user/venv/bin/pip install -r requirements.txt
             
             # Restart the systemd service
             sudo systemctl restart dadson
