@@ -36,6 +36,12 @@
     <input type="text" name="image_url" value="{{ attribute.image_url if attribute }}" placeholder="e.g. https://...image.png" class="admin-input" />
   </div>
 
+  <div style="margin-bottom:1.5rem;">
+    <label class="admin-label">Attribute Values (Comma separated)</label>
+    <textarea name="values" placeholder="e.g. Red, Blue, Green" class="admin-input" style="height: 100px; resize: vertical;">{{ vals_str if vals_str else '' }}</textarea>
+    <p style="font-size: 0.75rem; color: #888; margin-top: 0.5rem;">Enter the possible values for this attribute, separated by commas.</p>
+  </div>
+
   <div style="margin-bottom:2rem;">
     <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
       <input type="checkbox" name="is_featured" {{ 'checked' if attribute and attribute.is_featured }}>

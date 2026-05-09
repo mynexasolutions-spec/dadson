@@ -94,11 +94,10 @@ def products():
 def new_product():
     if request.method == 'POST':
         name = request.form.get('name')
-        price_raw = request.form.get('price', '').replace('Rs.', '').replace(',', '').strip()
-        price = price_raw if price_raw else '0'
+        price_raw = request.form.get('price', '').replace('Rs.', '').replace('₹', '').replace(',', '').strip()
+        price = f"Rs. {price_raw}" if price_raw else 'Rs. 0'
+        
         badge = request.form.get('badge')
-        sizes = request.form.get('sizes')
-        colors = request.form.get('colors')
         desc = request.form.get('desc')
         product_type = request.form.get('product_type', 'simple')
         stock_status = request.form.get('stock_status', 'instock')
@@ -113,6 +112,9 @@ def new_product():
         img_file = request.files.get('img')
         img = save_image(img_file, 'products') if img_file else None
         
+        size_chart_file = request.files.get('size_chart')
+        size_chart = save_image(size_chart_file, 'size_charts') if size_chart_file else None
+        
         new_id = name.lower().replace(' ', '-')
         if Product.query.get(new_id):
             new_id = f"{new_id}-{int(datetime.now().timestamp())}"
@@ -120,21 +122,72 @@ def new_product():
         product = Product(
             id=new_id, 
             name=name, 
-            price=f"Rs. {price}", 
+            price=price, 
             cat_name=cat_name, 
             category_id=category_id,
             sub_category_id=sub_category_id,
             brand_id=brand_id,
             badge=badge, 
             img=img,
-            sizes=sizes,
-            colors=colors,
+            size_chart=size_chart,
             desc=desc,
             product_type=product_type,
             stock_status=stock_status,
             is_featured=is_featured
         )
         db.session.add(product)
+        db.session.flush() # Get product ID for related models
+        
+        # Handle Product Attributes
+        attr_ids = request.form.getlist('product_attributes[]')
+        for a_id in attr_ids:
+            if a_id:
+                db.session.add(ProductAttribute(product_id=product.id, attribute_id=a_id))
+        
+        # Handle Gallery Images
+        gallery_files = request.files.getlist('gallery[]')
+        for g_file in gallery_files:
+            if g_file and g_file.filename:
+                g_url = save_image(g_file, 'products/gallery')
+                if g_url:
+                    db.session.add(ProductImage(product_id=product.id, img_url=g_url))
+        
+        # Handle Variations
+        if product_type == 'variable':
+            var_indices = request.form.getlist('var_idx[]')
+            for idx in var_indices:
+                var_price_raw = request.form.getlist('var_price[]')[var_indices.index(idx)].replace('₹', '').replace(',', '').strip()
+                var_price = f"Rs. {var_price_raw}" if var_price_raw else product.price
+                var_stock = request.form.getlist('var_stock[]')[var_indices.index(idx)]
+                
+                var_img_file = request.files.get(f'var_img_{idx}')
+                var_img_url = save_image(var_img_file, 'products/variations') if var_img_file else None
+                
+                variation = ProductVariation(
+                    product_id=product.id,
+                    price=var_price,
+                    stock_status=var_stock,
+                    img_url=var_img_url
+                )
+                db.session.add(variation)
+                db.session.flush()
+                
+                # Link variation to selected attribute values
+                for a_id in attr_ids:
+                    val_id = request.form.get(f'var_attr_{a_id}[]') # Note: Template uses var_attr_{id}[] but since it's one select per variation, it might be tricky if multiple
+                    # Actually, if we have multiple variations, they are sent as lists.
+                    # Wait, let's check the template again.
+                    pass 
+                
+                # Correct way to get attribute values for THIS variation index
+                # The template sends lists like var_attr_1[], var_attr_2[] etc.
+                for a_id in attr_ids:
+                    var_attr_vals = request.form.getlist(f'var_attr_{a_id}[]')
+                    if len(var_attr_vals) > var_indices.index(idx):
+                        v_val_id = var_attr_vals[var_indices.index(idx)]
+                        if v_val_id:
+                            db.session.add(VariationOption(variation_id=variation.id, attribute_value_id=v_val_id))
+
         db.session.commit()
         flash('Product added successfully!', 'success')
         return redirect(url_for('admin.products'))
@@ -154,15 +207,14 @@ def edit_product(id):
         
     if request.method == 'POST':
         product.name = request.form.get('name')
-        price = request.form.get('price').replace('Rs.', '').strip()
-        product.price = f"Rs. {price}"
+        price_raw = request.form.get('price').replace('Rs.', '').replace('₹', '').replace(',', '').strip()
+        product.price = f"Rs. {price_raw}"
+        
         category_id = request.form.get('category_id') or None
         product.category_id = category_id
         product.sub_category_id = request.form.get('sub_category_id') or None
         product.brand_id = request.form.get('brand_id') or None
         product.badge = request.form.get('badge')
-        product.sizes = request.form.get('sizes')
-        product.colors = request.form.get('colors')
         product.desc = request.form.get('desc')
         product.product_type = request.form.get('product_type', 'simple')
         product.stock_status = request.form.get('stock_status', 'instock')
@@ -174,8 +226,74 @@ def edit_product(id):
         
         img_file = request.files.get('img')
         if img_file and img_file.filename:
+            # Delete old image if exists
+            if product.img: delete_image(product.img)
             product.img = save_image(img_file, 'products')
+            
+        size_chart_file = request.files.get('size_chart')
+        if size_chart_file and size_chart_file.filename:
+            if product.size_chart: delete_image(product.size_chart)
+            product.size_chart = save_image(size_chart_file, 'size_charts')
         
+        # Handle Attributes
+        ProductAttribute.query.filter_by(product_id=product.id).delete()
+        attr_ids = request.form.getlist('product_attributes[]')
+        for a_id in attr_ids:
+            if a_id:
+                db.session.add(ProductAttribute(product_id=product.id, attribute_id=a_id))
+                
+        # Handle Gallery Images
+        # Remove selected ones
+        remove_gallery_ids = request.form.getlist('remove_gallery[]')
+        for r_id in remove_gallery_ids:
+            img_obj = ProductImage.query.get(r_id)
+            if img_obj:
+                delete_image(img_obj.img_url)
+                db.session.delete(img_obj)
+        
+        # Add new ones
+        gallery_files = request.files.getlist('gallery[]')
+        for g_file in gallery_files:
+            if g_file and g_file.filename:
+                g_url = save_image(g_file, 'products/gallery')
+                if g_url:
+                    db.session.add(ProductImage(product_id=product.id, img_url=g_url))
+        
+        # Handle Variations
+        if product.product_type == 'variable':
+            # Clean up old variations
+            for old_var in product.variations:
+                if old_var.img_url: delete_image(old_var.img_url)
+                db.session.delete(old_var)
+            db.session.flush()
+            
+            var_indices = request.form.getlist('var_idx[]')
+            for idx in var_indices:
+                var_price_raw = request.form.getlist('var_price[]')[var_indices.index(idx)].replace('₹', '').replace(',', '').strip()
+                var_price = f"Rs. {var_price_raw}" if var_price_raw else product.price
+                var_stock = request.form.getlist('var_stock[]')[var_indices.index(idx)]
+                
+                # Check for existing image URL if not uploading a new one
+                existing_img = request.form.getlist('var_existing_img[]')[var_indices.index(idx)]
+                var_img_file = request.files.get(f'var_img_{idx}')
+                var_img_url = save_image(var_img_file, 'products/variations') if var_img_file else existing_img
+                
+                variation = ProductVariation(
+                    product_id=product.id,
+                    price=var_price,
+                    stock_status=var_stock,
+                    img_url=var_img_url
+                )
+                db.session.add(variation)
+                db.session.flush()
+                
+                for a_id in attr_ids:
+                    var_attr_vals = request.form.getlist(f'var_attr_{a_id}[]')
+                    if len(var_attr_vals) > var_indices.index(idx):
+                        v_val_id = var_attr_vals[var_indices.index(idx)]
+                        if v_val_id:
+                            db.session.add(VariationOption(variation_id=variation.id, attribute_value_id=v_val_id))
+
         db.session.commit()
         flash('Product updated successfully!', 'success')
         return redirect(url_for('admin.products'))
@@ -277,8 +395,26 @@ def orders():
 @admin_bp.route('/admin/attributes')
 @admin_required
 def admin_attributes():
-    all_attributes = Attribute.query.all()
-    return render_template('admin/attributes.html', attributes=all_attributes)
+    attributes = Attribute.query.all()
+    attr_data = []
+    for attr in attributes:
+        # In Dadson, variations use stock_status instead of stock_count
+        # We can count 'instock' variations or just sum up if we add stock_count
+        # For now, let's count 'instock' variations that use these values
+        total_instock = 0
+        value_ids = [v.id for v in attr.values]
+        if value_ids:
+            total_instock = ProductVariation.query.join(VariationOption)\
+                .filter(VariationOption.attribute_value_id.in_(value_ids))\
+                .filter(ProductVariation.stock_status == 'instock').count()
+        
+        attr_data.append({
+            'attr': attr,
+            'total_stock': total_instock,
+            'values_str': ", ".join([v.value for v in attr.values]),
+            'value_count': len(attr.values)
+        })
+    return render_template('admin/attributes.html', attributes=attr_data)
 
 @admin_bp.route('/admin/attribute/new', methods=['GET', 'POST'])
 @admin_required
@@ -286,12 +422,92 @@ def admin_attribute_new():
     if request.method == 'POST':
         name = request.form.get('name')
         slug = request.form.get('slug') or name.lower().replace(' ', '-')
-        attribute = Attribute(name=name, slug=slug)
+        attr_type = request.form.get('type', 'select')
+        image_url = request.form.get('image_url')
+        is_featured = True if request.form.get('is_featured') == 'on' else False
+        
+        # Check if already exists
+        existing = Attribute.query.filter_by(slug=slug).first()
+        if existing:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': False, 'error': 'Attribute already exists'}), 400
+            flash('Attribute already exists!', 'error')
+            return redirect(url_for('admin.admin_attributes'))
+
+        attribute = Attribute(name=name, slug=slug, type=attr_type, image_url=image_url, is_featured=is_featured)
         db.session.add(attribute)
+        db.session.flush()
+        
+        # Handle initial values
+        values_str = request.form.get('values')
+        if values_str:
+            vals = [v.strip() for v in values_str.split(',') if v.strip()]
+            for val in vals:
+                db.session.add(AttributeValue(attribute_id=attribute.id, value=val))
+        
         db.session.commit()
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': True, 'id': attribute.id, 'name': attribute.name})
+            
         flash('Attribute added successfully!', 'success')
         return redirect(url_for('admin.admin_attributes'))
     return render_template('admin/attribute_form.html')
+
+@admin_bp.route('/admin/attribute/edit/<int:attr_id>', methods=['GET', 'POST'])
+@admin_required
+def admin_attribute_edit(attr_id):
+    attribute = Attribute.query.get_or_404(attr_id)
+    if request.method == 'POST':
+        attribute.name = request.form.get('name')
+        attribute.slug = request.form.get('slug') or attribute.name.lower().replace(' ', '-')
+        attribute.type = request.form.get('type', 'select')
+        attribute.image_url = request.form.get('image_url')
+        attribute.is_featured = True if request.form.get('is_featured') == 'on' else False
+        
+        # Handle values sync (optional: simple version just adds new ones if we use a text area)
+        values_str = request.form.get('values')
+        if values_str:
+            # For simplicity, if they provide a list, we append any that don't exist
+            current_vals = [v.value for v in attribute.values]
+            new_vals = [v.strip() for v in values_str.split(',') if v.strip()]
+            for val in new_vals:
+                if val not in current_vals:
+                    db.session.add(AttributeValue(attribute_id=attribute.id, value=val))
+        
+        db.session.commit()
+        flash('Attribute updated successfully!', 'success')
+        return redirect(url_for('admin.admin_attributes'))
+        
+    vals_str = ", ".join([v.value for v in attribute.values])
+    return render_template('admin/attribute_form.html', attribute=attribute, vals_str=vals_str)
+
+@admin_bp.route('/admin/attribute/delete/<int:attr_id>', methods=['POST'])
+@admin_required
+def admin_attribute_delete(attr_id):
+    attribute = Attribute.query.get_or_404(attr_id)
+    db.session.delete(attribute)
+    db.session.commit()
+    flash('Attribute and all its values deleted!', 'success')
+    return redirect(url_for('admin.admin_attributes'))
+
+@admin_bp.route('/admin/attribute/<int:attr_id>/value/quick-add', methods=['POST'])
+@admin_required
+def admin_attribute_value_quick_add(attr_id):
+    data = request.get_json()
+    value_content = data.get('value')
+    if not value_content:
+        return jsonify({'success': False, 'error': 'Value is required'}), 400
+        
+    # Check if exists
+    existing = AttributeValue.query.filter_by(attribute_id=attr_id, value=value_content).first()
+    if existing:
+        return jsonify({'success': True, 'id': existing.id, 'existed': True})
+        
+    new_val = AttributeValue(attribute_id=attr_id, value=value_content)
+    db.session.add(new_val)
+    db.session.commit()
+    return jsonify({'success': True, 'id': new_val.id, 'existed': False})
 
 @admin_bp.route('/admin/attribute/<int:attr_id>/values', methods=['GET', 'POST'])
 @admin_required

@@ -23,12 +23,5 @@ jobs:
             git pull origin main
             ./venv/bin/pip install -r requirements.txt
             
-            # Restart Gunicorn (finding the process by port 5000)
-            PID=$(lsof -t -i:5000)
-            if [ -n "$PID" ]; then
-              kill $PID
-              sleep 2
-            fi
-            
-            # Restart the daemon
-            ./venv/bin/gunicorn --workers 3 --bind 127.0.0.1:5000 app:app --daemon
+            # Restart the systemd service
+            sudo systemctl restart dadson
