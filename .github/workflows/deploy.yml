@@ -1,0 +1,34 @@
+name: Deploy DADSON to AWS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ec2-user
+          key: ${{ secrets.AWS_PRIVATE_KEY }}
+          script: |
+            cd ~/dadson
+            git pull origin main
+            ./venv/bin/pip install -r requirements.txt
+            
+            # Restart Gunicorn (finding the process by port 5000)
+            PID=$(lsof -t -i:5000)
+            if [ -n "$PID" ]; then
+              kill $PID
+              sleep 2
+            fi
+            
+            # Restart the daemon
+            ./venv/bin/gunicorn --workers 3 --bind 127.0.0.1:5000 app:app --daemon
