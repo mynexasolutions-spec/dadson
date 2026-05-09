@@ -450,3 +450,19 @@ window.dadson = {
     showNotification,
     updateCartCount
 };
+// ==================== FAQ ACCORDION ====================
+document.querySelectorAll('.faq-question').forEach(button => {
+    button.addEventListener('click', () => {
+        const faqItem = button.parentElement;
+        
+        // Toggle active class on current item
+        faqItem.classList.toggle('active');
+        
+        // Optional: Close other items when one is opened
+        document.querySelectorAll('.faq-item').forEach(otherItem => {
+            if (otherItem !== faqItem) {
+                otherItem.classList.remove('active');
+            }
+        });
+    });
+});
