@@ -2,13 +2,14 @@
 
 {% from "macros.html" import product_card %}
 
+{% block title %}{{ product.name }} | DADSON Premium Jewellery{% endblock %}
+
 {% block content %}
 <div class="product-detail-page">
     <div class="detail-container">
-        <!-- LEFT: IMAGE VIEW -->
+        <!-- LEFT: GALLERY -->
         <div class="product-gallery">
             <div class="main-img">
-                {# Determine initial image: Use variation color image or product main image #}
                 {% set initial_img = product.img %}
                 {% if selected_variation %}
                     {% set color_opt = None %}
@@ -26,109 +27,166 @@
                 <img src="{{ initial_img }}" alt="{{ product.name }}" id="mainProductImg">
             </div>
 
-            {# Thumbnails #}
             <div class="gallery-thumbnails" id="galleryThumbs">
                 <div class="thumb active" onclick="changeMainImg('{{ product.img }}', this)" data-attr-val="none">
-                    <img src="{{ product.img }}" alt="Main">
+                    <img src="{{ product.img }}" alt="Main Preview">
                 </div>
                 {% for p_img in product.images %}
                 <div class="thumb" 
                     onclick="changeMainImg('{{ p_img.img_url }}', this)" 
                     data-attr-val="{{ p_img.attribute_value_id or 'none' }}"
-                    style="display: {{ 'block' if not selected_variation or p_img.attribute_value_id == color_opt.attribute_value_id else 'none' }}">
-                    <img src="{{ p_img.img_url }}" alt="Gallery">
+                    style="display: {{ 'block' if not selected_variation or not color_opt or p_img.attribute_value_id == color_opt.attribute_value_id else 'none' }}">
+                    <img src="{{ p_img.img_url }}" alt="Gallery View">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- RIGHT: PRODUCT INFO -->
+        <div class="product-info-sect">
+            <div class="product-meta-top">
+                <span class="cat-tag">{{ product.category.name if product.category else product.cat_name }}</span>
+                <div id="displayStock" class="stock-status-new {{ selected_variation.stock_status if selected_variation else product.stock_status }}">
+                    {% if (selected_variation.stock_status if selected_variation else product.stock_status) == 'instock' %}
+                    <span class="stock-dot"></span> In Stock
+                    {% else %}
+                    <span class="stock-dot out"></span> Out of Stock
+                    {% endif %}
+                </div>
+            </div>
+            
+            <h1 class="product-main-title">{{ product.name }}</h1>
+            
+            <div class="product-price-box">
+                <span class="price-now" id="displayPrice">{{ selected_variation.price if selected_variation else product.price }}</span>
+                {% set current_orig = selected_variation.orig_price if selected_variation else product.orig %}
+                <span class="price-was" id="displayOrig" style="display: {{ 'inline' if current_orig else 'none' }};">{{ current_orig }}</span>
+                <span class="save-badge" id="displayBadge" style="display: {{ 'inline' if current_orig else 'none' }};">
+                    {% if current_orig %}
+                        {% set p1 = (selected_variation.price if selected_variation else product.price)|replace('₹','')|replace(',','')|float %}
+                        {% set p2 = current_orig|replace('₹','')|replace(',','')|float %}
+                        {% if p2 > p1 %}
+                            {{ ((p2 - p1) / p2 * 100)|round|int }}% OFF
+                        {% else %}
+                            Special Offer
+                        {% endif %}
+                    {% else %}
+                        Special Offer
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="product-short-intro">
+                {{ product.desc[:180] }}{{ '...' if product.desc|length > 180 else '' }}
+            </div>
+
+            {# ATTR SELECTORS #}
+            <div class="attr-selectors-wrap">
+                {% for p_attr in product.attributes %}
+                <div class="attr-group-sect">
+                    <div class="attr-group-header">
+                        <span class="attr-label">{{ p_attr.attribute.name }}</span>
+                        {% if 'size' in p_attr.attribute.name.lower() and product.size_chart %}
+                        <a href="#sizeChartModal" class="size-link">Size Guide</a>
+                        {% endif %}
+                    </div>
+                    <div class="selector-grid {{ 'is-color' if 'color' in p_attr.attribute.name.lower() or 'metal' in p_attr.attribute.name.lower() else 'is-text' }}" id="attr-{{ p_attr.attribute.id }}">
+                        {% for val_obj in product.selected_values if val_obj.attribute_id == p_attr.attribute.id %}
+                        {% set val = val_obj.attribute_value %}
+                        <button class="premium-swatch" 
+                            data-attr-id="{{ p_attr.attribute.id }}" 
+                            data-val-id="{{ val.id }}"
+                            onclick="handleAttrSelect(this)">
+                            {% if val.image_url %}
+                            <div class="swatch-img" style="background-image: url('{{ val.image_url }}');"></div>
+                            {% elif '#' in val.value %}
+                            <div class="swatch-color" style="background-color: {{ val.value }};"></div>
+                            {% endif %}
+                            <span class="swatch-text">{{ val.value if '#' not in val.value else '' }}</span>
+                        </button>
+                        {% endfor %}
+                    </div>
                 </div>
                 {% endfor %}
             </div>
 
-            {% if product.size_chart %}
-            <div class="size-chart-link-wrap">
-                <a href="#sizeChartModal" class="size-chart-link"><i class="fas fa-ruler-combined"></i> View Size Chart</a>
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- RIGHT: INFO SECTION -->
-        <div class="product-info-sect">
-            <div class="detail-cat">
-                {{ product.category.name if product.category else product.cat_name }}
-                {% if product.subcategory %}
-                <span class="cat-sep">/</span> {{ product.subcategory.name }}
-                {% endif %}
-            </div>
-            <h1>{{ product.name }}</h1>
-            <div class="detail-price-row">
-                <span class="current-price" id="displayPrice">{{ selected_variation.price if selected_variation else product.price }}</span>
-                {% if product.orig %}
-                <span class="orig-price">{{ product.orig }}</span>
-                <span class="discount-tag">Offer</span>
-                {% endif %}
-            </div>
-
-            <div id="displayStock" class="stock-status {{ selected_variation.stock_status if selected_variation else product.stock_status }}">
-                {% if (selected_variation.stock_status if selected_variation else product.stock_status) == 'instock' %}
-                <i class="fas fa-check-circle"></i> In Stock
-                {% else %}
-                <i class="fas fa-times-circle"></i> Out of Stock
-                {% endif %}
-            </div>
-
-            <p class="description">
-                {{ product.desc or 'Exquisite fashion piece designed for elegance and comfort.' }}
-            </p>
-
-            {# Dynamic Attributes #}
-            {% for p_attr in product.attributes %}
-            <div class="variant-sect">
-                <div class="variant-header">
-                    <h4>Select {{ p_attr.attribute.name }}</h4>
-                </div>
-                <div class="selector-group {{ 'color-options' if 'color' in p_attr.attribute.name.lower() else '' }}" id="attr-{{ p_attr.attribute.id }}">
-                    {% set used_value_ids = product.variations|map(attribute='options')|sum(start=[])|map(attribute='attribute_value_id')|unique|list %}
-                    {% for val in p_attr.attribute.values if val.id in used_value_ids %}
-                    {# Check if this value is selected in the current variation deep-link #}
-                    {% set is_active = false %}
-                    {% if selected_variation %}
-                        {% for opt in selected_variation.options if opt.attribute_value_id == val.id %}
-                            {% set is_active = true %}
-                        {% endfor %}
-                    {% elif loop.first %}
-                        {% set is_active = true %}
-                    {% endif %}
-
-                    <button class="attr-btn {{ 'active' if is_active }}" 
-                        data-attr-id="{{ p_attr.attribute.id }}" 
-                        data-val-id="{{ val.id }}"
-                        onclick="handleAttrSelect(this)">
-                        {% if val.image_url %}
-                        <img src="{{ val.image_url }}" class="swatch-img" alt="{{ val.value }}">
-                        {% endif %}
-                        {{ val.value }}
-                    </button>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endfor %}
-
-            <div class="action-btns">
-                <button class="add-to-cart" data-id="{{ product.id }}" onclick="addToCart(this)">Add to Cart</button>
-                <button class="wishlist-btn-large {% if product.id in session.get('wishlist', []) %}active{% endif %}"
-                    onclick="toggleWishlist(event, '{{ product.id }}', true)">
-                    <img src="https://api.iconify.design/lucide:heart.svg?color=%238b1a2a" alt="wishlist">
+            <div class="main-actions-row">
+                <button id="addToCartBtn" class="btn-add-bag-premium" data-id="{{ product.id }}" onclick="addToCart(this)" {{ 'disabled' if product.product_type == 'variable' }}>
+                    Add to Bag
+                </button>
+                {% set in_wishlist = product.id in session.get('wishlist', []) %}
+                <button class="btn-wish-circle-premium {{ 'active' if in_wishlist }}" onclick="toggleWishlist()" title="Add to Wishlist">
+                    <i class="{{ 'fas' if in_wishlist else 'far' }} fa-heart" id="wish-icon"></i>
                 </button>
             </div>
 
-            <div class="trust-points">
-                <div class="point">✨ Authentic Handloom</div>
-                <div class="point">🚚 Free Shipping across India</div>
-                <div class="point">🔄 7-Day Easy Returns</div>
+            <div class="product-info-accordions">
+                <div class="info-acc-item active">
+                    <div class="info-acc-header" onclick="toggleAccordion(this)">
+                        <span>The Story & Details</span>
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="info-acc-content">
+                        <p>{{ product.desc }}</p>
+                    </div>
+                </div>
+                
+                {% if product.materials and product.materials != 'None' and product.materials != '' %}
+                <div class="info-acc-item">
+                    <div class="info-acc-header" onclick="toggleAccordion(this)">
+                        <span>Materials & Craftsmanship</span>
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="info-acc-content">
+                        <p>{{ product.materials }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if product.care and product.care != 'None' and product.care != '' %}
+                <div class="info-acc-item">
+                    <div class="info-acc-header" onclick="toggleAccordion(this)">
+                        <span>Care Instructions</span>
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="info-acc-content">
+                        <p>{{ product.care }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="info-acc-item">
+                    <div class="info-acc-header" onclick="toggleAccordion(this)">
+                        <span>Shipping & Returns</span>
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="info-acc-content">
+                        <p>Complimentary shipping on all orders. Each piece is handcrafted to order and typically ships within 3-5 business days. Returns accepted within 14 days.</p>
+                    </div>
+                </div>
             </div>
+
+            <div class="premium-trust-row">
+                <div class="trust-item-box">
+                    <i class="fas fa-gem"></i>
+                    <span>Authentic Quality</span>
+                </div>
+                <div class="trust-item-box">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Secure Checkout</span>
+                </div>
+                <div class="trust-item-box">
+                    <i class="fas fa-history"></i>
+                    <span>Lifetime Brilliance</span>
+                </div>
+            </div>
+        </div>
         </div>
     </div>
 
     <!-- RELATED PRODUCTS -->
     <section class="related-products">
-        <h2 class="related-title">You May Also Like</h2>
+        <h2 class="related-title">Complete The Look</h2>
         <div class="related-grid">
             {% for p in related %}
             {{ product_card(p) }}
@@ -141,138 +199,104 @@
 {% if product.size_chart %}
 <div id="sizeChartModal" class="modal">
     <div class="modal-content">
-        <span class="close-modal">&times;</span>
-        <h2>Size Chart</h2>
-        <img src="{{ product.size_chart }}" alt="Size Chart" style="width: 100%; border-radius: 10px;">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <h2 style="font-family: 'Playfair Display', serif; margin-bottom: 1.5rem;">Size Guide</h2>
+        <img src="{{ product.size_chart }}" alt="Size Chart" style="width: 100%; border-radius: 4px;">
     </div>
 </div>
 {% endif %}
 
+{% endblock %}
+
+{% block head %}
 <style>
-    .size-chart-link-wrap {
-        margin-top: 1rem;
-        text-align: center;
-    }
+    /* Premium Product Page Design */
+    .product-info-sect { padding-left: 40px; }
+    
+    .product-meta-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .cat-tag { font-size: 0.75rem; font-weight: 700; color: #b88a44; text-transform: uppercase; letter-spacing: 1.5px; }
+    
+    .stock-status-new { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; color: #10b981; }
+    .stock-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); }
+    .stock-dot.out { background: #ef4444; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1); }
+    .stock-status-new.outofstock { color: #ef4444; }
 
-    .size-chart-link {
-        color: var(--crimson);
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 0.9rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
+    .product-main-title { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: #241914; margin-bottom: 15px; line-height: 1.2; }
+    
+    .product-price-box { display: flex; align-items: baseline; gap: 15px; margin-bottom: 25px; }
+    .price-now { font-size: 1.8rem; font-weight: 800; color: #241914; }
+    .price-was { font-size: 1.2rem; color: #7d6b61; text-decoration: line-through; }
+    .save-badge { background: #fdfaf6; color: #b88a44; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(184, 138, 68, 0.2); }
 
-    .size-chart-link:hover {
-        text-decoration: underline;
-    }
+    .product-short-intro { color: #64748b; line-height: 1.6; margin-bottom: 35px; font-size: 0.95rem; }
 
-    .variant-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-    }
+    .attr-group-sect { margin-bottom: 30px; }
+    .attr-group-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+    .attr-label { font-size: 0.8rem; font-weight: 700; color: #241914; text-transform: uppercase; letter-spacing: 1px; }
+    .size-link { font-size: 0.75rem; color: #b88a44; text-decoration: none; border-bottom: 1px solid #b88a44; font-weight: 600; }
 
-    .selector-group {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin-bottom: 24px;
+    .selector-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+    
+    .premium-swatch { 
+        background: #fff; border: 1.5px solid #e2e8f0; border-radius: 30px; padding: 6px 16px; 
+        cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 10px;
     }
+    .premium-swatch:hover { border-color: #b88a44; background: #fdfaf6; }
+    .premium-swatch.active { border-color: #241914; background: #241914; color: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(36, 25, 20, 0.15); }
 
-    .attr-btn {
-        padding: 10px 24px;
-        border: 1.5px solid #e2e8f0;
-        background: #fff;
-        border-radius: 12px;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 14px;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: var(--text);
+    .swatch-color { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); }
+    .swatch-img { width: 18px; height: 18px; border-radius: 50%; background-size: cover; background-position: center; border: 1px solid rgba(0,0,0,0.1); }
+    .premium-swatch.active .swatch-color, .premium-swatch.active .swatch-img { border-color: rgba(255,255,255,0.3); }
+    .swatch-text { font-size: 0.85rem; font-weight: 600; }
+
+    .main-actions-row { display: flex; gap: 15px; margin: 40px 0; }
+    .btn-add-bag-premium { 
+        flex: 1; height: 60px; background: #241914; color: #fff; border: none; border-radius: 30px; 
+        font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; letter-spacing: 0.5px;
     }
+    .btn-add-bag-premium:hover { background: #3d2b23; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(36, 25, 20, 0.2); }
+    .btn-add-bag-premium:disabled { background: #cbd5e1; color: #64748b; cursor: not-allowed; transform: none; box-shadow: none; }
 
-    .attr-btn:hover {
-        border-color: var(--crimson);
-        background: #fdf2f2;
+    .btn-wish-circle-premium { 
+        width: 60px; height: 60px; border-radius: 50%; border: 1.5px solid #241914; background: #fff;
+        display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s;
+        color: #241914; font-size: 1.2rem;
     }
+    .btn-wish-circle-premium:hover { background: #fdfaf6; border-color: #b88a44; color: #b88a44; }
+    .btn-wish-circle-premium.active { background: #241914; color: #fff; }
 
-    .attr-btn.active {
-        border-color: var(--crimson);
-        background: var(--crimson);
-        color: #fff;
-        box-shadow: 0 4px 12px rgba(139, 26, 42, 0.2);
+    .product-info-accordions { margin-top: 40px; border-top: 1px solid #f1f5f9; }
+    .info-acc-item { border-bottom: 1px solid #f1f5f9; }
+    .info-acc-header { 
+        padding: 20px 0; display: flex; justify-content: space-between; align-items: center; 
+        cursor: pointer; font-weight: 700; color: #241914; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;
     }
+    .info-acc-header i { font-size: 0.8rem; transition: transform 0.3s; }
+    .info-acc-item.active .info-acc-header i { transform: rotate(45deg); }
+    .info-acc-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; color: #64748b; font-size: 0.95rem; line-height: 1.7; }
+    .info-acc-item.active .info-acc-content { max-height: 500px; padding-bottom: 20px; }
 
-    .swatch-img {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 1px solid rgba(0,0,0,0.1);
-    }
+    .premium-trust-row { display: flex; justify-content: space-between; margin-top: 50px; padding: 25px; background: #fdfaf6; border-radius: 20px; }
+    .trust-item-box { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; }
+    .trust-item-box i { color: #b88a44; font-size: 1.4rem; }
+    .trust-item-box span { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #7d6b61; text-align: center; }
 
-    .stock-status {
-        margin: 1rem 0;
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-
-    .stock-status.instock {
-        color: #10b981;
-    }
-
-    .stock-status.outofstock {
-        color: #ef4444;
-    }
-
-    /* Modal Styles */
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 2000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(5px);
-    }
-
-    .modal-content {
-        background-color: #fff;
-        margin: 5% auto;
-        padding: 30px;
-        border-radius: 20px;
-        width: 90%;
-        max-width: 600px;
-        position: relative;
-    }
-
-    .close-modal {
-        position: absolute;
-        right: 20px;
-        top: 15px;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
+    @media (max-width: 992px) {
+        .product-info-sect { padding-left: 0; margin-top: 40px; }
+        .product-main-title { font-size: 2rem; }
     }
 </style>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    // Variation selection
+    // Variation data from server
     const variations = [
         {% for var in product.variations %}
         {
             "id": {{ var.id }},
             "price": "{{ var.price }}",
+            "orig_price": "{{ var.orig_price or '' }}",
             "stock": "{{ var.stock_status }}",
             "img": "{{ var.img_url or '' }}",
             "options": {
@@ -284,30 +308,50 @@
         {% endfor %}
     ];
 
+    function toggleAccordion(header) {
+        const item = header.parentElement;
+        item.classList.toggle('active');
+    }
+
     function changeMainImg(url, thumb) {
+        if (!url || url === 'None' || url === '') return;
         document.getElementById('mainProductImg').src = url;
         document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
         if (thumb) thumb.classList.add('active');
     }
 
     function handleAttrSelect(btn) {
-        const group = btn.closest('.selector-group');
-        group.querySelectorAll('.attr-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        // Instant Image Update: Find first variation that matches this specific attribute value
-        const valId = btn.getAttribute('data-val-id');
-        const attrId = btn.getAttribute('data-attr-id');
-        const firstMatch = variations.find(v => v.options[attrId] == valId);
+        const isAlreadyActive = btn.classList.contains('active');
+        const group = btn.closest('.selector-grid');
         
-        if (firstMatch && firstMatch.img && firstMatch.img !== 'None' && firstMatch.img !== '') {
-            document.getElementById('mainProductImg').src = firstMatch.img;
-        }
+        // Remove active from all in this group
+        group.querySelectorAll('.premium-swatch').forEach(b => b.classList.remove('active'));
+        
+        if (!isAlreadyActive) {
+            btn.classList.add('active');
+            
+            const valId = btn.getAttribute('data-val-id');
+            const attrId = btn.getAttribute('data-attr-id');
+            
+            // Instant Image Update for colors
+            const firstMatch = variations.find(v => v.options[attrId] == valId);
+            if (firstMatch && firstMatch.img && firstMatch.img !== 'None' && firstMatch.img !== '') {
+                document.getElementById('mainProductImg').src = firstMatch.img;
+            }
 
-        // Check if it's a color selection to filter gallery
-        const attrName = btn.closest('.variant-sect').querySelector('h4').innerText.toLowerCase();
-        if (attrName.includes('color')) {
-            filterGallery(valId);
+            // Check if it's a color selection to filter gallery
+            const attrSect = btn.closest('.attr-group-sect');
+            const attrTitle = attrSect ? attrSect.querySelector('.attr-label').innerText.toLowerCase() : '';
+            if (attrTitle.includes('color')) {
+                filterGallery(valId);
+            }
+        } else {
+            // Unselected - Reset gallery filter if it was a color
+            const attrSect = btn.closest('.attr-group-sect');
+            const attrTitle = attrSect ? attrSect.querySelector('.attr-label').innerText.toLowerCase() : '';
+            if (attrTitle.includes('color')) {
+                filterGallery(null);
+            }
         }
 
         updateVariationInfo();
@@ -319,70 +363,129 @@
 
         thumbs.forEach(t => {
             const attrVal = t.getAttribute('data-attr-val');
-            if (attrVal === 'none' || attrVal === valId) {
+            // If no valId is provided (unselected), show all images
+            if (!valId || attrVal === 'none' || attrVal === valId) {
                 t.style.display = 'block';
-                if (!firstVisible && attrVal !== 'none') firstVisible = t;
+                if (!firstVisible && (attrVal !== 'none' || !valId)) firstVisible = t;
             } else {
                 t.style.display = 'none';
             }
         });
 
-        if (firstVisible) {
-            firstVisible.click();
-        }
+        if (firstVisible) firstVisible.click();
     }
 
     function updateVariationInfo() {
         const selected = {};
-        document.querySelectorAll('.attr-btn.active').forEach(btn => {
+        const attrGroups = document.querySelectorAll('.attr-group-sect');
+        const totalGroups = attrGroups.length;
+        
+        document.querySelectorAll('.premium-swatch.active').forEach(btn => {
             selected[btn.getAttribute('data-attr-id')] = btn.getAttribute('data-val-id');
         });
 
+        const selectedCount = Object.keys(selected).length;
+        const addToCartBtn = document.getElementById('addToCartBtn');
+
+        if (selectedCount < totalGroups) {
+            addToCartBtn.disabled = true;
+            addToCartBtn.innerText = 'Add to Bag';
+            return;
+        }
+
         const match = variations.find(v => {
-            return Object.keys(v.options).every(attrId => v.options[attrId] == selected[attrId]);
+            // Check if every selected attribute matches this variation
+            return Object.keys(v.options).every(attrId => {
+                return v.options[attrId] == selected[attrId];
+            });
         });
 
         if (match) {
-            // Update Price & Stock
             document.getElementById('displayPrice').innerText = match.price;
-            const stockSect = document.getElementById('displayStock');
-            if (match.stock === 'instock') {
-                stockSect.className = 'stock-status instock';
-                stockSect.innerHTML = '<i class="fas fa-check-circle"></i> In Stock';
+            
+            const origPriceEl = document.getElementById('displayOrig');
+            const discountTag = document.getElementById('displayBadge');
+            
+            if (match.orig_price && match.orig_price !== '') {
+                origPriceEl.innerText = match.orig_price;
+                origPriceEl.style.display = 'inline';
+                
+                const pNow = parseFloat(match.price.replace(/[₹,]/g, ''));
+                const pWas = parseFloat(match.orig_price.replace(/[₹,]/g, ''));
+                
+                if (pWas > pNow) {
+                    const pct = Math.round(((pWas - pNow) / pWas) * 100);
+                    discountTag.innerText = `${pct}% OFF`;
+                } else {
+                    discountTag.innerText = 'Special Offer';
+                }
+                discountTag.style.display = 'inline';
             } else {
-                stockSect.className = 'stock-status outofstock';
-                stockSect.innerHTML = '<i class="fas fa-times-circle"></i> Out of Stock';
+                origPriceEl.style.display = 'none';
+                discountTag.style.display = 'none';
             }
 
-            // Update Image if variation has one
+            const stockSect = document.getElementById('displayStock');
+            console.log("Matched Variation Stock Status:", match.stock);
+            if (match.stock && match.stock.toLowerCase().replace(' ', '') === 'instock') {
+                stockSect.className = 'stock-status-new instock';
+                stockSect.innerHTML = '<span class="stock-dot"></span> In Stock';
+                addToCartBtn.disabled = false;
+                addToCartBtn.innerText = 'Add to Bag';
+            } else {
+                stockSect.className = 'stock-status-new outofstock';
+                stockSect.innerHTML = '<span class="stock-dot out"></span> Out of Stock';
+                addToCartBtn.disabled = true;
+                addToCartBtn.innerText = 'Out of Stock';
+            }
+
             if (match.img && match.img !== 'None' && match.img !== '') {
                 document.getElementById('mainProductImg').src = match.img;
             }
 
-            // Update URL without reload to feel like individual page
             const newUrl = window.location.pathname + '?v=' + match.id;
             window.history.pushState({path: newUrl}, '', newUrl);
+        } else {
+            console.log("Selection Debug - Selected:", selected, "Variations Array:", variations);
+            addToCartBtn.disabled = true;
+            addToCartBtn.innerText = variations.length === 0 ? 'Out of Stock' : 'Unavailable';
         }
     }
 
     function addToCart(btn) {
         const productId = btn.getAttribute('data-id');
+        const isVariable = variations.length > 0;
         const selected = {};
-        document.querySelectorAll('.attr-btn.active').forEach(btn => {
-            selected[btn.getAttribute('data-attr-id')] = btn.getAttribute('data-val-id');
-        });
+        
+        if (isVariable) {
+            document.querySelectorAll('.premium-swatch.active').forEach(btn => {
+                selected[btn.getAttribute('data-attr-id')] = btn.getAttribute('data-val-id');
+            });
 
-        const match = variations.find(v => {
-            return Object.keys(v.options).every(attrId => v.options[attrId] == selected[attrId]);
-        });
+            const match = variations.find(v => {
+                return Object.keys(v.options).every(attrId => v.options[attrId] == selected[attrId]);
+            });
 
-        if (!match) {
-            alert("Please select all options.");
-            return;
+            if (!match) {
+                alert("Please select all options before adding to Bag.");
+                return;
+            }
+            
+            performAddToCart(btn, productId, match.id);
+        } else {
+            performAddToCart(btn, productId, null);
         }
+    }
+
+    function performAddToCart(btn, productId, variationId) {
+        const originalText = btn.innerText;
+        btn.innerText = 'Adding...';
+        btn.disabled = true;
 
         const formData = new FormData();
-        formData.append('variation_id', match.id);
+        if (variationId) {
+            formData.append('variation_id', variationId);
+        }
 
         fetch(`/add-to-cart/${productId}`, {
             method: 'POST',
@@ -394,35 +497,78 @@
             if (data.success) {
                 const badge = document.getElementById('cartBadge');
                 if (badge) badge.innerText = data.cart_count;
-                btn.innerText = 'Added to Bag!';
-                btn.style.background = '#10b981';
+                
+                btn.innerText = '✓ Added';
+                btn.classList.add('added');
+                
                 setTimeout(() => {
-                    btn.innerText = 'Add to Cart';
-                    btn.style.background = '';
+                    btn.innerText = originalText;
+                    btn.classList.remove('added');
+                    btn.disabled = false;
                 }, 2000);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            btn.innerText = 'Error';
+            btn.disabled = false;
+        });
+    }    function toggleWishlist() {
+        const btn = document.querySelector('.btn-wish-circle-premium');
+        const icon = document.getElementById('wish-icon');
+        const productId = "{{ product.id }}";
+        const isVariable = variations.length > 0;
+        let idToToggle = productId;
+        
+        if (isVariable) {
+            const selected = {};
+            document.querySelectorAll('.premium-swatch.active').forEach(b => {
+                selected[b.getAttribute('data-attr-id')] = b.getAttribute('data-val-id');
+            });
+            
+            const attrGroupsCount = document.querySelectorAll('.attr-group-sect').length;
+            if (Object.keys(selected).length === attrGroupsCount) {
+                const match = variations.find(v => {
+                    return Object.keys(v.options).every(attrId => v.options[attrId] == selected[attrId]);
+                });
+                if (match) idToToggle = `var:${match.id}`;
+            }
+        }
+
+        fetch(`/toggle-wishlist/${idToToggle}`, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                if (data.action === 'added') {
+                    btn.classList.add('active');
+                    icon.className = 'fas fa-heart';
+                } else {
+                    btn.classList.remove('active');
+                    icon.className = 'far fa-heart';
+                }
+                const badge = document.getElementById('wishlistBadge');
+                if (badge) badge.innerText = data.wishlist_count;
             }
         });
     }
 
     // Modal logic
-    const modal = document.getElementById("sizeChartModal");
-    const link = document.querySelector(".size-chart-link");
-    const close = document.querySelector(".close-modal");
+    function closeModal() {
+        document.getElementById("sizeChartModal").style.display = "none";
+    }
 
-    if (link) {
-        link.onclick = function (e) {
+    document.querySelectorAll(".size-link").forEach(link => {
+        link.onclick = function(e) {
             e.preventDefault();
-            modal.style.display = "block";
+            document.getElementById("sizeChartModal").style.display = "block";
         }
-    }
+    });
 
-    if (close) {
-        close.onclick = function () {
-            modal.style.display = "none";
-        }
-    }
-
-    window.onclick = function (event) {
+    window.onclick = function(event) {
+        const modal = document.getElementById("sizeChartModal");
         if (event.target == modal) {
             modal.style.display = "none";
         }

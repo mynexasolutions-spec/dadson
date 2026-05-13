@@ -16,69 +16,91 @@ def view_cart():
     cart = session.get('cart', {})
     cart_items = []
     subtotal = 0
-    for product_id, quantity in cart.items():
+    for product_id, quantity in list(cart.items()):
         product = None
         variation = None
-        size, color = None, None
         display_price = 0
+        variant_labels = [] # To store list of {name: '', value: ''}
 
         if product_id.startswith('var:'):
-            var_id = product_id.split(':')[1]
-            variation = ProductVariation.query.get(var_id)
+            try:
+                var_id = int(product_id.split(':')[1])
+                variation = ProductVariation.query.get(var_id)
+                if variation:
+                    product = variation.product
+                    display_price = safe_price(variation.price)
+            except (ValueError, IndexError):
+                pass
+            
             if variation:
-                product = variation.product
-                display_price = safe_price(variation.price)
                 for opt in variation.options:
-                    attr_name = opt.attribute_value.attribute.name.lower()
-                    if 'size' in attr_name: size = opt.attribute_value.value
-                    if 'color' in attr_name: color = opt.attribute_value.value
+                    variant_labels.append({
+                        'name': opt.attribute_value.attribute.name,
+                        'value': opt.attribute_value.value
+                    })
         else:
-            base_id = product_id.split('_')[0]
-            product = Product.query.get(base_id)
-            if product:
-                display_price = safe_price(product.price)
-                if '_' in product_id:
-                    parts = product_id.split('_')
-                    if len(parts) >= 3:
-                        size = parts[1] if parts[1] != 'NA' else None
-                        color = parts[2] if parts[2] != 'NA' else None
+            try:
+                base_id = product_id.split('_')[0]
+                product = Product.query.get(base_id)
+                if product:
+                    display_price = safe_price(product.price)
+                    if '_' in product_id:
+                        parts = product_id.split('_')
+                        if len(parts) >= 2 and parts[1] != 'NA': variant_labels.append({'name': 'Size', 'value': parts[1]})
+                        if len(parts) >= 3 and parts[2] != 'NA': variant_labels.append({'name': 'Color', 'value': parts[2]})
+            except (IndexError, ValueError):
+                pass
 
         if product:
             item_total = display_price * quantity
             subtotal += item_total
             var_img = None
             if variation:
-                color_opt = next((opt for opt in variation.options if 'color' in opt.attribute_value.attribute.name.lower()), None)
-                if color_opt:
-                    for p_img in product.images:
-                        if p_img.attribute_value_id == color_opt.attribute_value_id:
-                            var_img = p_img.img_url
-                            break
+                # Use variation specific image if it exists
+                var_img = variation.img_url
+                # Fallback to color matched gallery image if variation image is empty
+                if not var_img:
+                    color_opt = next((opt for opt in variation.options if 'color' in opt.attribute_value.attribute.name.lower()), None)
+                    if color_opt:
+                        for p_img in product.images:
+                            if p_img.attribute_value_id == color_opt.attribute_value_id:
+                                var_img = p_img.img_url
+                                break
 
+            orig_price = safe_price(variation.orig_price) if variation and variation.orig_price else safe_price(product.orig)
+            
             cart_items.append({
                 'id': product_id,
                 'product': product,
                 'variation': variation,
                 'quantity': quantity,
-                'item_total': f"Rs. {item_total:,}",
-                'display_price': f"Rs. {display_price:,}",
+                'item_total': f"₹{item_total:,}",
+                'display_price': f"₹{display_price:,}",
+                'orig_price': f"₹{orig_price:,}" if orig_price else None,
                 'var_img': var_img,
-                'size': size,
-                'color': color
+                'variant_labels': variant_labels
             })
-    return render_template('cart.html', cart_items=cart_items, subtotal=f"Rs. {subtotal:,}")
+        else:
+            # Cleanup: Remove "ghost" items that don't exist in DB
+            cart.pop(product_id, None)
+            session['cart'] = cart
+            session.modified = True
+    return render_template('cart.html', cart_items=cart_items, subtotal=f"₹{subtotal:,}")
 
 @cart_bp.route('/add-to-cart/<id>', methods=['POST'])
 def add_to_cart(id):
-    variation_id = request.form.get('variation_id')
-    if variation_id:
-        cart_key = f"var:{variation_id}"
-    else:
-        size = request.form.get('size')
-        color = request.form.get('color')
+    if id.startswith('var:'):
         cart_key = id
-        if size or color:
-            cart_key = f"{id}_{size or 'NA'}_{color or 'NA'}"
+    else:
+        variation_id = request.form.get('variation_id')
+        if variation_id:
+            cart_key = f"var:{variation_id}"
+        else:
+            size = request.form.get('size')
+            color = request.form.get('color')
+            cart_key = id
+            if size or color:
+                cart_key = f"{id}_{size or 'NA'}_{color or 'NA'}"
         
     cart = session.get('cart', {})
     cart[cart_key] = cart.get(cart_key, 0) + 1
@@ -107,9 +129,12 @@ def update_cart(id):
         from models import ProductVariation
         display_price = 0
         if id.startswith('var:'):
-            var_id = id.split(':')[1]
-            var = ProductVariation.query.get(var_id)
-            if var: display_price = safe_price(var.price)
+            try:
+                var_id = int(id.split(':')[1])
+                var = ProductVariation.query.get(var_id)
+                if var: display_price = safe_price(var.price)
+            except (ValueError, IndexError):
+                pass
         else:
             base_id = id.split('_')[0]
             product = Product.query.get(base_id)
@@ -119,9 +144,12 @@ def update_cart(id):
         total = 0
         for pid, qty in cart.items():
             if pid.startswith('var:'):
-                v_id = pid.split(':')[1]
-                v = ProductVariation.query.get(v_id)
-                if v: total += safe_price(v.price) * qty
+                try:
+                    v_id = int(pid.split(':')[1])
+                    v = ProductVariation.query.get(v_id)
+                    if v: total += safe_price(v.price) * qty
+                except (ValueError, IndexError):
+                    pass
             else:
                 base_pid = pid.split('_')[0]
                 p = Product.query.get(base_pid)

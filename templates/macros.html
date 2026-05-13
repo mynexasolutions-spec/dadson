@@ -25,6 +25,11 @@
     <div class="product-img-wrap">
         <a href="{{ url_for('public.product_detail', id=product.id, v=variation.id if variation else None) }}">
             <img src="{{ display_img }}" alt="{{ product.name }}" loading="lazy">
+            <!-- Mobile category-card style overlay (visible only in new arrivals on mobile) -->
+            <div class="na-mobile-overlay">
+                <div class="na-mobile-name">{{ product.name }}</div>
+                <div class="na-mobile-price">{{ variation.price if variation else product.price }}</div>
+            </div>
         </a>
         {% if product.badge %}
         <span class="product-badge {{ product.badge.lower() }}">
@@ -41,11 +46,6 @@
                 alt="wishlist">
             {% endif %}
         </div>
-        <!-- Mobile category-card style overlay (visible only in new arrivals on mobile) -->
-        <div class="na-mobile-overlay">
-            <div class="na-mobile-name">{{ product.name }}</div>
-            <div class="na-mobile-price">{{ variation.price if variation else product.price }}</div>
-        </div>
     </div>
     <div class="product-info">
         <div class="product-category">
@@ -54,20 +54,47 @@
             / {{ product.subcategory.name }}
             {% endif %}
         </div>
-        <div class="product-name">
-            {{ product.name }}
-            {% if variation %}
-                {% for opt in variation.options if 'color' in opt.attribute_value.attribute.name.lower() %}
-                    - {{ opt.attribute_value.value }}
-                {% endfor %}
-            {% endif %}
-        </div>
+        <a href="{{ url_for('public.product_detail', id=product.id, v=variation.id if variation else None) }}" style="text-decoration: none; color: inherit;">
+            <div class="product-name">
+                {{ product.name }}
+                {% if variation %}
+                    {% for opt in variation.options if 'color' in opt.attribute_value.attribute.name.lower() %}
+                        - {{ opt.attribute_value.value }}
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </a>
         <div class="product-prices">
             <span class="product-price">{{ variation.price if variation else product.price }}</span>
             {% if product.orig %}
-            <span class="product-price-original">{{ product.orig }}</span>
+            <span class="original-price">{{ product.orig }}</span>
             {% endif %}
         </div>
+
+        {# Color Swatches for Variable Products #}
+        {% if product.product_type == 'variable' %}
+        <div class="card-swatches">
+            {% set seen_colors = [] %}
+            {% for var in product.variations %}
+                {% for opt in var.options %}
+                    {% if 'color' in opt.attribute_value.attribute.name.lower() or 'metal' in opt.attribute_value.attribute.name.lower() %}
+                        {% if opt.attribute_value.id not in seen_colors %}
+                            {% if seen_colors|length < 5 %}
+                                <div class="card-swatch" 
+                                     style="background: {{ opt.attribute_value.value if '#' in opt.attribute_value.value else ('url(' + opt.attribute_value.image_url + ') center/cover' if opt.attribute_value.image_url else '#eee') }};"
+                                     title="{{ opt.attribute_value.value }}">
+                                </div>
+                                {% set _ = seen_colors.append(opt.attribute_value.id) %}
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+            {% if seen_colors|length > 5 %}
+                <span class="more-swatches">+{{ seen_colors|length - 5 }}</span>
+            {% endif %}
+        </div>
+        {% endif %}
         <button class="product-add-btn add-to-cart-ajax" data-id="{{ product.id }}">Add to Cart</button>
     </div>
 </div>

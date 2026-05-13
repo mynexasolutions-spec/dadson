@@ -26,6 +26,8 @@ def home():
             expanded_products.append({'product': p, 'variation': None})
 
     new_arrivals = [p for p in expanded_products if p['product'].badge == 'New'][:8]
+    if not new_arrivals:
+        new_arrivals = expanded_products[:8]
     featured_products = [p for p in expanded_products if p['product'].is_featured][:8]
     
     category_sections = []
@@ -110,8 +112,34 @@ def about():
 @public_bp.route('/wishlist')
 def wishlist():
     wishlist_ids = session.get('wishlist', [])
-    products = Product.query.filter(Product.id.in_(wishlist_ids)).all()
-    return render_template('wishlist.html', products=products)
+    wishlist_items = []
+    
+    for item_id in wishlist_ids:
+        product = None
+        variation = None
+        if item_id.startswith('var:'):
+            from models import ProductVariation
+            var_id = item_id.split(':')[1]
+            variation = ProductVariation.query.get(var_id)
+            if variation:
+                product = variation.product
+        else:
+            product = Product.query.get(item_id)
+            
+        if product:
+            wishlist_items.append({
+                'id': item_id,
+                'product': product,
+                'variation': variation,
+                'display_price': variation.price if variation else product.price,
+                'display_img': variation.img_url if (variation and variation.img_url) else product.img,
+                'variant_labels': [{
+                    'name': opt.attribute_value.attribute.name,
+                    'value': opt.attribute_value.value
+                } for opt in variation.options] if variation else []
+            })
+            
+    return render_template('wishlist.html', items=wishlist_items)
 
 @public_bp.route('/privacy-policy')
 def privacy():

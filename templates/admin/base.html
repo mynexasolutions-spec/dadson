@@ -10,6 +10,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@300;400;500;600&display=swap"
         rel="stylesheet">
+    {% block head %}{% endblock %}
 </head>
 
 <body>
@@ -50,6 +51,9 @@
                     <li class="{{ 'active' if 'coupon' in request.endpoint }}">
                         <a href="{{ url_for('admin.coupons') }}"><i class="fas fa-ticket-alt"></i> Coupons</a>
                     </li>
+                    <li class="{{ 'active' if 'subscriber' in request.endpoint }}">
+                        <a href="{{ url_for('admin.subscribers') }}"><i class="fas fa-envelope"></i> Subscribers</a>
+                    </li>
                     <li class="{{ 'active' if 'setting' in request.endpoint }}">
                         <a href="{{ url_for('admin.settings') }}"><i class="fas fa-cog"></i> Settings</a>
                     </li>
@@ -69,9 +73,9 @@
                     <button class="mobile-toggle" id="sidebarToggle">
                         <i class="fas fa-bars"></i>
                     </button>
-                    <div class="search-bar">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Search anything...">
+                    <div class="search-bar" style="max-width: 400px; width: 100%; display: flex; align-items: center; background: #f8fafc; border-radius: 12px; padding: 0 15px; border: 1.5px solid #f1f5f9;">
+                        <i class="fas fa-search" style="color: #94a3b8; font-size: 0.9rem;"></i>
+                        <input type="text" placeholder="Search anything..." style="border: none; background: transparent; padding: 12px 15px; width: 100%; outline: none; font-size: 0.9rem; color: #1e293b;">
                     </div>
                 </div>
                 <div class="header-right">

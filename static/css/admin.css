@@ -1,23 +1,19 @@
 :root {
-    --primary: #b88a44;
-    /* DADSON Gold */
-    --primary-light: #d2b276;
-    --primary-dark: #8e6a34;
-    --secondary: #ead8bc;
-    --bg-main: #f8f5f1;
-    /* DADSON Light Cream */
-    --sidebar-bg: #f3ebd8;
-    /* Pale Parchment Gold */
+    --primary: #5e2b48; /* Deep Plum Purple */
+    --primary-light: #8e4a75;
+    --primary-dark: #3e1b2f;
+    --secondary: #b88a44; /* Darker Gold to match logo icon */
+    --bg-main: #f3f4f6; /* Slightly darker off-white for better card contrast */
+    --sidebar-bg: #ffffff; /* White */
     --card-bg: #ffffff;
-    --text-main: #241914;
-    /* DADSON Primary Text */
-    --text-muted: #7d6b61;
-    --border-color: rgba(123, 93, 67, 0.14);
+    --text-main: #1f2937;
+    --text-muted: #6b7280;
+    --border-color: #e5e7eb; /* Stronger border for better definition */
     --success: #10b981;
-    --warning: #f59e0b;
+    --warning: #d4af37;
     --error: #ef4444;
-    --info: #b88a44;
-    --sand: #efe3d3;
+    --info: #5e2b48;
+    --sand: #f9fafb;
     --bg-recent: #ffffff;
     --bg-low-stock: #ffffff;
 }
@@ -67,7 +63,7 @@ body {
 .brand-name {
     font-size: 1.4rem;
     font-weight: 700;
-    color: #8e6a34; /* Darkened Gold/Brass */
+    color: var(--secondary); /* Keep logo text gold */
     font-family: 'Playfair Display', serif;
 }
 
@@ -136,8 +132,8 @@ body {
 
 .sidebar-footer {
     padding: 1.5rem;
-    border-top: 1px solid rgba(0, 0, 0, 0.03);
-    background: #f3ebd8;
+    border-top: 1px solid var(--border-color);
+    background: var(--sidebar-bg);
 }
 
 .view-site-btn {
@@ -288,8 +284,8 @@ body {
 /* Stats Grid */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
     margin-bottom: 2rem;
     width: 100%;
 }
@@ -1145,4 +1141,244 @@ th {
 
 .monospace {
     font-family: monospace;
+}
+
+/* --- LUVTALE PREMIUM ADMIN STYLE --- */
+.section-card {
+    border: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+    border-radius: 12px;
+}
+
+.admin-form .form-group label {
+    font-size: 0.85rem;
+    color: #4b5563;
+    font-weight: 500;
+    margin-bottom: 0.6rem;
+}
+
+.admin-form input, 
+.admin-form select, 
+.admin-form textarea {
+    border: 1px solid #e5e7eb;
+    background-color: #fcfcfc;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    outline: none;
+    font-size: 0.9rem;
+}
+
+.admin-form input:focus, 
+.admin-form select:focus, 
+.admin-form textarea:focus {
+    border-color: #b88a44;
+    box-shadow: 0 0 0 4px rgba(184, 138, 68, 0.1);
+    background-color: #fff;
+}
+
+.form-hint {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-top: 0.4rem;
+}
+
+/* Attributes Selection Redesign */
+.attr-selection-row-container {
+    background: #fff;
+    border: 1px solid #f3f4f6 !important;
+    padding: 1.25rem !important;
+    margin-bottom: 1rem !important;
+}
+
+.attr-selection-row {
+    border-bottom: 1px solid #f9fafb !important;
+    padding-bottom: 0.75rem !important;
+}
+
+.attr-name {
+    font-size: 0.95rem;
+    color: #111827;
+    font-weight: 600;
+}
+
+.attr-values-grid {
+    background: #fdfdfd !important;
+    border: 1px solid #f3f4f6;
+    margin-top: 1rem !important;
+}
+
+.attr-values-grid label {
+    border: 1px solid #f3f4f6 !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    padding: 6px 14px !important;
+    border-radius: 6px !important;
+    background: #fff !important;
+}
+
+.attr-values-grid label:hover {
+    border-color: #b88a44 !important;
+}
+
+.attr-values-grid input[type="checkbox"]:checked + span {
+    color: #b88a44;
+    font-weight: 600;
+}
+
+/* Variation Items */
+.variation-item {
+    border: 1px solid #e5e7eb !important;
+    background: #fff !important;
+    border-radius: 10px !important;
+    margin-bottom: 1.5rem !important;
+    overflow: hidden;
+}
+
+.var-header {
+    background: #f9fafb;
+    padding: 0.75rem 1.25rem !important;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.var-body {
+    padding: 1.25rem !important;
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+    gap: 1.25rem !important;
+}
+
+.var-attr-select label, 
+.var-price-input label, 
+.var-stock-select label, 
+.var-img-input label {
+    font-size: 0.75rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280 !important;
+    margin-bottom: 0.4rem !important;
+}
+
+.var-img-preview img {
+    border: 1px solid #e5e7eb;
+    padding: 2px;
+}
+/* Attribute Value Actions */
+.attr-values-grid label {
+    position: relative;
+    padding-right: 45px !important;
+    display: flex;
+    align-items: center;
+}
+
+.val-actions {
+    position: absolute;
+    right: 8px;
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    background: white;
+    padding-left: 5px;
+}
+
+.attr-values-grid label:hover .val-actions {
+    opacity: 1;
+}
+
+.val-actions i {
+    font-size: 0.7rem;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.val-actions i.fa-edit {
+    color: #4f46e5;
+    background: #eef2ff;
+}
+
+.val-actions i.fa-trash {
+    color: #ef4444;
+    background: #fef2f2;
+}
+
+.val-actions i:hover {
+    filter: brightness(0.9);
+}
+
+/* Standardized Premium Buttons */
+.btn, .admin-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.8rem 1.8rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    gap: 8px;
+    text-decoration: none;
+    font-family: inherit;
+}
+
+.btn-primary, .admin-btn.btn-primary {
+    background: #b88a44 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(184, 138, 68, 0.15);
+}
+
+.btn-primary:hover, .admin-btn.btn-primary:hover {
+    background: #8e6a34 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(184, 138, 68, 0.25);
+}
+
+.btn-secondary, .btn-outline, .admin-btn.btn-outline, .admin-btn:not(.btn-primary) {
+    background: #f3e8dc !important;
+    color: #8e6a34 !important;
+    box-shadow: 0 4px 12px rgba(243, 232, 220, 0.2);
+}
+
+.btn-secondary:hover, .btn-outline:hover, .admin-btn.btn-outline:hover, .admin-btn:not(.btn-primary):hover {
+    background: #ead8bc !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(243, 232, 220, 0.3);
+}
+
+/* Premium Card Enhancements */
+.section-card, .admin-card {
+    background: #ffffff;
+    border: 1px solid rgba(184, 138, 68, 0.1);
+    box-shadow: 0 10px 30px rgba(123, 93, 67, 0.05);
+    border-radius: 24px;
+    padding: 2.5rem;
+}
+
+/* Premium Form Inputs */
+.admin-form .form-group label, .form-group label {
+    font-size: 0.95rem;
+    color: #241914;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+    letter-spacing: -0.01em;
+}
+
+.admin-form input, .admin-form select, .admin-form textarea,
+.admin-input, .form-group input, .form-group select, .form-group textarea {
+    border: 1px solid #e5e7eb;
+    background-color: #fcfcfc;
+    padding: 1rem 1.25rem;
+    border-radius: 14px;
+    font-size: 1rem;
+    color: #241914;
+    transition: all 0.2s ease;
+}
+
+.admin-form input:focus, .admin-form select:focus, .admin-form textarea:focus,
+.admin-input:focus, .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: #b88a44;
+    box-shadow: 0 0 0 4px rgba(184, 138, 68, 0.08);
+    background-color: #fff;
 }

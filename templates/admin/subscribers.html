@@ -1,0 +1,53 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div class="header-title">
+        <h1>Newsletter Subscribers</h1>
+        <p>Manage your email marketing audience</p>
+    </div>
+    <div class="header-actions">
+        <button class="btn btn-primary" onclick="window.print()">
+            <i class="fas fa-file-export"></i> Export List
+        </button>
+    </div>
+</div>
+
+<div class="section-card">
+    <div class="card-header">
+        <h2>Subscriber List</h2>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email Address</th>
+                    <th>Subscription Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in subscribers %}
+                <tr>
+                    <td>#{{ sub.id }}</td>
+                    <td style="font-weight: 600; color: var(--text-main);">{{ sub.email }}</td>
+                    <td>{{ sub.date.strftime('%d %b, %Y %I:%M %p') }}</td>
+                    <td>
+                        <form action="{{ url_for('admin.delete_subscriber', id=sub.id) }}" method="POST" onsubmit="return confirm('Remove this subscriber?')" style="display: inline;">
+                            <button type="submit" class="btn-icon delete" title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center py-5">No subscribers found yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -4,92 +4,174 @@
 
 {% block content %}
 <div class="wishlist-page">
-    <div class="page-header">
-        <div class="header-tag"><span>✦</span> My Favorites</div>
-        <h1>Your Curated Collection</h1>
-        <p>Save your favorite pieces for later and build your dream wardrobe.</p>
-    </div>
-
-    {% if products %}
-    <div class="products-grid">
-        {% for product in products %}
-        <div class="product-card wishlist-card" id="wish-card-{{ product.id }}">
-            <div class="product-img-wrap">
-                <a href="/product/{{ product.id }}">
-                    <img src="{{ product.img }}" alt="{{ product.name }}">
-                </a>
-                <div class="product-remove-wishlist" onclick="removeFromWishlist('{{ product.id }}')">
-                    <img src="https://api.iconify.design/lucide:x.svg?color=%23ffffff" class="icon-img" alt="remove">
-                </div>
-            </div>
-            <div class="product-info">
-                <div class="product-category">{{ product.cat_name }}</div>
-                <div class="product-name">{{ product.name }}</div>
-                <div class="product-prices">
-                    <span class="product-price">{{ product.price }}</span>
-                    {% if product.orig %}<span class="product-price-original">{{ product.orig }}</span>{% endif %}
-                </div>
-                <button class="product-add-btn" data-id="{{ product.id }}">Move to Cart</button>
-            </div>
+    <div class="wishlist-container">
+        <div class="wishlist-header">
+            <div class="header-tag">✦ My Favorites</div>
+            <h1>Your Curated Collection</h1>
+            <p>A collection of pieces you love. Move them to your bag when you're ready.</p>
         </div>
-        {% endfor %}
+
+        {% if items %}
+        <div class="wishlist-grid">
+            {% for item in items %}
+            <div class="wishlist-item" id="wish-item-{{ item.id }}">
+                <div class="wish-img-wrap">
+                    <a href="/product/{{ item.product.id }}{{ '?v=' + item.variation.id|string if item.variation else '' }}">
+                        <img src="{{ item.display_img }}" alt="{{ item.product.name }}">
+                    </a>
+                    <button class="remove-wish-btn" onclick="removeFromWishlist('{{ item.id }}')" title="Remove from wishlist">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    {% if item.product.badge %}
+                    <span class="wish-badge">{{ item.product.badge }}</span>
+                    {% endif %}
+                </div>
+                <div class="wish-info">
+                    <div class="wish-meta">
+                        <span class="wish-cat">{{ item.product.cat_name }}</span>
+                    </div>
+                    <h3 class="wish-name">{{ item.product.name }}</h3>
+                    
+                    {% if item.variant_labels %}
+                    <div class="wish-variants">
+                        {% for label in item.variant_labels %}
+                        <span>{{ label.value }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="wish-price">
+                        <span class="curr-price">{{ item.display_price }}</span>
+                        {% if item.product.orig %}
+                        <span class="orig-price">{{ item.product.orig }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <button class="move-to-cart-btn" onclick="moveToCart('{{ item.id }}')">
+                        Move to Bag
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-wishlist">
+            <div class="empty-icon">🤍</div>
+            <h2>Your collection is empty</h2>
+            <p>Start exploring our handcrafted jewelry and save your favorites here.</p>
+            <a href="/shop" class="btn-primary">Explore Collections</a>
+        </div>
+        {% endif %}
     </div>
-    {% else %}
-    <div class="empty-state">
-        <img src="https://api.iconify.design/lucide:heart.svg?color=%23efcad0" alt="empty wishlist">
-        <h2>Your wishlist is empty</h2>
-        <p>Start exploring our collections and save your favorite pieces here.</p>
-        <a href="{{ url_for('public.shop') }}" class="btn-primary">Shop Now</a>
-    </div>
-    {% endif %}
 </div>
 
 <style>
-    .wishlist-page { padding: 40px 48px 100px; background: var(--warm-white); min-height: 70vh; }
-    .wishlist-card { position: relative; }
-    .product-remove-wishlist {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        width: 30px;
-        height: 30px;
-        background: rgba(0,0,0,0.4);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        z-index: 5;
-    }
-    .product-remove-wishlist:hover { background: var(--crimson); transform: scale(1.1); }
-    .product-remove-wishlist .icon-img { width: 14px; height: 14px; }
-
-    .empty-state { text-align: center; padding: 100px 20px; }
-    .empty-state img { width: 80px; height: 80px; margin-bottom: 24px; opacity: 0.5; }
-    .empty-state h2 { font-family: 'Playfair Display', serif; font-size: 28px; margin-bottom: 12px; }
-    .empty-state p { color: var(--muted); margin-bottom: 30px; }
-
+    .wishlist-page { padding: 80px 0; background: #fff; min-height: 80vh; }
+    .wishlist-container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
     
+    .wishlist-header { text-align: center; margin-bottom: 60px; }
+    .header-tag { font-size: 0.8rem; font-weight: 700; color: #b88a44; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
+    .wishlist-header h1 { font-family: 'Playfair Display', serif; font-size: 3rem; color: #241914; margin-bottom: 16px; }
+    .wishlist-header p { color: #7d6b61; font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+
+    .wishlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 40px; }
+    
+    .wishlist-item { background: #fff; transition: transform 0.3s; }
+    .wishlist-item:hover { transform: translateY(-5px); }
+
+    .wish-img-wrap { position: relative; aspect-ratio: 1/1.2; overflow: hidden; border-radius: 20px; margin-bottom: 20px; background: #fdfaf6; }
+    .wish-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+    .wishlist-item:hover .wish-img-wrap img { transform: scale(1.05); }
+
+    .remove-wish-btn { position: absolute; top: 15px; right: 15px; width: 36px; height: 36px; border-radius: 50%; background: #fff; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: pointer; color: #94a3b8; display: flex; align-items: center; justify-content: center; transition: all 0.2s; z-index: 10; }
+    .remove-wish-btn:hover { color: #ef4444; transform: rotate(90deg); }
+
+    .wish-badge { position: absolute; top: 15px; left: 15px; background: #241914; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+
+    .wish-meta { margin-bottom: 8px; }
+    .wish-cat { font-size: 0.75rem; font-weight: 700; color: #b88a44; text-transform: uppercase; letter-spacing: 1px; }
+    
+    .wish-name { font-family: 'Playfair Display', serif; font-size: 1.25rem; color: #241914; margin-bottom: 12px; }
+    
+    .wish-variants { display: flex; gap: 8px; margin-bottom: 12px; }
+    .wish-variants span { font-size: 0.8rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+
+    .wish-price { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .curr-price { font-size: 1.2rem; font-weight: 800; color: #241914; }
+    .orig-price { font-size: 1rem; color: #94a3b8; text-decoration: line-through; }
+
+    .move-to-cart-btn { width: 100%; padding: 14px; background: transparent; border: 1.5px solid #241914; color: #241914; border-radius: 30px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .move-to-cart-btn:hover { background: #241914; color: #fff; }
+
+    .empty-wishlist { text-align: center; padding: 100px 20px; }
+    .empty-icon { font-size: 4rem; margin-bottom: 24px; }
+    .empty-wishlist h2 { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: #241914; margin-bottom: 16px; }
+    .empty-wishlist p { color: #7d6b61; font-size: 1.1rem; margin-bottom: 32px; }
+
+    @media (max-width: 600px) {
+        .wishlist-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
+        .wishlist-header h1 { font-size: 2rem; }
+        .wish-name { font-size: 1rem; }
+        .curr-price { font-size: 1rem; }
+        .move-to-cart-btn { padding: 10px; font-size: 0.85rem; }
+    }
 </style>
+</div>
 
 <script>
-function removeFromWishlist(productId) {
-    fetch(`/toggle-wishlist/${productId}`, { method: 'POST' })
+function removeFromWishlist(id) {
+    fetch(`/toggle-wishlist/${id}`, { method: 'POST' })
     .then(res => res.json())
     .then(data => {
         if (data.success && data.action === 'removed') {
-            const card = document.getElementById(`wish-card-${productId}`);
-            card.style.opacity = '0';
-            card.style.transform = 'scale(0.8)';
+            const item = document.getElementById(`wish-item-${id}`);
+            item.style.opacity = '0';
+            item.style.transform = 'scale(0.8)';
             setTimeout(() => {
-                card.remove();
-                if (document.querySelectorAll('.wishlist-card').length === 0) {
+                item.remove();
+                if (document.querySelectorAll('.wishlist-item').length === 0) {
                     location.reload();
                 }
                 const badge = document.getElementById('wishlistBadge');
                 if (badge) badge.innerText = data.wishlist_count;
             }, 300);
+        }
+    });
+}
+
+function moveToCart(id) {
+    const btn = event.target;
+    const originalText = btn.innerText;
+    btn.innerText = 'Moving...';
+    btn.disabled = true;
+
+    fetch(`/add-to-cart/${id}`, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            btn.innerText = '✓ In Bag';
+            const badge = document.getElementById('cartBadge');
+            if (badge) badge.innerText = data.cart_count;
+            
+            // Remove from wishlist too
+            fetch(`/toggle-wishlist/${id}`, { method: 'POST' })
+            .then(res => res.json())
+            .then(wData => {
+                const item = document.getElementById(`wish-item-${id}`);
+                item.style.opacity = '0';
+                item.style.transform = 'scale(0.8)';
+                setTimeout(() => {
+                    item.remove();
+                    if (document.querySelectorAll('.wishlist-item').length === 0) {
+                        location.reload();
+                    }
+                    const wBadge = document.getElementById('wishlistBadge');
+                    if (wBadge) wBadge.innerText = wData.wishlist_count;
+                }, 300);
+            });
         }
     });
 }

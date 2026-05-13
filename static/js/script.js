@@ -386,11 +386,6 @@ window.addEventListener('scroll', function() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DADSON jewelry website loaded successfully.');
     
-    // Initial cart count
-    if (cartCountBadge) {
-        cartCountBadge.textContent = '0';
-    }
-    
     // Add focus indicators for accessibility
     document.querySelectorAll('button, a').forEach(element => {
         element.addEventListener('focus', function() {

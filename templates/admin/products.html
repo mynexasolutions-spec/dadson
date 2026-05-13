@@ -1,13 +1,13 @@
 {% extends "admin/base.html" %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-header" style="margin-bottom: 2.5rem; display: flex; justify-content: space-between; align-items: center;">
     <div class="header-left">
-        <h1>Products</h1>
-        <p>Manage your inventory and product listings.</p>
+        <h1 style="font-size: 2rem; font-weight: 800; color: #241914; letter-spacing: -0.03em;">Inventory</h1>
+        <p style="color: #7d6b61; font-size: 0.95rem; margin-top: 0.4rem;">Manage your premium collection and stock levels.</p>
     </div>
     <div class="header-right">
-        <a href="{{ url_for('admin.new_product') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Add New Product</a>
+        <a href="{{ url_for('admin.new_product') }}" class="btn btn-primary" style="padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 700;"><i class="fas fa-plus" style="margin-right: 8px;"></i> Create New Piece</a>
     </div>
 </div>
 
@@ -16,14 +16,14 @@
         <div class="filter-group">
             <select id="categoryFilter">
                 <option value="all">All Categories</option>
-                <option value="Saree">Saree</option>
-                <option value="Western Wear">Western Wear</option>
-                <option value="Ethnic Wear">Ethnic Wear</option>
+                {% for cat in categories %}
+                <option value="{{ cat.name }}">{{ cat.name }}</option>
+                {% endfor %}
             </select>
             <select id="statusFilter">
                 <option value="all">All Status</option>
-                <option value="active">Active</option>
-                <option value="draft">Draft</option>
+                <option value="instock">In Stock</option>
+                <option value="outofstock">Out of Stock</option>
             </select>
         </div>
         <div class="search-input">
@@ -35,22 +35,22 @@
         <table id="productsTable">
             <thead>
                 <tr>
-                    <th>Product</th>
-                    <th>Category</th>
-                    <th>Price</th>
-                    <th>Badge</th>
-                    <th>Attributes</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th style="text-align: left; padding: 15px;">Product</th>
+                    <th style="text-align: left; padding: 15px;">Category</th>
+                    <th style="text-align: left; padding: 15px;">Price</th>
+                    <th style="text-align: left; padding: 15px;">Badge</th>
+                    <th style="text-align: left; padding: 15px;">Attributes</th>
+                    <th style="text-align: center; padding: 15px;">Status</th>
+                    <th style="text-align: center; padding: 15px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for product in products %}
-                <tr>
-                    <td>
+                <tr data-category="{{ product.cat_name }}" data-status="{{ product.stock_status }}">
+                    <td style="text-align: left; padding: 15px;">
                         <div class="product-cell">
                             <div style="position: relative;">
-                                <img src="{{ product.img }}" alt="{{ product.name }}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 8px;">
+                                <img src="{{ product.img }}" alt="{{ product.name }}" onerror="this.onerror=null;this.src='/static/images/placeholder.png';" style="width: 45px; height: 45px; object-fit: cover; border-radius: 8px;">
                                 {% if product.images %}
                                 <div style="display: flex; gap: 2px; position: absolute; bottom: -8px; left: 0; background: white; padding: 1px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                                     {% for g_img in product.images[:3] %}
@@ -71,10 +71,10 @@
                             </div>
                         </div>
                     </td>
-                    <td>{{ product.cat_name }}</td>
-                    <td><span class="price-text">{{ product.price }}</span></td>
-                    <td><span class="badge-tag">{{ product.badge or '-' }}</span></td>
-                    <td>
+                    <td style="text-align: left; padding: 15px;">{{ product.cat_name }}</td>
+                    <td style="text-align: left; padding: 15px;"><span class="price-text">{{ product.price }}</span></td>
+                    <td style="text-align: left; padding: 15px;"><span class="badge-tag">{{ product.badge or '-' }}</span></td>
+                    <td style="text-align: left; padding: 15px;">
                         {% if product.product_type == 'simple' %}
                             <span style="color: #cbd5e1;">-</span>
                         {% else %}
@@ -82,20 +82,28 @@
                                 {% for pa in product.attributes %}
                                     <div style="font-size: 0.7rem;">
                                         <span style="color: #64748b; font-weight: 600;">{{ pa.attribute.name }}:</span>
-                                        <span style="color: #1e293b;">{{ pa.attribute.values|length }} vals</span>
+                                        <span style="color: #1e293b;">
+                                            {% set selected_vals = [] %}
+                                            {% for sv in product.selected_values %}
+                                                {% if sv.attribute_id == pa.attribute.id %}
+                                                    {% set _ = selected_vals.append(sv.attribute_value.value) %}
+                                                {% endif %}
+                                            {% endfor %}
+                                            {{ selected_vals|join(', ') }}
+                                        </span>
                                     </div>
                                 {% endfor %}
                             </div>
                         {% endif %}
                     </td>
-                    <td>
+                    <td style="text-align: center; padding: 15px;">
                         <span style="font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; 
                             {% if product.stock_status == 'instock' %}background: #f0fdf4; color: #166534;{% else %}background: #fef2f2; color: #991b1b;{% endif %}">
                             {{ 'In Stock' if product.stock_status == 'instock' else 'Out of Stock' }}
                         </span>
                     </td>
-                    <td>
-                        <div class="action-btns">
+                    <td style="text-align: center; padding: 15px;">
+                        <div class="action-btns" style="display: flex; justify-content: center; gap: 8px;">
                             <a href="{{ url_for('admin.edit_product', id=product.id) }}" class="btn-icon" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
@@ -114,20 +122,36 @@
 </div>
 
 <script>
-    // Basic search functionality
-    document.getElementById('productSearch').addEventListener('keyup', function() {
-        const query = this.value.toLowerCase();
-        const rows = document.querySelectorAll('#productsTable tbody tr');
-        
-        rows.forEach(row => {
+    const categoryFilter = document.getElementById('categoryFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const productSearch = document.getElementById('productSearch');
+    const tableRows = document.querySelectorAll('#productsTable tbody tr');
+
+    function applyFilters() {
+        const catValue = categoryFilter.value;
+        const statusValue = statusFilter.value;
+        const searchValue = productSearch.value.toLowerCase();
+
+        tableRows.forEach(row => {
+            const cat = row.getAttribute('data-category');
+            const status = row.getAttribute('data-status');
             const name = row.querySelector('.product-info strong').textContent.toLowerCase();
             const id = row.querySelector('.product-info span').textContent.toLowerCase();
-            if (name.includes(query) || id.includes(query)) {
+
+            const matchesCat = catValue === 'all' || cat === catValue;
+            const matchesStatus = statusValue === 'all' || status === statusValue;
+            const matchesSearch = name.includes(searchValue) || id.includes(searchValue);
+
+            if (matchesCat && matchesStatus && matchesSearch) {
                 row.style.display = '';
             } else {
                 row.style.display = 'none';
             }
         });
-    });
+    }
+
+    categoryFilter.addEventListener('change', applyFilters);
+    statusFilter.addEventListener('change', applyFilters);
+    productSearch.addEventListener('keyup', applyFilters);
 </script>
 {% endblock %}

@@ -18,10 +18,14 @@
   <!-- Add Value Form -->
   <div class="admin-card">
     <h3 style="font-size:1rem; font-weight:700; margin-bottom:1.5rem;">Add New Value</h3>
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
       <div style="margin-bottom:1.5rem;">
         <label class="admin-label">Value Content *</label>
-        <input type="text" name="value" required placeholder="e.g. -0.50 or Red" class="admin-input" />
+        <input type="text" name="value" required placeholder="e.g. Red or Large" class="admin-input" />
+      </div>
+      <div style="margin-bottom:1.5rem;">
+        <label class="admin-label">Value Image / Swatch <span style="font-size: 0.75rem; font-weight: normal; color: #94a3b8;">(Optional)</span></label>
+        <input type="file" name="img" accept="image/*" class="admin-input" />
       </div>
       <button type="submit" class="admin-btn btn-primary" style="width:100%; justify-content:center;">Add Value</button>
     </form>
@@ -32,6 +36,7 @@
     <table class="admin-table">
       <thead>
         <tr>
+          <th>Image</th>
           <th>Value</th>
           <th style="text-align:right;">Actions</th>
         </tr>
@@ -39,13 +44,23 @@
       <tbody>
         {% for v in values %}
         <tr>
+          <td>
+            {% if v.image_url %}
+            <img src="{{ v.image_url }}" alt="Swatch" style="width: 32px; height: 32px; object-fit: cover; border-radius: 6px;">
+            {% else %}
+            <div style="width: 32px; height: 32px; background: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 0.75rem;">N/A</div>
+            {% endif %}
+          </td>
           <td style="font-weight:600;">{{ v.value }}</td>
           <td style="text-align:right;">
-            <form action="{{ url_for('admin.admin_attribute_value_delete', val_id=v.id) }}" method="post"
-              onsubmit="return confirm('Remove this value?')">
-              <button type="submit" class="admin-btn"
-                style="padding:0.375rem 0.75rem; font-size:0.8125rem; color:#ef4444; background:rgba(239,68,68,0.05);">Remove</button>
-            </form>
+            <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+              <button type="button" class="admin-btn" style="padding:0.375rem 0.75rem; font-size:0.8125rem;" onclick="openEditModal({{ v.id }}, '{{ v.value }}')">Edit</button>
+              <form action="{{ url_for('admin.admin_attribute_value_delete', id=v.id) }}" method="post"
+                onsubmit="return confirm('Remove this value?')">
+                <button type="submit" class="admin-btn"
+                  style="padding:0.375rem 0.75rem; font-size:0.8125rem; color:#ef4444; background:rgba(239,68,68,0.05);">Remove</button>
+              </form>
+            </div>
           </td>
         </tr>
         {% else %}
@@ -59,4 +74,59 @@
   </div>
 
 </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:1000;">
+  <div class="admin-card" style="width:100%; max-width:400px; position:relative;">
+    <button type="button" onclick="closeEditModal()" style="position:absolute; top:1rem; right:1rem; background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+    <h3 style="font-size:1rem; font-weight:700; margin-bottom:1.5rem;">Edit Value</h3>
+    <form id="editForm" onsubmit="submitEdit(event)">
+      <input type="hidden" id="edit_id" name="id">
+      <div style="margin-bottom:1.5rem;">
+        <label class="admin-label">Value Content *</label>
+        <input type="text" id="edit_value" name="value" required class="admin-input" />
+      </div>
+      <div style="margin-bottom:1.5rem;">
+        <label class="admin-label">New Image / Swatch <span style="font-size: 0.75rem; font-weight: normal; color: #94a3b8;">(Optional)</span></label>
+        <input type="file" id="edit_img" name="img" accept="image/*" class="admin-input" />
+      </div>
+      <button type="submit" class="admin-btn btn-primary" style="width:100%; justify-content:center;">Save Changes</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function openEditModal(id, currentValue) {
+  document.getElementById('edit_id').value = id;
+  document.getElementById('edit_value').value = currentValue;
+  document.getElementById('editModal').style.display = 'flex';
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').style.display = 'none';
+}
+
+async function submitEdit(event) {
+  event.preventDefault();
+  const id = document.getElementById('edit_id').value;
+  const formData = new FormData(document.getElementById('editForm'));
+  
+  try {
+    const response = await fetch(`/admin/attribute-value/${id}/edit`, {
+      method: 'POST',
+      body: formData
+    });
+    const data = await response.json();
+    if (data.success) {
+      window.location.reload();
+    } else {
+      alert(data.error || 'Failed to update value');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Failed to update value');
+  }
+}
+</script>
 {% endblock %}

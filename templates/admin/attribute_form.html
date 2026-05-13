@@ -2,61 +2,68 @@
 {% block title %}{{ 'Edit' if attribute else 'New' }} Attribute – StoreAdmin{% endblock %}
 
 {% block content %}
-<div style="margin-bottom:2rem;">
-  <div style="display:flex; align-items:center; gap:0.5rem; color:var(--admin-text-muted); font-size:0.875rem; margin-bottom:1rem;">
-    <a href="{{ url_for('admin.admin_attributes') }}" style="color:var(--admin-primary);">Attributes</a>
-    <span>/</span>
-    <span>{{ 'Edit' if attribute else 'New' }} Attribute</span>
+<div class="page-header">
+  <div class="header-left">
+    <h1>{{ 'Edit' if attribute else 'Create' }} Attribute</h1>
+    <p>Define global properties for your products.</p>
   </div>
-  <h1 style="font-size:1.5rem; font-weight:700; color:var(--admin-text-main);">{{ 'Edit' if attribute else 'Create' }} Product Attribute</h1>
-  <p style="color:var(--admin-text-muted); font-size:0.875rem;">Define a property that products can vary by.</p>
 </div>
 
-<form method="post" class="admin-card" style="padding:2.5rem; max-width:600px;">
-  <div style="margin-bottom:1.5rem;">
-    <label class="admin-label">Attribute Name *</label>
-    <input type="text" name="name" value="{{ attribute.name if attribute }}" required placeholder="e.g. Power (SPH) or Color" class="admin-input" />
-  </div>
+<div class="section-card" style="max-width: 900px; margin: 0 auto;">
+  <form method="post" class="admin-form" enctype="multipart/form-data">
+    <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 2rem;">
+      <div class="form-group">
+        <label>Attribute Name <span style="color: var(--error);">*</span></label>
+        <input type="text" name="name" value="{{ attribute.name if attribute }}" required placeholder="e.g. Metal Type or Stone Color" class="admin-input">
+      </div>
 
-  <div style="margin-bottom:1.5rem;">
-    <label class="admin-label">Slug</label>
-    <input type="text" name="slug" value="{{ attribute.slug if attribute }}" placeholder="e.g. power-sph" class="admin-input" />
-  </div>
+      <div class="form-group">
+        <label>URL Slug</label>
+        <input type="text" name="slug" value="{{ attribute.slug if attribute }}" placeholder="e.g. metal-type" class="admin-input">
+        <p class="form-hint">Unique identifier used in URLs.</p>
+      </div>
 
-  <div style="margin-bottom:1.5rem;">
-    <label class="admin-label">Attribute Type</label>
-    <select name="type" class="admin-input">
-      <option value="select" {{ 'selected' if attribute and attribute.type == 'select' }}>Dropdown/Select</option>
-      <option value="color" {{ 'selected' if attribute and attribute.type == 'color' }}>Color Swatch</option>
-    </select>
-  </div>
+      <div class="form-group">
+        <label>Visual Display Type</label>
+        <select name="type" class="admin-input">
+          <option value="select" {{ 'selected' if attribute and attribute.type == 'select' }}>Dropdown / Select List</option>
+          <option value="color" {{ 'selected' if attribute and attribute.type == 'color' }}>Color Swatch / Image</option>
+        </select>
+        <p class="form-hint">How this attribute appears on the shop page.</p>
+      </div>
 
-  <div style="margin-bottom:1.5rem;">
-    <label class="admin-label">Attribute Swatch/Icon URL (Optional)</label>
-    <input type="text" name="image_url" value="{{ attribute.image_url if attribute }}" placeholder="e.g. https://...image.png" class="admin-input" />
-  </div>
+      <div class="form-group">
+        <label>Swatch / Icon Image <span style="color: var(--text-muted); font-weight: normal; font-size: 0.8rem;">(Optional)</span></label>
+        {% if attribute and attribute.image_url %}
+        <div class="current-img-preview" style="margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; background: #fdfaf6; padding: 0.5rem; border-radius: 12px; border: 1px solid rgba(184, 138, 68, 0.1);">
+          <img src="{{ attribute.image_url }}" alt="Preview" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
+          <span style="font-size: 0.8rem; color: #7d6b61;">Current Swatch</span>
+        </div>
+        {% endif %}
+        <input type="file" name="img" accept="image/*" class="admin-input">
+      </div>
 
-  <div style="margin-bottom:1.5rem;">
-    <label class="admin-label">Attribute Values (Comma separated)</label>
-    <textarea name="values" placeholder="e.g. Red, Blue, Green" class="admin-input" style="height: 100px; resize: vertical;">{{ vals_str if vals_str else '' }}</textarea>
-    <p style="font-size: 0.75rem; color: #888; margin-top: 0.5rem;">Enter the possible values for this attribute, separated by commas.</p>
-  </div>
+      <div class="form-group full-width" style="grid-column: span 2;">
+        <label>Initial Values <span style="color: var(--text-muted); font-weight: normal; font-size: 0.8rem;">(Comma separated)</span></label>
+        <textarea name="values" placeholder="e.g. 18K Gold, 22K Gold, Rose Gold, Silver" rows="4" class="admin-input" style="width: 100%;">{{ vals_str if vals_str else '' }}</textarea>
+        <p class="form-hint">Define the options for this attribute. You can also manage these later.</p>
+      </div>
 
-  <div style="margin-bottom:2rem;">
-    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
-      <input type="checkbox" name="is_featured" {{ 'checked' if attribute and attribute.is_featured }}>
-      <span style="font-size:0.875rem; font-weight:500;">Feature this attribute on product cards</span>
-    </label>
-  </div>
+      <div class="form-group full-width" style="grid-column: span 2; background: #fdfaf6; padding: 1.5rem; border-radius: 16px; border: 1px solid rgba(184, 138, 68, 0.1);">
+        <label class="checkbox-container" style="margin-bottom: 0;">
+          <input type="checkbox" name="is_featured" {{ 'checked' if attribute and attribute.is_featured }}>
+          <span class="checkmark"></span>
+          <span style="margin-left: 10px;">Display as filtering option on Product Cards</span>
+        </label>
+      </div>
+    </div>
 
-
-
-
-  <div style="display:flex; gap:1rem; padding-top:1.5rem; border-top:1px solid var(--admin-border);">
-    <button type="submit" class="admin-btn btn-primary" style="padding:0.75rem 2rem;">{{ 'Update' if attribute else 'Create' }} Attribute</button>
-    <a href="{{ url_for('admin.admin_attributes') }}" class="admin-btn btn-outline" style="padding:0.75rem 1.5rem;">Cancel</a>
-  </div>
-</form>
+    <div class="form-actions" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border-color); display: flex; gap: 1.5rem; justify-content: flex-end;">
+      <a href="{{ url_for('admin.admin_attributes') }}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary" style="min-width: 200px;">{{ 'Update' if attribute else 'Save' }} Attribute</button>
+    </div>
+  </form>
+</div>
 
 {% block scripts %}
 <script>

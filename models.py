@@ -59,6 +59,8 @@ class Product(db.Model):
     product_type = db.Column(db.String(20), default='simple') # 'simple' or 'variable'
     stock_status = db.Column(db.String(20), default='instock') # 'instock' or 'outofstock'
     is_featured = db.Column(db.Boolean, default=False)
+    materials = db.Column(db.Text)
+    care = db.Column(db.Text)
     
     variations = db.relationship('ProductVariation', backref='product', lazy=True, cascade="all, delete-orphan")
     attributes = db.relationship('ProductAttribute', backref='product', lazy=True, cascade="all, delete-orphan")
@@ -79,6 +81,7 @@ class ProductVariation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.String(50), db.ForeignKey('product.id', ondelete='CASCADE'), nullable=False)
     price = db.Column(db.String(20))
+    orig_price = db.Column(db.String(20))
     img_url = db.Column(db.String(512))
     stock_status = db.Column(db.String(20), default='instock')
 
@@ -135,6 +138,14 @@ class ProductAttribute(db.Model):
     product_id = db.Column(db.String(50), db.ForeignKey('product.id', ondelete='CASCADE'), nullable=False)
     attribute_id = db.Column(db.Integer, db.ForeignKey('attribute.id'), nullable=False)
     attribute = db.relationship('Attribute')
+
+class SelectedAttributeValue(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.String(50), db.ForeignKey('product.id', ondelete='CASCADE'), nullable=False)
+    attribute_id = db.Column(db.Integer, db.ForeignKey('attribute.id'), nullable=False)
+    attribute_value_id = db.Column(db.Integer, db.ForeignKey('attribute_value.id'), nullable=False)
+    product = db.relationship('Product', backref=db.backref('selected_values', lazy=True, cascade="all, delete-orphan"))
+    attribute_value = db.relationship('AttributeValue')
 
 class VariationOption(db.Model):
     id = db.Column(db.Integer, primary_key=True)

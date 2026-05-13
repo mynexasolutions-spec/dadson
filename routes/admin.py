@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, redirect, url_for, abort, request, flash, jsonify
 from functools import wraps
-from models import db, User, Product, Category, SubCategory, ProductVariation, Order, AppConfig, Attribute, AttributeValue, ProductAttribute, VariationOption, Brand, Review, Coupon, ProductImage
+from models import db, User, Product, Category, SubCategory, ProductVariation, Order, AppConfig, Attribute, AttributeValue, ProductAttribute, VariationOption, Brand, Review, Coupon, ProductImage, SelectedAttributeValue
 from datetime import datetime
 import os
 from werkzeug.utils import secure_filename
@@ -60,12 +60,15 @@ def dashboard():
     low_stock_products = Product.query.filter(Product.stock_status == 'outofstock').limit(3).all()
     if not low_stock_products:
         low_stock_products = Product.query.limit(2).all()
-        
+    from models import Subscriber
+    subscribers_count = Subscriber.query.count()
+    
     return render_template('admin/dashboard.html', 
                            products_count=products_count,
                            categories_count=categories_count,
                            users_count=users_count,
                            orders_count=orders_count,
+                           subscribers_count=subscribers_count,
                            recent_orders=recent_orders,
                            low_stock_products=low_stock_products)
 
@@ -87,7 +90,8 @@ def profile():
 @admin_required
 def products():
     all_products = Product.query.all()
-    return render_template('admin/products.html', products=all_products)
+    categories = Category.query.all()
+    return render_template('admin/products.html', products=all_products, categories=categories)
 
 @admin_bp.route('/admin/product/new', methods=['GET', 'POST'])
 @admin_required
@@ -95,7 +99,10 @@ def new_product():
     if request.method == 'POST':
         name = request.form.get('name')
         price_raw = request.form.get('price', '').replace('Rs.', '').replace('₹', '').replace(',', '').strip()
-        price = f"Rs. {price_raw}" if price_raw else 'Rs. 0'
+        orig_raw = request.form.get('orig', '').replace('Rs.', '').replace('₹', '').replace(',', '').strip()
+        
+        price = f"₹{int(float(price_raw)):,}" if price_raw else "₹0"
+        orig = f"₹{int(float(orig_raw)):,}" if orig_raw else None
         
         badge = request.form.get('badge')
         desc = request.form.get('desc')
@@ -122,8 +129,9 @@ def new_product():
         product = Product(
             id=new_id, 
             name=name, 
-            price=price, 
-            cat_name=cat_name, 
+            price=price,
+            orig=orig,
+            cat_name=cat_name,
             category_id=category_id,
             sub_category_id=sub_category_id,
             brand_id=brand_id,
@@ -133,16 +141,29 @@ def new_product():
             desc=desc,
             product_type=product_type,
             stock_status=stock_status,
-            is_featured=is_featured
+            is_featured=is_featured,
+            materials=request.form.get('materials'),
+            care=request.form.get('care')
         )
         db.session.add(product)
         db.session.flush() # Get product ID for related models
         
-        # Handle Product Attributes
+        # Handle Attributes & Values
+        SelectedAttributeValue.query.filter_by(product_id=product.id).delete()
+        ProductAttribute.query.filter_by(product_id=product.id).delete()
         attr_ids = request.form.getlist('product_attributes[]')
         for a_id in attr_ids:
             if a_id:
                 db.session.add(ProductAttribute(product_id=product.id, attribute_id=a_id))
+                # Also save selected values for this attribute
+                val_ids = request.form.getlist(f'attr_val_{a_id}[]')
+                for v_id in val_ids:
+                    if v_id:
+                        db.session.add(SelectedAttributeValue(
+                            product_id=product.id,
+                            attribute_id=a_id,
+                            attribute_value_id=v_id
+                        ))
         
         # Handle Gallery Images
         gallery_files = request.files.getlist('gallery[]')
@@ -157,7 +178,11 @@ def new_product():
             var_indices = request.form.getlist('var_idx[]')
             for idx in var_indices:
                 var_price_raw = request.form.getlist('var_price[]')[var_indices.index(idx)].replace('₹', '').replace(',', '').strip()
-                var_price = f"Rs. {var_price_raw}" if var_price_raw else product.price
+                var_price = f"₹{int(var_price_raw):,}" if var_price_raw and var_price_raw.isdigit() else product.price
+                
+                var_orig_raw = request.form.getlist('var_orig[]')[var_indices.index(idx)].replace('₹', '').replace(',', '').strip()
+                var_orig = f"₹{int(var_orig_raw):,}" if var_orig_raw and var_orig_raw.isdigit() else None
+                
                 var_stock = request.form.getlist('var_stock[]')[var_indices.index(idx)]
                 
                 var_img_file = request.files.get(f'var_img_{idx}')
@@ -166,27 +191,17 @@ def new_product():
                 variation = ProductVariation(
                     product_id=product.id,
                     price=var_price,
+                    orig_price=var_orig,
                     stock_status=var_stock,
                     img_url=var_img_url
                 )
                 db.session.add(variation)
                 db.session.flush()
                 
-                # Link variation to selected attribute values
                 for a_id in attr_ids:
-                    val_id = request.form.get(f'var_attr_{a_id}[]') # Note: Template uses var_attr_{id}[] but since it's one select per variation, it might be tricky if multiple
-                    # Actually, if we have multiple variations, they are sent as lists.
-                    # Wait, let's check the template again.
-                    pass 
-                
-                # Correct way to get attribute values for THIS variation index
-                # The template sends lists like var_attr_1[], var_attr_2[] etc.
-                for a_id in attr_ids:
-                    var_attr_vals = request.form.getlist(f'var_attr_{a_id}[]')
-                    if len(var_attr_vals) > var_indices.index(idx):
-                        v_val_id = var_attr_vals[var_indices.index(idx)]
-                        if v_val_id:
-                            db.session.add(VariationOption(variation_id=variation.id, attribute_value_id=v_val_id))
+                    v_val_id = request.form.get(f'var_attr_{idx}_{a_id}')
+                    if v_val_id:
+                        db.session.add(VariationOption(variation_id=variation.id, attribute_value_id=v_val_id))
 
         db.session.commit()
         flash('Product added successfully!', 'success')
@@ -207,8 +222,11 @@ def edit_product(id):
         
     if request.method == 'POST':
         product.name = request.form.get('name')
-        price_raw = request.form.get('price').replace('Rs.', '').replace('₹', '').replace(',', '').strip()
-        product.price = f"Rs. {price_raw}"
+        price_raw = request.form.get('price', '').replace('Rs.', '').replace('₹', '').replace(',', '').strip()
+        orig_raw = request.form.get('orig', '').replace('Rs.', '').replace('₹', '').replace(',', '').strip()
+        
+        product.price = f"₹{int(float(price_raw)):,}" if price_raw else "₹0"
+        product.orig = f"₹{int(float(orig_raw)):,}" if orig_raw else None
         
         category_id = request.form.get('category_id') or None
         product.category_id = category_id
@@ -219,6 +237,11 @@ def edit_product(id):
         product.product_type = request.form.get('product_type', 'simple')
         product.stock_status = request.form.get('stock_status', 'instock')
         product.is_featured = True if request.form.get('is_featured') == 'on' else False
+        product.materials = request.form.get('materials')
+        product.care = request.form.get('care')
+        
+        # Logging for debug
+        print(f"DEBUG: Saving product {id}, Type: {product.product_type}, Stock: {product.stock_status}")
         
         category = Category.query.get(category_id)
         if category:
@@ -235,15 +258,25 @@ def edit_product(id):
             if product.size_chart: delete_image(product.size_chart)
             product.size_chart = save_image(size_chart_file, 'size_charts')
         
-        # Handle Attributes
+        # Handle Attributes & Values (Cleanup and Save)
+        SelectedAttributeValue.query.filter_by(product_id=product.id).delete()
         ProductAttribute.query.filter_by(product_id=product.id).delete()
+        
         attr_ids = request.form.getlist('product_attributes[]')
         for a_id in attr_ids:
             if a_id:
                 db.session.add(ProductAttribute(product_id=product.id, attribute_id=a_id))
+                # Save selected values for this attribute
+                val_ids = request.form.getlist(f'attr_val_{a_id}[]')
+                for v_id in val_ids:
+                    if v_id:
+                        db.session.add(SelectedAttributeValue(
+                            product_id=product.id,
+                            attribute_id=a_id,
+                            attribute_value_id=v_id
+                        ))
                 
         # Handle Gallery Images
-        # Remove selected ones
         remove_gallery_ids = request.form.getlist('remove_gallery[]')
         for r_id in remove_gallery_ids:
             img_obj = ProductImage.query.get(r_id)
@@ -251,7 +284,6 @@ def edit_product(id):
                 delete_image(img_obj.img_url)
                 db.session.delete(img_obj)
         
-        # Add new ones
         gallery_files = request.files.getlist('gallery[]')
         for g_file in gallery_files:
             if g_file and g_file.filename:
@@ -262,25 +294,42 @@ def edit_product(id):
         # Handle Variations
         if product.product_type == 'variable':
             # Clean up old variations
+            new_existing_imgs = request.form.getlist('var_existing_img[]')
             for old_var in product.variations:
-                if old_var.img_url: delete_image(old_var.img_url)
+                if old_var.img_url and old_var.img_url not in new_existing_imgs:
+                    delete_image(old_var.img_url)
                 db.session.delete(old_var)
             db.session.flush()
-            
+
             var_indices = request.form.getlist('var_idx[]')
-            for idx in var_indices:
-                var_price_raw = request.form.getlist('var_price[]')[var_indices.index(idx)].replace('₹', '').replace(',', '').strip()
-                var_price = f"Rs. {var_price_raw}" if var_price_raw else product.price
-                var_stock = request.form.getlist('var_stock[]')[var_indices.index(idx)]
+            var_prices = request.form.getlist('var_price[]')
+            var_origs = request.form.getlist('var_orig[]')
+            var_stocks = request.form.getlist('var_stock[]')
+            var_existing_imgs = request.form.getlist('var_existing_img[]')
+
+            for i, idx in enumerate(var_indices):
+                # Robust price parsing
+                raw_p = var_prices[i].replace('₹', '').replace(',', '').strip() if i < len(var_prices) else ""
+                try:
+                    var_price = f"₹{int(float(raw_p)):,}" if raw_p else product.price
+                except (ValueError, TypeError):
+                    var_price = product.price
                 
-                # Check for existing image URL if not uploading a new one
-                existing_img = request.form.getlist('var_existing_img[]')[var_indices.index(idx)]
+                raw_o = var_origs[i].replace('₹', '').replace(',', '').strip() if i < len(var_origs) else ""
+                try:
+                    var_orig = f"₹{int(float(raw_o)):,}" if raw_o else None
+                except (ValueError, TypeError):
+                    var_orig = None
+                
+                var_stock = var_stocks[i] if i < len(var_stocks) else 'instock'
+                existing_img = var_existing_imgs[i] if i < len(var_existing_imgs) else ""
                 var_img_file = request.files.get(f'var_img_{idx}')
                 var_img_url = save_image(var_img_file, 'products/variations') if var_img_file else existing_img
                 
                 variation = ProductVariation(
                     product_id=product.id,
                     price=var_price,
+                    orig_price=var_orig,
                     stock_status=var_stock,
                     img_url=var_img_url
                 )
@@ -288,13 +337,17 @@ def edit_product(id):
                 db.session.flush()
                 
                 for a_id in attr_ids:
-                    var_attr_vals = request.form.getlist(f'var_attr_{a_id}[]')
-                    if len(var_attr_vals) > var_indices.index(idx):
-                        v_val_id = var_attr_vals[var_indices.index(idx)]
-                        if v_val_id:
-                            db.session.add(VariationOption(variation_id=variation.id, attribute_value_id=v_val_id))
+                    v_val_id = request.form.get(f'var_attr_{idx}_{a_id}')
+                    if v_val_id:
+                        db.session.add(VariationOption(variation_id=variation.id, attribute_value_id=v_val_id))
+        else:
+            # Cleanup variations if switched to simple
+            for old_var in product.variations:
+                if old_var.img_url: delete_image(old_var.img_url)
+                db.session.delete(old_var)
 
         db.session.commit()
+
         flash('Product updated successfully!', 'success')
         return redirect(url_for('admin.products'))
         
@@ -349,6 +402,22 @@ def new_category():
         return redirect(url_for('admin.categories'))
     return render_template('admin/category_form.html')
 
+@admin_bp.route('/admin/category/edit/<int:id>', methods=['GET', 'POST'])
+@admin_required
+def edit_category(id):
+    category = Category.query.get_or_404(id)
+    if request.method == 'POST':
+        category.name = request.form.get('name')
+        img_file = request.files.get('img')
+        if img_file:
+            delete_image(category.img)
+            category.img = save_image(img_file, 'categories')
+            
+        db.session.commit()
+        flash('Category updated successfully!', 'success')
+        return redirect(url_for('admin.categories'))
+    return render_template('admin/category_form.html', category=category)
+
 @admin_bp.route('/admin/category/delete/<int:id>', methods=['POST'])
 @admin_required
 def delete_category(id):
@@ -373,6 +442,29 @@ def new_subcategory():
         return redirect(url_for('admin.categories'))
     categories = Category.query.all()
     return render_template('admin/subcategory_form.html', categories=categories)
+
+@admin_bp.route('/admin/subcategory/edit/<int:id>', methods=['GET', 'POST'])
+@admin_required
+def edit_subcategory(id):
+    subcategory = SubCategory.query.get_or_404(id)
+    if request.method == 'POST':
+        subcategory.name = request.form.get('name')
+        subcategory.category_id = request.form.get('category_id')
+        db.session.commit()
+        flash('SubCategory updated successfully!', 'success')
+        return redirect(url_for('admin.categories'))
+    categories = Category.query.all()
+    return render_template('admin/subcategory_form.html', subcategory=subcategory, categories=categories)
+
+@admin_bp.route('/admin/subcategory/delete/<int:id>', methods=['POST'])
+@admin_required
+def delete_subcategory(id):
+    subcategory = SubCategory.query.get(id)
+    if subcategory:
+        db.session.delete(subcategory)
+        db.session.commit()
+        flash('SubCategory deleted!', 'success')
+    return redirect(url_for('admin.categories'))
 
 # --- CUSTOMER ROUTES ---
 
@@ -405,8 +497,7 @@ def admin_attributes():
         value_ids = [v.id for v in attr.values]
         if value_ids:
             total_instock = ProductVariation.query.join(VariationOption)\
-                .filter(VariationOption.attribute_value_id.in_(value_ids))\
-                .filter(ProductVariation.stock_status == 'instock').count()
+                .filter(VariationOption.attribute_value_id.in_(value_ids)).count()
         
         attr_data.append({
             'attr': attr,
@@ -423,7 +514,10 @@ def admin_attribute_new():
         name = request.form.get('name')
         slug = request.form.get('slug') or name.lower().replace(' ', '-')
         attr_type = request.form.get('type', 'select')
-        image_url = request.form.get('image_url')
+        
+        img_file = request.files.get('img')
+        image_url = save_image(img_file, 'attributes') if img_file else None
+        
         is_featured = True if request.form.get('is_featured') == 'on' else False
         
         # Check if already exists
@@ -462,13 +556,18 @@ def admin_attribute_edit(attr_id):
         attribute.name = request.form.get('name')
         attribute.slug = request.form.get('slug') or attribute.name.lower().replace(' ', '-')
         attribute.type = request.form.get('type', 'select')
-        attribute.image_url = request.form.get('image_url')
+        
+        img_file = request.files.get('img')
+        if img_file:
+            if attribute.image_url:
+                delete_image(attribute.image_url)
+            attribute.image_url = save_image(img_file, 'attributes')
+            
         attribute.is_featured = True if request.form.get('is_featured') == 'on' else False
         
-        # Handle values sync (optional: simple version just adds new ones if we use a text area)
+        # Handle values sync
         values_str = request.form.get('values')
         if values_str:
-            # For simplicity, if they provide a list, we append any that don't exist
             current_vals = [v.value for v in attribute.values]
             new_vals = [v.strip() for v in values_str.split(',') if v.strip()]
             for val in new_vals:
@@ -494,20 +593,57 @@ def admin_attribute_delete(attr_id):
 @admin_bp.route('/admin/attribute/<int:attr_id>/value/quick-add', methods=['POST'])
 @admin_required
 def admin_attribute_value_quick_add(attr_id):
-    data = request.get_json()
-    value_content = data.get('value')
+    value_content = request.form.get('value')
     if not value_content:
         return jsonify({'success': False, 'error': 'Value is required'}), 400
         
     # Check if exists
     existing = AttributeValue.query.filter_by(attribute_id=attr_id, value=value_content).first()
     if existing:
-        return jsonify({'success': True, 'id': existing.id, 'existed': True})
+        return jsonify({'success': True, 'id': existing.id, 'existed': True, 'image_url': existing.image_url})
         
-    new_val = AttributeValue(attribute_id=attr_id, value=value_content)
+    img_file = request.files.get('img')
+    image_url = save_image(img_file, 'attributes/values') if img_file else None
+    
+    new_val = AttributeValue(attribute_id=attr_id, value=value_content, image_url=image_url)
     db.session.add(new_val)
     db.session.commit()
-    return jsonify({'success': True, 'id': new_val.id, 'existed': False})
+    return jsonify({'success': True, 'id': new_val.id, 'existed': False, 'image_url': image_url})
+
+@admin_bp.route('/admin/attribute-value/<int:id>/edit', methods=['POST'])
+@admin_required
+def admin_attribute_value_edit(id):
+    val = AttributeValue.query.get(id)
+    if not val:
+        return jsonify({'success': False, 'error': 'Value not found'}), 404
+        
+    new_value = request.form.get('value')
+    if new_value:
+        val.value = new_value
+        
+    img_file = request.files.get('img')
+    if img_file:
+        if val.image_url:
+            delete_image(val.image_url)
+        val.image_url = save_image(img_file, 'attributes/values')
+        
+    db.session.commit()
+    return jsonify({'success': True, 'image_url': val.image_url})
+
+@admin_bp.route('/admin/attribute-value/<int:id>/delete', methods=['POST'])
+@admin_required
+def admin_attribute_value_delete(id):
+    val = AttributeValue.query.get(id)
+    if val:
+        # Check if used in any variation
+        used = VariationOption.query.filter_by(attribute_value_id=id).first()
+        if used:
+            return jsonify({'success': False, 'error': 'This value is currently used in products. Remove it from variations first.'}), 400
+            
+        db.session.delete(val)
+        db.session.commit()
+        return jsonify({'success': True})
+    return jsonify({'success': False, 'error': 'Value not found'}), 400
 
 @admin_bp.route('/admin/attribute/<int:attr_id>/values', methods=['GET', 'POST'])
 @admin_required
@@ -515,7 +651,11 @@ def admin_attribute_values(attr_id):
     attribute = Attribute.query.get(attr_id)
     if request.method == 'POST':
         value_content = request.form.get('value')
-        new_val = AttributeValue(attribute_id=attr_id, value=value_content)
+        
+        img_file = request.files.get('img')
+        image_url = save_image(img_file, 'attributes/values') if img_file else None
+        
+        new_val = AttributeValue(attribute_id=attr_id, value=value_content, image_url=image_url)
         db.session.add(new_val)
         db.session.commit()
         flash('Value added!', 'success')
@@ -655,3 +795,21 @@ def settings():
         return redirect(url_for('admin.settings'))
     configs = {c.key: c.value for c in AppConfig.query.all()}
     return render_template('admin/settings.html', configs=configs)
+
+@admin_bp.route('/admin/subscribers')
+@admin_required
+def subscribers():
+    from models import Subscriber
+    all_subscribers = Subscriber.query.order_by(Subscriber.date.desc()).all()
+    return render_template('admin/subscribers.html', subscribers=all_subscribers)
+
+@admin_bp.route('/admin/subscriber/delete/<int:id>', methods=['POST'])
+@admin_required
+def delete_subscriber(id):
+    from models import Subscriber
+    subscriber = Subscriber.query.get(id)
+    if subscriber:
+        db.session.delete(subscriber)
+        db.session.commit()
+        flash('Subscriber removed!', 'success')
+    return redirect(url_for('admin.subscribers'))
