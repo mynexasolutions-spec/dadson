@@ -2371,15 +2371,15 @@ section:nth-of-type(even) {
 
 /* --- PRODUCT DETAIL PAGE REDESIGN (Luvtale Style) --- */
 .product-detail-page {
-    padding-top: 2rem;
+    padding-top: 1rem;
     background: #fff;
-    margin-bottom: 4rem;
+    margin-bottom: 3rem;
 }
 
 .detail-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 5rem;
+    gap: 2.5rem;
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 4rem;
@@ -2388,20 +2388,38 @@ section:nth-of-type(even) {
 /* Gallery Styles */
 .product-gallery {
     display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    flex-direction: row;
+    gap: 1.2rem;
     position: sticky;
-    top: 130px;
+    top: 120px;
     align-self: start;
 }
 
+.gallery-thumbnails {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 480px;
+    scrollbar-width: none;
+    flex-shrink: 0;
+    order: 1;
+}
+
+.gallery-thumbnails::-webkit-scrollbar {
+    display: none;
+}
+
 .main-img {
+    order: 2;
+    flex-grow: 1;
     background: #ffffff;
     border-radius: 18px;
     overflow: hidden;
     aspect-ratio: 1 / 1;
     position: relative;
-    max-height: 520px;
+    max-height: 480px;
     border: 1px solid rgba(94, 43, 72, 0.1);
     box-shadow: var(--shadow-soft);
 }
@@ -2417,17 +2435,9 @@ section:nth-of-type(even) {
     transform: scale(1.05);
 }
 
-.gallery-thumbnails {
-    display: flex;
-    gap: 0.85rem;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-    scrollbar-width: thin;
-}
-
 .thumb {
-    width: 80px;
-    height: 80px;
+    width: 75px;
+    height: 75px;
     border-radius: 8px;
     overflow: hidden;
     cursor: pointer;
@@ -2757,9 +2767,26 @@ section:nth-of-type(even) {
     }
 
     .product-gallery {
+        flex-direction: column;
         max-width: 700px;
         margin: 0 auto;
         width: 100%;
+        position: static;
+        gap: 1rem;
+    }
+
+    .gallery-thumbnails {
+        flex-direction: row;
+        order: 2;
+        max-height: none;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 0.5rem;
+    }
+
+    .main-img {
+        order: 1;
+        max-height: 550px;
     }
 
     .product-info-sect {
