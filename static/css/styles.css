@@ -2378,7 +2378,7 @@ section:nth-of-type(even) {
 
 .detail-container {
     display: grid;
-    grid-template-columns: 1.2fr 0.8fr;
+    grid-template-columns: 1fr 1fr;
     gap: 5rem;
     max-width: 1400px;
     margin: 0 auto;
@@ -2390,14 +2390,20 @@ section:nth-of-type(even) {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    position: sticky;
+    top: 130px;
+    align-self: start;
 }
 
 .main-img {
-    background: #f9f9f9;
-    border-radius: 4px;
+    background: #ffffff;
+    border-radius: 18px;
     overflow: hidden;
-    aspect-ratio: 4/5;
+    aspect-ratio: 1 / 1;
     position: relative;
+    max-height: 520px;
+    border: 1px solid rgba(94, 43, 72, 0.1);
+    box-shadow: var(--shadow-soft);
 }
 
 .main-img img {
@@ -2420,19 +2426,19 @@ section:nth-of-type(even) {
 }
 
 .thumb {
-    width: 90px;
-    height: 110px;
-    border-radius: 2px;
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
     overflow: hidden;
     cursor: pointer;
-    border: 1px solid transparent;
+    border: 2px solid transparent;
     transition: all 0.3s;
     flex-shrink: 0;
     opacity: 0.7;
 }
 
 .thumb.active {
-    border-color: #241914;
+    border-color: var(--gold-primary, #b88a44);
     opacity: 1;
 }
 
