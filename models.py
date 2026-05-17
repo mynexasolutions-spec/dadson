@@ -96,6 +96,8 @@ class Order(db.Model):
     date = db.Column(db.DateTime, default=datetime.utcnow)
     total_amount = db.Column(db.String(20), nullable=False)
     status = db.Column(db.String(50), default='Pending')
+    coupon_code = db.Column(db.String(50), nullable=True)
+    discount_amount = db.Column(db.Float, default=0.0)
     items = db.relationship('OrderItem', backref='order', lazy=True)
 
 class OrderItem(db.Model):

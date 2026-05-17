@@ -1,8 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}My Profile | Naye Leithe{% endblock %}
+{% block title %}My Profile — DADSON Premium Jewellery{% endblock %}
 
 {% block content %}
+{# Parse combined city and state if saved as comma-separated string #}
+{% set city_val = '' %}
+{% set state_val = '' %}
+{% if user.city %}
+    {% if ',' in user.city %}
+        {% set parts = user.city.split(',') %}
+        {% set city_val = parts[0]|trim %}
+        {% set state_val = parts[1]|trim %}
+    {% else %}
+        {% set city_val = user.city %}
+    {% endif %}
+{% endif %}
+
 <div class="profile-page">
     <div class="profile-container">
         <!-- Sidebar Navigation -->
@@ -31,7 +44,7 @@
                     {% if orders %}
                         <div class="orders-list">
                             {% for order in orders %}
-                            <div class="order-card">
+                            <div class="order-card" id="card-{{ order.id }}">
                                 <div class="order-header">
                                     <div>
                                         <span class="label">Order #</span>
@@ -41,11 +54,72 @@
                                         <span class="label">Date</span>
                                         <span class="val">{{ order.date.strftime('%d %b %Y') }}</span>
                                     </div>
-                                    <div class="status-chip {{ order.status.lower() }}">{{ order.status }}</div>
+                                    <div class="status-chip {{ order.status.lower().replace(' ', '-').replace('(', '').replace(')', '') }}">
+                                        {{ order.status }}
+                                    </div>
                                 </div>
+                                
                                 <div class="order-footer">
                                     <span>Total: <strong>{{ order.total_amount }}</strong></span>
-                                    <button class="view-details">View Details</button>
+                                    <button class="view-details" onclick="toggleOrderDetails('{{ order.id }}')">View Details</button>
+                                </div>
+                                
+                                <!-- COLLAPSIBLE DRAWER FOR TRACKING & DETAILS -->
+                                <div class="order-details-drawer" id="details-{{ order.id }}" style="display: none; padding-top: 1.8rem; margin-top: 1.5rem; border-top: 1px dashed #e2e8f0; text-align: left;">
+                                    <h4 style="font-family: 'Playfair Display', serif; font-size: 1.15rem; margin-bottom: 1.2rem; color: #241914;">Purchased Selection</h4>
+                                    <div class="order-items-mini-list" style="display: flex; flex-direction: column; gap: 1.2rem; margin-bottom: 1.8rem;">
+                                        {% for item in order.items %}
+                                        <div style="display: flex; align-items: center; gap: 1.2rem;">
+                                            <img src="{{ item.product.img }}" style="width: 54px; height: 54px; object-fit: cover; border-radius: 8px; border: 1px solid #f1f5f9; background: #fdfaf6;" alt="{{ item.product.name }}">
+                                            <div style="flex-grow:1;">
+                                                <h5 style="font-size: 0.9rem; font-weight: 700; margin: 0 0 0.2rem 0; color: #241914;">{{ item.product.name }}</h5>
+                                                <span style="font-size: 0.78rem; color: #64748b;">Quantity: {{ item.quantity }} × {{ item.price_at_time }}</span>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <div style="background: #fdfaf6; border-radius: 12px; padding: 1.2rem; font-size: 0.85rem; color: #64748b; margin-bottom: 2rem; border: 1px solid rgba(184, 138, 68, 0.08);">
+                                        <strong style="color: #241914; display: block; margin-bottom: 0.4rem;">Delivery Address:</strong>
+                                        {{ user.username }}<br>
+                                        {{ user.address or 'No address provided' }}, {{ user.city or '' }} - {{ user.zipcode or '' }}<br>
+                                        Contact: {{ user.phone or '' }}
+                                    </div>
+                                    
+                                    <!-- LIVE ORDER TRACKER -->
+                                    <div class="tracker-wrapper" style="margin-top: 1.5rem;">
+                                        <strong style="font-size: 0.8rem; color: #241914; text-transform: uppercase; letter-spacing: 0.8px; display: block; margin-bottom: 1.2rem;">Live Delivery Status</strong>
+                                        
+                                        {% set active_step = 1 %}
+                                        {% if order.status.lower() in ['paid', 'processing (cod)'] %}
+                                            {% set active_step = 2 %}
+                                        {% elif order.status.lower() == 'shipped' %}
+                                            {% set active_step = 3 %}
+                                        {% elif order.status.lower() == 'delivered' %}
+                                            {% set active_step = 4 %}
+                                        {% endif %}
+                                        
+                                        <div class="profile-tracker-line">
+                                            <div class="tracker-progress-bar" style="width: {% if active_step == 2 %}33%{% elif active_step == 3 %}66%{% elif active_step == 4 %}100%{% else %}0%{% endif %};"></div>
+                                            
+                                            <div class="tracker-node {% if active_step >= 1 %}active{% endif %}">
+                                                <div class="node-dot"></div>
+                                                <span class="node-title">Placed</span>
+                                            </div>
+                                            <div class="tracker-node {% if active_step >= 2 %}active{% endif %}">
+                                                <div class="node-dot"></div>
+                                                <span class="node-title">Processing</span>
+                                            </div>
+                                            <div class="tracker-node {% if active_step >= 3 %}active{% endif %}">
+                                                <div class="node-dot"></div>
+                                                <span class="node-title">Shipped</span>
+                                            </div>
+                                            <div class="tracker-node {% if active_step >= 4 %}active{% endif %}">
+                                                <div class="node-dot"></div>
+                                                <span class="node-title">Delivered</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             {% endfor %}
@@ -78,9 +152,13 @@
                             </div>
                             <div class="form-group">
                                 <label>City</label>
-                                <input type="text" name="city" value="{{ user.city or '' }}" placeholder="e.g. Mumbai">
+                                <input type="text" name="city" value="{{ city_val }}" placeholder="e.g. Mumbai">
                             </div>
                             <div class="form-group">
+                                <label>State</label>
+                                <input type="text" name="state" value="{{ state_val }}" placeholder="e.g. Maharashtra">
+                            </div>
+                            <div class="form-group full-width">
                                 <label>Zipcode</label>
                                 <input type="text" name="zipcode" value="{{ user.zipcode or '' }}" placeholder="XXXXXX">
                             </div>
@@ -132,7 +210,7 @@
     .avatar-circle {
         width: 70px;
         height: 70px;
-        background: var(--crimson);
+        background: var(--crimson-dark);
         color: #fff;
         border-radius: 50%;
         display: flex;
@@ -167,7 +245,7 @@
     }
     .profile-nav .nav-btn:hover, .profile-nav .nav-btn.active {
         background: #fff5f6;
-        color: var(--crimson);
+        color: var(--crimson-dark);
     }
     .profile-nav .nav-btn.logout {
         color: #ef4444;
@@ -197,7 +275,7 @@
         left: 0;
         width: 50px;
         height: 3px;
-        background: var(--crimson);
+        background: var(--gold-primary);
         border-radius: 2px;
     }
     .tab-content {
@@ -213,46 +291,131 @@
     }
     .order-card {
         background: #fff;
-        padding: 1.5rem;
-        border-radius: 15px;
-        margin-bottom: 1rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-        border: 1px solid #f1f1f1;
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 15px rgba(184,138,68,0.02);
+        border: 1px solid rgba(184, 138, 68, 0.12);
+        transition: all 0.3s;
+    }
+    .order-card:hover {
+        box-shadow: 0 8px 24px rgba(184,138,68,0.06);
     }
     .order-header {
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: 1.5fr 1fr 1fr;
         align-items: center;
-        margin-bottom: 1rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid #f8f8f8;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        gap: 1rem;
     }
-    .label { font-size: 0.8rem; color: #888; display: block; margin-bottom: 2px; }
-    .val { font-weight: 600; color: #333; }
+    .label { font-size: 0.85rem; color: #888; display: block; margin-bottom: 4px; font-weight: 500; }
+    .val { font-weight: 700; color: #241914; font-size: 1.05rem; }
+    
     .status-chip {
-        padding: 5px 15px;
+        padding: 6px 15px;
         border-radius: 20px;
         font-size: 0.8rem;
-        font-weight: 600;
+        font-weight: 700;
+        text-align: center;
+        width: fit-content;
+        justify-self: end;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
-    .status-chip.pending { background: #fff7ed; color: #f97316; }
-    .status-chip.delivered { background: #f0fdf4; color: #22c55e; }
+    
+    .status-chip.pending { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
+    .status-chip.paid { background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
+    .status-chip.processing-cod { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+    .status-chip.shipped { background: #f5f3ff; color: #6d28d9; border: 1px solid #ede9fe; }
+    .status-chip.delivered { background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
+    
     .order-footer {
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
+    .order-footer span {
+        font-size: 1.05rem;
+        color: #64748b;
+    }
+    .order-footer strong {
+        color: #241914;
+        font-size: 1.2rem;
+    }
     .view-details {
         background: none;
-        border: 1px solid var(--crimson);
-        color: var(--crimson);
-        padding: 6px 15px;
-        border-radius: 8px;
+        border: 1.5px solid var(--gold-primary);
+        color: var(--gold-primary);
+        padding: 8px 20px;
+        border-radius: 30px;
         cursor: pointer;
-        font-weight: 600;
+        font-weight: 700;
         transition: 0.3s;
+        font-size: 0.9rem;
     }
-    .view-details:hover { background: var(--crimson); color: #fff; }
+    .view-details:hover { background: var(--gold-primary); color: #fff; }
+
+    /* TRACKER STYLING */
+    .profile-tracker-line {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        padding: 0 15px;
+    }
+    .profile-tracker-line::before {
+        content: '';
+        position: absolute;
+        top: 8px;
+        left: 20px;
+        right: 20px;
+        height: 2px;
+        background: #cbd5e1;
+        z-index: 1;
+    }
+    .tracker-progress-bar {
+        position: absolute;
+        top: 8px;
+        left: 20px;
+        height: 2px;
+        background: var(--gold-primary);
+        z-index: 1;
+        transition: width 0.4s ease;
+    }
+    .tracker-node {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+    }
+    .node-dot {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #fff;
+        border: 2px solid #cbd5e1;
+        transition: all 0.3s;
+    }
+    .tracker-node.active .node-dot {
+        background: var(--gold-primary);
+        border-color: var(--gold-primary);
+        box-shadow: 0 0 0 6px rgba(184, 138, 68, 0.15);
+    }
+    .node-title {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #94a3b8;
+        margin-top: 8px;
+        letter-spacing: 0.5px;
+    }
+    .tracker-node.active .node-title {
+        color: var(--gold-primary);
+    }
 
     .details-form .form-grid {
         display: grid;
@@ -272,9 +435,9 @@
         transition: all 0.2s;
     }
     .form-group input:focus, .form-group textarea:focus {
-        border-color: var(--crimson);
+        border-color: var(--gold-primary);
         background: #fff;
-        box-shadow: 0 0 0 3px rgba(199, 86, 106, 0.1);
+        box-shadow: 0 0 0 3px rgba(184, 138, 68, 0.1);
     }
     .form-group textarea {
         resize: vertical;
@@ -282,13 +445,18 @@
     }
     .btn-save {
         margin-top: 2rem;
-        background: var(--crimson);
+        background: var(--crimson-dark);
         color: #fff;
         border: none;
         padding: 12px 30px;
         border-radius: 10px;
         font-weight: 600;
         cursor: pointer;
+        transition: all 0.3s;
+    }
+    .btn-save:hover {
+        background: #4f253d;
+        transform: translateY(-2px);
     }
     .empty-state {
         text-align: center;
@@ -301,27 +469,74 @@
     .btn-shop {
         display: inline-block;
         margin-top: 1.5rem;
-        background: var(--crimson);
+        background: var(--crimson-dark);
         color: #fff;
         padding: 10px 25px;
         border-radius: 30px;
         text-decoration: none;
         font-weight: 600;
+        transition: all 0.3s;
+    }
+    .btn-shop:hover {
+        background: #4f253d;
+        transform: translateY(-2px);
     }
 
+    @media (max-width: 900px) {
+        .profile-container {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        .order-header {
+            grid-template-columns: 1fr 1fr;
+        }
+        .status-chip {
+            grid-column: span 2;
+            justify-self: start;
+        }
+    }
     
+    @media (max-width: 600px) {
+        .profile-page {
+            padding: 2rem 1rem;
+        }
+        .profile-card {
+            padding: 1.5rem 1rem;
+            border-radius: 16px;
+        }
+        .details-form .form-grid {
+            grid-template-columns: 1fr;
+        }
+        .order-card {
+            padding: 1.2rem;
+        }
+    }
 </style>
 
 <script>
-    function showTab(tabId) {
-        // Update tabs
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        
-        // Update buttons
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        const activeBtn = Array.from(document.querySelectorAll('.nav-btn')).find(btn => btn.innerText.toLowerCase().includes(tabId));
-        if (activeBtn) activeBtn.classList.add('active');
+function showTab(tabId) {
+    // Update tabs
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    
+    // Update buttons
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    const activeBtn = Array.from(document.querySelectorAll('.nav-btn')).find(btn => btn.innerText.toLowerCase().includes(tabId));
+    if (activeBtn) activeBtn.classList.add('active');
+}
+
+function toggleOrderDetails(orderId) {
+    const drawer = document.getElementById(`details-${orderId}`);
+    const card = document.getElementById(`card-${orderId}`);
+    const btn = card.querySelector('.view-details');
+    
+    if (drawer.style.display === 'none') {
+        drawer.style.display = 'block';
+        btn.innerText = 'Hide Details';
+    } else {
+        drawer.style.display = 'none';
+        btn.innerText = 'View Details';
     }
+}
 </script>
 {% endblock %}

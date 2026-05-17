@@ -10,7 +10,7 @@
     --text-muted: #6b7280;
     --border-color: #e5e7eb; /* Stronger border for better definition */
     --success: #10b981;
-    --warning: #d4af37;
+    --warning: #b88a44;
     --error: #ef4444;
     --info: #5e2b48;
     --sand: #f9fafb;
@@ -1381,4 +1381,41 @@ th {
     border-color: #b88a44;
     box-shadow: 0 0 0 4px rgba(184, 138, 68, 0.08);
     background-color: #fff;
+}
+
+/* Premium Crimson Dark Sidebar Overrides */
+.sidebar {
+    background: #3e1b2f !important;
+    border-right: 1px solid rgba(184, 138, 68, 0.15) !important;
+}
+.sidebar .brand-name {
+    color: #b88a44 !important;
+}
+.sidebar-nav a {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+.sidebar-nav a i {
+    color: rgba(184, 138, 68, 0.8) !important;
+}
+.sidebar-nav li.active a {
+    background: rgba(184, 138, 68, 0.12) !important;
+    color: #b88a44 !important;
+    border-left: 4px solid #b88a44 !important;
+}
+.sidebar-nav a:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #fff !important;
+}
+.sidebar-footer {
+    background: #3e1b2f !important;
+    border-top: 1px solid rgba(184, 138, 68, 0.15) !important;
+}
+.view-site-btn {
+    background: rgba(184, 138, 68, 0.1) !important;
+    color: #b88a44 !important;
+}
+.view-site-btn:hover {
+    background: #b88a44 !important;
+    color: #3e1b2f !important;
+    box-shadow: 0 4px 12px rgba(184, 138, 68, 0.2) !important;
 }

@@ -17,7 +17,7 @@
     <div class="shop-container">
         <!-- MOBILE FILTER BUTTON -->
         <button class="mobile-filter-btn" id="filterBtn">
-            <img src="https://api.iconify.design/lucide:sliders-horizontal.svg?color=%23ffffff" style="width: 18px"
+            <img src="https://api.iconify.design/lucide:sliders-horizontal.svg?color=%23ffffff" style="width: 18px; height: 18px; display: inline-block;"
                 alt="filter">
             Filters
         </button>
@@ -297,12 +297,13 @@
     @media (max-width: 768px) {
         .shop-container {
             flex-direction: column;
-            padding-top: 1.5rem;
+            padding: 1.5rem 1rem !important;
         }
 
         .mobile-filter-btn {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
             padding: 0.8rem 1.5rem;
             background: var(--bg-deep, #241a14);
@@ -311,14 +312,14 @@
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
-            width: max-content;
-            margin-bottom: 0.5rem;
+            width: 100%;
+            margin-bottom: 1rem;
         }
 
         .shop-sidebar {
             position: fixed;
             top: 0;
-            left: -320px;
+            left: -350px;
             width: 300px;
             height: 100vh;
             background: #fff;

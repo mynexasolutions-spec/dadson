@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, session, redirect, url_for, abort, request, flash, jsonify
 from functools import wraps
-from models import db, User, Product, Category, SubCategory, ProductVariation, Order, AppConfig, Attribute, AttributeValue, ProductAttribute, VariationOption, Brand, Review, Coupon, ProductImage, SelectedAttributeValue
+from models import db, User, Product, Category, SubCategory, ProductVariation, Order, AppConfig, Attribute, AttributeValue, ProductAttribute, VariationOption, Brand, Review, Coupon, ProductImage, SelectedAttributeValue, OrderItem
 from datetime import datetime
 import os
 from werkzeug.utils import secure_filename
@@ -471,16 +471,95 @@ def delete_subcategory(id):
 @admin_bp.route('/admin/customers')
 @admin_required
 def customers():
-    all_users = User.query.filter_by(is_admin=False).all()
+    all_users = User.query.order_by(User.id.asc()).all()
     return render_template('admin/customers.html', users=all_users)
+
+@admin_bp.route('/admin/customers/delete/<int:id>', methods=['POST'])
+@admin_required
+def delete_customer(id):
+    user = User.query.get_or_404(id)
+    if user.is_admin:
+        flash('Cannot delete an admin account.', 'error')
+        return redirect(url_for('admin.customers'))
+        
+    # Delete associated orders & order items to prevent FK constraints
+    for order in user.orders:
+        OrderItem.query.filter_by(order_id=order.id).delete()
+        db.session.delete(order)
+        
+    db.session.delete(user)
+    db.session.commit()
+    flash('Customer deleted successfully!', 'success')
+    return redirect(url_for('admin.customers'))
 
 # --- ORDER ROUTES ---
 
 @admin_bp.route('/admin/orders')
 @admin_required
 def orders():
-    all_orders = Order.query.all()
+    all_orders = Order.query.order_by(Order.id.desc()).all()
     return render_template('admin/orders.html', orders=all_orders)
+
+@admin_bp.route('/admin/order/<int:order_id>')
+@admin_required
+def get_order_details(order_id):
+    order = Order.query.get_or_404(order_id)
+    user = order.user
+    
+    city_val = ''
+    state_val = ''
+    if user.city:
+        if ',' in user.city:
+            parts = user.city.split(',')
+            city_val = parts[0].strip()
+            state_val = parts[1].strip()
+        else:
+            city_val = user.city
+            
+    items = []
+    for item in order.items:
+        items.append({
+            'name': item.product.name,
+            'img': item.product.img,
+            'quantity': item.quantity,
+            'price_at_time': item.price_at_time
+        })
+        
+    return jsonify({
+        'success': True,
+        'order_number': order.order_number,
+        'date': order.date.strftime('%d %b %Y, %H:%M'),
+        'total': order.total_amount,
+        'status': order.status,
+        'customer_name': user.username or 'N/A',
+        'customer_email': user.email,
+        'customer_phone': user.phone or 'N/A',
+        'address': user.address or 'N/A',
+        'city': city_val,
+        'state': state_val,
+        'zipcode': user.zipcode or 'N/A',
+        'items': items
+    })
+
+@admin_bp.route('/admin/order/update-status/<int:order_id>', methods=['POST'])
+@admin_required
+def update_order_status(order_id):
+    order = Order.query.get_or_404(order_id)
+    new_status = request.form.get('status')
+    if new_status:
+        order.status = new_status
+        db.session.commit()
+        flash(f'Order {order.order_number} status updated to {new_status}!', 'success')
+    return redirect(url_for('admin.orders'))
+
+@admin_bp.route('/admin/order/delete/<int:order_id>', methods=['POST'])
+@admin_required
+def delete_order(order_id):
+    order = Order.query.get_or_404(order_id)
+    db.session.delete(order)
+    db.session.commit()
+    flash(f'Order {order.order_number} deleted successfully!', 'success')
+    return redirect(url_for('admin.orders'))
 
 # --- ATTRIBUTE ROUTES ---
 
@@ -770,15 +849,47 @@ def coupons():
 @admin_required
 def new_coupon():
     if request.method == 'POST':
-        code = request.form.get('code').upper()
-        type = request.form.get('type')
+        code = request.form.get('code').upper().strip()
+        type = request.form.get('type')  # 'flat' or 'percentage'
         discount = float(request.form.get('discount', 0))
-        coupon = Coupon(code=code, type=type, discount=discount)
+        threshold = float(request.form.get('threshold', 0))
+        usage_limit = int(request.form.get('usage_limit', 1))
+        
+        expiry_date_str = request.form.get('expiry_date')
+        expiry_date = None
+        if expiry_date_str:
+            try:
+                expiry_date = datetime.strptime(expiry_date_str, '%Y-%m-%d')
+            except ValueError:
+                pass
+                
+        # checkbox is present in form keys if checked
+        is_active = 'is_active' in request.form or request.form.get('is_active') == 'on'
+
+        coupon = Coupon(
+            code=code,
+            type=type,
+            discount=discount,
+            threshold=threshold,
+            usage_limit=usage_limit,
+            expiry_date=expiry_date,
+            is_active=is_active
+        )
         db.session.add(coupon)
         db.session.commit()
         flash('Coupon created successfully!', 'success')
         return redirect(url_for('admin.coupons'))
     return render_template('admin/coupon_form.html')
+
+@admin_bp.route('/admin/coupon/delete/<int:id>', methods=['POST'])
+@admin_required
+def delete_coupon(id):
+    coupon = Coupon.query.get(id)
+    if coupon:
+        db.session.delete(coupon)
+        db.session.commit()
+        flash('Coupon deleted successfully!', 'success')
+    return redirect(url_for('admin.coupons'))
 
 # --- SETTINGS ---
 

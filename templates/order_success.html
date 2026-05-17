@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}Thank You for Your Order — DADSON Premium Jewellery{% endblock %}
+
+{% block content %}
+<div class="order-success-page">
+    <div class="success-card">
+        <div class="success-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        </div>
+        
+        <h1>Your Order is Placed!</h1>
+        <p class="subtitle">Thank you for choosing DADSON. Your transaction has been secured, and we've begun handcrafting your exclusive pieces.</p>
+        
+        <div class="order-info-details">
+            <div class="info-row">
+                <span class="label">Order Number</span>
+                <span class="val highlight-gold">{{ order.order_number }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Payment Status</span>
+                <span class="val badge-paid">✓ Paid & Verified</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Total Amount</span>
+                <span class="val">{{ order.total_amount }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Shipping Address</span>
+                <span class="val address-val">
+                    <strong>{{ order.user.username }}</strong><br>
+                    {{ order.user.address }}, {{ order.user.city }} - {{ order.user.zipcode }}<br>
+                    Contact: {{ order.user.phone }}
+                </span>
+            </div>
+        </div>
+        
+        <div class="timeline-status">
+            <div class="timeline-step active">
+                <div class="step-dot"></div>
+                <div class="step-label">Order Confirmed</div>
+            </div>
+            <div class="timeline-step">
+                <div class="step-dot"></div>
+                <div class="step-label">Handcrafting</div>
+            </div>
+            <div class="timeline-step">
+                <div class="step-dot"></div>
+                <div class="step-label">Quality Check</div>
+            </div>
+            <div class="timeline-step">
+                <div class="step-dot"></div>
+                <div class="step-label">Dispatched</div>
+            </div>
+        </div>
+        
+        <a href="{{ url_for('public.shop') }}" class="btn-success-action">Continue Shopping</a>
+    </div>
+</div>
+
+<style>
+    .order-success-page {
+        min-height: 80vh;
+        background: #fdfaf6;
+        padding: 6rem var(--content-gutter);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #241914;
+    }
+    
+    .success-card {
+        background: #fff;
+        border: 1px solid rgba(184, 138, 68, 0.12);
+        border-radius: 24px;
+        max-width: 650px;
+        width: 100%;
+        padding: 4rem;
+        text-align: center;
+        box-shadow: 0 15px 40px rgba(184, 138, 68, 0.04);
+    }
+    
+    .success-icon-wrap {
+        width: 80px;
+        height: 80px;
+        background: rgba(16, 185, 129, 0.08);
+        border: 2px solid #10b981;
+        color: #10b981;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 2.5rem;
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.04);
+    }
+    
+    .success-icon-wrap svg {
+        width: 40px;
+        height: 40px;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+    
+    .success-card h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.4rem;
+        margin-bottom: 1rem;
+        color: #241914;
+    }
+    
+    .success-card .subtitle {
+        color: #64748b;
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 3rem;
+    }
+    
+    .order-info-details {
+        background: #fdfaf6;
+        border: 1.5px dashed rgba(184, 138, 68, 0.2);
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: left;
+        margin-bottom: 3rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.95rem;
+    }
+    
+    .info-row .label {
+        font-weight: 700;
+        color: #241914;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.8px;
+    }
+    
+    .info-row .val {
+        color: #241914;
+        font-weight: 600;
+    }
+    
+    .highlight-gold {
+        color: var(--gold-primary) !important;
+        font-weight: 700 !important;
+    }
+    
+    .badge-paid {
+        color: #10b981 !important;
+        font-weight: 700 !important;
+        background: rgba(16, 185, 129, 0.08);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+    }
+    
+    .address-val {
+        text-align: right;
+        font-size: 0.9rem;
+        color: #64748b !important;
+        line-height: 1.5;
+        font-weight: 400 !important;
+    }
+    
+    .timeline-status {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        position: relative;
+        margin-bottom: 3.5rem;
+    }
+    
+    .timeline-status::before {
+        content: '';
+        position: absolute;
+        top: 8px;
+        left: 12.5%;
+        width: 75%;
+        height: 2px;
+        background: #e2e8f0;
+        z-index: 1;
+    }
+    
+    .timeline-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+        gap: 0.8rem;
+    }
+    
+    .step-dot {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #fff;
+        border: 2px solid #cbd5e1;
+        transition: all 0.3s;
+    }
+    
+    .timeline-step.active .step-dot {
+        background: var(--gold-primary);
+        border-color: var(--gold-primary);
+        box-shadow: 0 0 0 6px rgba(184, 138, 68, 0.15);
+    }
+    
+    .step-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #94a3b8;
+    }
+    
+    .timeline-step.active .step-label {
+        color: var(--gold-primary);
+    }
+    
+    .btn-success-action {
+        display: inline-flex;
+        height: 56px;
+        background: #241914;
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 700;
+        border-radius: 28px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 3rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 20px rgba(36, 25, 20, 0.15);
+    }
+    
+    .btn-success-action:hover {
+        background: #3d2b23;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(36, 25, 20, 0.22);
+    }
+    
+    @media (max-width: 600px) {
+        .success-card {
+            padding: 2.5rem 1.2rem;
+            border-radius: 16px;
+        }
+        .success-card h1 {
+            font-size: 1.8rem;
+        }
+        .order-info-details {
+            padding: 1.2rem 1rem;
+        }
+        .info-row {
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        .address-val {
+            text-align: left;
+        }
+        .step-label {
+            font-size: 0.6rem;
+        }
+    }
+</style>
+{% endblock %}

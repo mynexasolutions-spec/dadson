@@ -32,6 +32,13 @@ document.addEventListener('click', function(e) {
                         btn.style.backgroundColor = '';
                         btn.disabled = false;
                     }, 2000);
+                } else if (data.redirect) {
+                    window.location.href = data.redirect;
+                } else {
+                    alert(data.message || 'Error adding product.');
+                    btn.textContent = originalText;
+                    btn.style.backgroundColor = '';
+                    btn.disabled = false;
                 }
             })
             .catch(err => {
@@ -55,7 +62,7 @@ window.toggleWishlist = function(e, productId) {
         e.stopPropagation();
     }
     
-    const btn = e.currentTarget;
+    const btn = e ? (e.currentTarget || e.target.closest('.product-wishlist') || e.target.closest('.btn-wish-circle-premium')) : null;
     const img = btn.querySelector('img');
     
     fetch(`/toggle-wishlist/${productId}`, {
@@ -84,6 +91,10 @@ window.toggleWishlist = function(e, productId) {
 // ==================== DROPDOWN MENU ====================
 document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
     trigger.addEventListener('click', function(e) {
+        // If click is on a dropdown item link, let the navigation proceed!
+        if (e.target.closest('.dropdown-item') || e.target.closest('a')) {
+            return;
+        }
         e.preventDefault();
         this.classList.toggle('active');
     });

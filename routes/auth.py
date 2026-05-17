@@ -9,14 +9,17 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
         user = User.query.filter_by(email=email).first()
-        if user and user.check_password(password):
+        if not user:
+            flash('This email is not signed up. Please register first.', 'error')
+            return render_template('auth.html')
+        if user.check_password(password):
             session['user_id'] = user.id
             session['is_admin'] = user.is_admin
             if user.is_admin:
                 return redirect(url_for('admin.dashboard'))
             return redirect(url_for('public.home'))
         else:
-            flash('Invalid email or password', 'error')
+            flash('Invalid password. Please try again.', 'error')
     return render_template('auth.html')
 
 @auth_bp.route('/signup', methods=['POST'])
@@ -50,7 +53,9 @@ def profile():
         user.username = request.form.get('username')
         user.phone = request.form.get('phone')
         user.address = request.form.get('address')
-        user.city = request.form.get('city')
+        city = request.form.get('city')
+        state = request.form.get('state')
+        user.city = f"{city}, {state}" if state else city
         user.zipcode = request.form.get('zipcode')
         db.session.commit()
         flash('Profile updated successfully!', 'success')

@@ -1,13 +1,19 @@
 from flask import Blueprint, render_template, session, request, jsonify, redirect, url_for
-from models import Product
+from models import Product, Coupon, Order
+from datetime import datetime
 
 cart_bp = Blueprint('cart', __name__)
 
+import re
+
 def safe_price(price_str):
-    """Safely parse price string like 'Rs. 1,299' → 1299. Returns 0 on failure."""
+    """Safely parse price string by removing all non-numeric characters."""
+    if not price_str:
+        return 0
+    digits = re.sub(r'[^\d]', '', str(price_str))
     try:
-        return int(str(price_str).replace('Rs.', '').replace(',', '').strip())
-    except (ValueError, AttributeError):
+        return int(digits) if digits else 0
+    except ValueError:
         return 0
 
 @cart_bp.route('/cart')
@@ -43,7 +49,10 @@ def view_cart():
                 base_id = product_id.split('_')[0]
                 product = Product.query.get(base_id)
                 if product:
-                    display_price = safe_price(product.price)
+                    if product.product_type == 'variable' and product.variations:
+                        display_price = safe_price(product.variations[0].price)
+                    else:
+                        display_price = safe_price(product.price)
                     if '_' in product_id:
                         parts = product_id.split('_')
                         if len(parts) >= 2 and parts[1] != 'NA': variant_labels.append({'name': 'Size', 'value': parts[1]})
@@ -66,6 +75,8 @@ def view_cart():
                             if p_img.attribute_value_id == color_opt.attribute_value_id:
                                 var_img = p_img.img_url
                                 break
+            if not var_img:
+                var_img = product.img
 
             orig_price = safe_price(variation.orig_price) if variation and variation.orig_price else safe_price(product.orig)
             
@@ -85,7 +96,120 @@ def view_cart():
             cart.pop(product_id, None)
             session['cart'] = cart
             session.modified = True
-    return render_template('cart.html', cart_items=cart_items, subtotal=f"₹{subtotal:,}")
+
+    from routes.checkout import get_shipping_config
+    shipping_charge, free_above = get_shipping_config()
+    actual_shipping = 0 if (free_above and subtotal >= free_above) else shipping_charge
+
+    # Coupon Validation & Calculation
+    discount_amount = 0
+    coupon_code = session.get('coupon_code')
+    coupon = None
+    if coupon_code:
+        coupon = Coupon.query.filter_by(code=coupon_code).first()
+        if coupon and coupon.is_active:
+            # Check expiry
+            if not (coupon.expiry_date and datetime.utcnow() > coupon.expiry_date):
+                # Check threshold
+                if subtotal >= coupon.threshold:
+                    # Check usage limit
+                    user_id = session.get('user_id')
+                    eligible = True
+                    if user_id:
+                        usage_count = Order.query.filter_by(user_id=user_id, coupon_code=coupon.code).count()
+                        if usage_count >= coupon.usage_limit:
+                            eligible = False
+                    
+                    if eligible:
+                        if coupon.type == 'percentage':
+                            discount_amount = (subtotal * coupon.discount) / 100.0
+                        else:
+                            discount_amount = coupon.discount
+                        discount_amount = min(discount_amount, subtotal)
+        
+        # If no longer eligible, remove from session
+        if discount_amount == 0:
+            session.pop('coupon_code', None)
+            session.modified = True
+            coupon_code = None
+
+    total = subtotal - discount_amount + actual_shipping
+
+    return render_template('cart.html', 
+                           cart_items=cart_items, 
+                           subtotal=f"₹{subtotal:,}",
+                           shipping_charge_str="FREE" if actual_shipping == 0 else f"₹{actual_shipping:,}",
+                           discount_amount_str=f"-₹{discount_amount:,}" if discount_amount > 0 else None,
+                           coupon_code=coupon_code,
+                           total_str=f"₹{total:,}")
+
+@cart_bp.route('/apply-coupon', methods=['POST'])
+def apply_coupon():
+    code = request.form.get('code', '').upper().strip()
+    if not code:
+        return jsonify({'success': False, 'message': 'Please enter a coupon code.'})
+        
+    coupon = Coupon.query.filter_by(code=code).first()
+    if not coupon:
+        return jsonify({'success': False, 'message': 'Invalid coupon code.'})
+        
+    if not coupon.is_active:
+        return jsonify({'success': False, 'message': 'This coupon is no longer active.'})
+        
+    if coupon.expiry_date and datetime.utcnow() > coupon.expiry_date:
+        return jsonify({'success': False, 'message': 'This coupon has expired.'})
+        
+    cart = session.get('cart', {})
+    subtotal = 0
+    from models import ProductVariation
+    for product_id, quantity in cart.items():
+        price = 0
+        if product_id.startswith('var:'):
+            var_id = int(product_id.split(':')[1])
+            var = ProductVariation.query.get(var_id)
+            if var:
+                price = safe_price(var.price)
+        else:
+            base_id = product_id.split('_')[0]
+            p = Product.query.get(base_id)
+            if p:
+                price = safe_price(p.price)
+        subtotal += price * quantity
+        
+    if subtotal == 0:
+        return jsonify({'success': False, 'message': 'Your bag is empty.'})
+        
+    if subtotal < coupon.threshold:
+        return jsonify({'success': False, 'message': f'Minimum order value of ₹{coupon.threshold:.0f} is required for this coupon.'})
+        
+    user_id = session.get('user_id')
+    if user_id:
+        usage_count = Order.query.filter_by(user_id=user_id, coupon_code=coupon.code).count()
+        if usage_count >= coupon.usage_limit:
+            return jsonify({'success': False, 'message': f'You have reached the maximum usage limit ({coupon.usage_limit}) for this coupon.'})
+            
+    session['coupon_code'] = coupon.code
+    session.modified = True
+    
+    if coupon.type == 'percentage':
+        discount_amount = (subtotal * coupon.discount) / 100.0
+    else:
+        discount_amount = coupon.discount
+        
+    discount_amount = min(discount_amount, subtotal)
+    
+    return jsonify({
+        'success': True,
+        'message': f'Coupon "{coupon.code}" applied!',
+        'discount_amount': discount_amount,
+        'discount_str': f"-₹{discount_amount:,.2f}"
+    })
+
+@cart_bp.route('/remove-coupon', methods=['POST'])
+def remove_coupon():
+    session.pop('coupon_code', None)
+    session.modified = True
+    return jsonify({'success': True, 'message': 'Coupon removed successfully.'})
 
 @cart_bp.route('/add-to-cart/<id>', methods=['POST'])
 def add_to_cart(id):
@@ -96,6 +220,19 @@ def add_to_cart(id):
         if variation_id:
             cart_key = f"var:{variation_id}"
         else:
+            # Check if base product is variable and needs selection
+            product = Product.query.get(id)
+            if product and product.product_type == 'variable':
+                from flask import url_for
+                target_url = url_for('public.product_detail', id=id)
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify({
+                        'success': False,
+                        'redirect': target_url,
+                        'message': 'Please select your variation.'
+                    })
+                return redirect(target_url)
+                
             size = request.form.get('size')
             color = request.form.get('color')
             cart_key = id

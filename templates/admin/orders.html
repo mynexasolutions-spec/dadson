@@ -4,7 +4,7 @@
 <div class="page-header">
     <div class="header-left">
         <h1>Orders</h1>
-        <p>Manage and track customer orders.</p>
+        <p>Manage and track customer orders, view logistics, and update fulfillment status.</p>
     </div>
 </div>
 
@@ -28,12 +28,21 @@
                     <td><strong>{{ order.order_number }}</strong></td>
                     <td>{{ order.user.email }}</td>
                     <td>{{ order.date.strftime('%b %d, %Y') }}</td>
-                    <td>{{ order.total_amount }}</td>
-                    <td><span class="status-badge {{ order.status.lower() }}">{{ order.status }}</span></td>
+                    <td class="text-gold" style="font-weight: 700;">{{ order.total_amount }}</td>
+                    <td><span class="status-badge {{ order.status.lower().replace(' ', '-').replace('(', '').replace(')', '') }}">{{ order.status }}</span></td>
                     <td>
                         <div class="action-btns">
-                            <button class="btn-icon" title="View Details"><i class="fas fa-eye"></i></button>
-                            <button class="btn-icon" title="Update Status"><i class="fas fa-edit"></i></button>
+                            <button class="btn-icon" title="View Details" onclick="openViewModal('{{ order.id }}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn-icon" title="Update Status" onclick="openStatusModal('{{ order.id }}', '{{ order.status }}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <form action="{{ url_for('admin.delete_order', order_id=order.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to cancel and delete this order?');">
+                                <button type="submit" class="btn-icon delete" title="Cancel/Delete Order">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>
@@ -50,6 +59,78 @@
     {% endif %}
 </div>
 
+<!-- VIEW DETAILS MODAL -->
+<div id="viewOrderModal" class="admin-modal" style="display: none;">
+    <div class="admin-modal-content">
+        <div class="modal-header">
+            <h3>Order Details: <span id="mOrderNumber" class="text-gold"></span></h3>
+            <button class="close-modal-btn" onclick="closeViewModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="modalViewBody">
+            <div class="modal-grid">
+                <!-- Customer & Shipping details -->
+                <div class="modal-info-col">
+                    <h4 class="sub-heading"><i class="fas fa-user-circle"></i> Customer Profile</h4>
+                    <p><strong>Name:</strong> <span id="mCustName"></span></p>
+                    <p><strong>Email:</strong> <span id="mCustEmail"></span></p>
+                    <p><strong>Phone:</strong> <span id="mCustPhone"></span></p>
+
+                    <h4 class="sub-heading" style="margin-top: 1.5rem;"><i class="fas fa-map-marker-alt"></i> Shipping Address</h4>
+                    <p id="mAddressText"></p>
+                    <p><strong>City:</strong> <span id="mCity"></span></p>
+                    <p><strong>State:</strong> <span id="mState"></span></p>
+                    <p><strong>PIN Code:</strong> <span id="mZipcode"></span></p>
+                </div>
+                
+                <!-- General details -->
+                <div class="modal-info-col">
+                    <h4 class="sub-heading"><i class="fas fa-info-circle"></i> Order Summary</h4>
+                    <p><strong>Date Placed:</strong> <span id="mDate"></span></p>
+                    <p><strong>Current Status:</strong> <span id="mStatusBadge" class="status-badge"></span></p>
+                    <p><strong>Grand Total:</strong> <span id="mTotalAmount" class="text-gold" style="font-weight: 800; font-size: 1.1rem;"></span></p>
+                </div>
+            </div>
+            
+            <div class="modal-items-section" style="margin-top: 2rem;">
+                <h4 class="sub-heading"><i class="fas fa-gem"></i> Purchased Selection</h4>
+                <div class="modal-items-list" id="mItemsList">
+                    <!-- Dynamic Items list -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- UPDATE STATUS MODAL -->
+<div id="statusOrderModal" class="admin-modal" style="display: none;">
+    <div class="admin-modal-content" style="max-width: 450px;">
+        <div class="modal-header">
+            <h3>Update Order Status</h3>
+            <button class="close-modal-btn" onclick="closeStatusModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="updateStatusForm" method="POST" action="">
+                <div class="form-group">
+                    <label for="orderStatusSelect">Fulfillment Status</label>
+                    <select id="orderStatusSelect" name="status" class="admin-input" style="width: 100%;">
+                        <option value="Pending">Pending</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Processing (COD)">Processing (COD)</option>
+                        <option value="Processing">Processing</option>
+                        <option value="Shipped">Shipped</option>
+                        <option value="Delivered">Delivered</option>
+                    </select>
+                </div>
+                
+                <div class="form-actions" style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeStatusModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <style>
     .empty-state {
         text-align: center;
@@ -61,8 +142,266 @@
         margin-bottom: 1rem;
         opacity: 0.3;
     }
-    .status-badge.pending { background: #fff7ed; color: #f97316; }
-    .status-badge.processing { background: #eff6ff; color: #3b82f6; }
-    .status-badge.delivered { background: #f0fdf4; color: #22c55e; }
+    
+    /* Elegant Color Badges */
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+    }
+    .status-badge.pending { background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
+    .status-badge.paid { background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
+    .status-badge.processing-cod { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+    .status-badge.processing { background: #f0f9ff; color: #0284c7; border: 1px solid #e0f2fe; }
+    .status-badge.shipped { background: #f5f3ff; color: #6d28d9; border: 1px solid #ede9fe; }
+    .status-badge.delivered { background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
+    
+    .text-gold {
+        color: var(--secondary) !important;
+    }
+    
+    .action-btns {
+        display: flex;
+        gap: 8px;
+    }
+    
+    /* MODALS */
+    .admin-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(36, 25, 20, 0.6);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    .admin-modal-content {
+        background: #fff;
+        border-radius: 24px;
+        width: 90%;
+        max-width: 700px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        padding: 2.5rem;
+        animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 1.2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .modal-header h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.5rem;
+        margin: 0;
+        color: #241914;
+    }
+    
+    .close-modal-btn {
+        background: none;
+        border: none;
+        font-size: 1.8rem;
+        color: #94a3b8;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+    
+    .close-modal-btn:hover {
+        color: #ef4444;
+    }
+    
+    .modal-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 2rem;
+    }
+    
+    .sub-heading {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.1rem;
+        color: #241914;
+        margin-bottom: 1rem;
+        border-bottom: 1px dashed #f1f5f9;
+        padding-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .sub-heading i {
+        color: var(--secondary);
+    }
+    
+    .modal-info-col p {
+        font-size: 0.9rem;
+        color: #64748b;
+        margin-bottom: 0.6rem;
+    }
+    
+    .modal-info-col p strong {
+        color: #241914;
+        font-weight: 600;
+    }
+    
+    .modal-items-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        background: #fdfaf6;
+        border-radius: 16px;
+        padding: 1.2rem;
+        border: 1px solid rgba(184, 138, 68, 0.06);
+    }
+    
+    .modal-item-row {
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 0.8rem;
+    }
+    
+    .modal-item-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    
+    .modal-item-img {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .modal-item-details {
+        flex-grow: 1;
+    }
+    
+    .modal-item-details h5 {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #241914;
+        margin: 0 0 2px 0;
+    }
+    
+    .modal-item-details span {
+        font-size: 0.78rem;
+        color: #64748b;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+        from { transform: translateY(30px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
 </style>
+
+<script>
+function openViewModal(orderId) {
+    const modal = document.getElementById('viewOrderModal');
+    
+    // Fetch details via API
+    fetch(`/admin/order/${orderId}`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('mOrderNumber').innerText = data.order_number;
+            document.getElementById('mCustName').innerText = data.customer_name;
+            document.getElementById('mCustEmail').innerText = data.customer_email;
+            document.getElementById('mCustPhone').innerText = data.customer_phone;
+            
+            document.getElementById('mAddressText').innerText = data.address;
+            document.getElementById('mCity').innerText = data.city;
+            document.getElementById('mState').innerText = data.state;
+            document.getElementById('mZipcode').innerText = data.zipcode;
+            
+            document.getElementById('mDate').innerText = data.date;
+            document.getElementById('mTotalAmount').innerText = data.total;
+            
+            // Set status badge
+            const statusBadge = document.getElementById('mStatusBadge');
+            statusBadge.innerText = data.status;
+            statusBadge.className = 'status-badge ' + data.status.toLowerCase().replace(' ', '-').replace('(', '').replace(')', '');
+            
+            // Populate items list
+            const list = document.getElementById('mItemsList');
+            list.innerHTML = '';
+            data.items.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'modal-item-row';
+                row.innerHTML = `
+                    <img src="${item.img}" class="modal-item-img" alt="${item.name}">
+                    <div class="modal-item-details">
+                        <h5>${item.name}</h5>
+                        <span>Quantity: ${item.quantity} × ${item.price_at_time}</span>
+                    </div>
+                `;
+                list.appendChild(row);
+            });
+            
+            modal.style.display = 'flex';
+        } else {
+            alert('Failed to load order details.');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('An error occurred while loading details.');
+    });
+}
+
+function closeViewModal() {
+    document.getElementById('viewOrderModal').style.display = 'none';
+}
+
+function openStatusModal(orderId, currentStatus) {
+    const modal = document.getElementById('statusOrderModal');
+    const form = document.getElementById('updateStatusForm');
+    const select = document.getElementById('orderStatusSelect');
+    
+    // Set form action dynamically
+    form.action = `/admin/order/update-status/${orderId}`;
+    
+    // Select current status
+    select.value = currentStatus;
+    
+    modal.style.display = 'flex';
+}
+
+function closeStatusModal() {
+    document.getElementById('statusOrderModal').style.display = 'none';
+}
+
+// Close modals when clicking outside
+window.onclick = function(event) {
+    const viewModal = document.getElementById('viewOrderModal');
+    const statusModal = document.getElementById('statusOrderModal');
+    if (event.target === viewModal) {
+        closeViewModal();
+    }
+    if (event.target === statusModal) {
+        closeStatusModal();
+    }
+}
+</script>
 {% endblock %}

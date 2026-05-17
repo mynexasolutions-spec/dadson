@@ -3,12 +3,12 @@
 {% block head %}
 <style>
     :root {
-        --luvtale-gold: #d4af37;
-        --luvtale-gold-light: rgba(212, 175, 55, 0.15);
-        --luvtale-gold-dark: #b48529;
-        --luvtale-dark: #3e1b2f; /* Deep Plum Dark */
+        --luvtale-gold: #b88a44; /* DADSON Premium Gold */
+        --luvtale-gold-light: rgba(184, 138, 68, 0.12);
+        --luvtale-gold-dark: #9c7133;
+        --luvtale-dark: #3e1b2f; /* Deep Crimson Dark */
         --luvtale-cream: #ffffff; /* White */
-        --luvtale-accent: #5e2b48; /* Deep Plum Purple replacing vivid purple */
+        --luvtale-accent: #3e1b2f; /* Deep Crimson Accent */
         --border-radius: 20px;
         --shadow-sm: 0 4px 15px rgba(94, 43, 72, 0.05); /* Soft plum shadow */
         --shadow-md: 0 10px 30px rgba(94, 43, 72, 0.1);
@@ -24,43 +24,44 @@
     .form-card {
         background: white;
         border-radius: var(--border-radius);
-        padding: 45px;
+        padding: 35px 40px;
         box-shadow: var(--shadow-md);
         border: 1px solid rgba(184, 138, 68, 0.08);
-        margin-bottom: 40px;
+        margin-bottom: 35px;
         position: relative;
         overflow: hidden;
     }
 
     .form-section-title {
         font-family: 'Playfair Display', serif;
-        font-size: 1.8rem;
+        font-size: 1.6rem;
         font-weight: 800;
         color: var(--luvtale-dark);
-        margin-bottom: 35px;
+        margin-bottom: 25px;
         display: flex;
         align-items: center;
-        gap: 18px;
+        gap: 15px;
         border-bottom: 1.5px solid #f8f1e9;
-        padding-bottom: 25px;
+        padding-bottom: 15px;
     }
 
     .form-section-title i {
         color: var(--luvtale-gold);
-        font-size: 1.4rem;
+        font-size: 1.25rem;
         background: var(--luvtale-cream);
-        width: 45px;
-        height: 45px;
+        width: 42px;
+        height: 42px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(184, 138, 68, 0.1);
     }
 
     .form-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 35px;
+        gap: 30px;
     }
 
     .form-grid .full-width {
@@ -420,10 +421,21 @@
         display: flex;
         align-items: center;
         gap: 15px;
-        background: #f8fafc;
-        padding: 10px 20px;
-        border-radius: 15px;
-        border: 2px solid #f1f5f9;
+        background: #fdfaf6;
+        padding: 6px 20px;
+        border-radius: 16px;
+        border: 2px solid rgba(184, 138, 68, 0.15);
+        height: 52px;
+    }
+
+    /* Hide number input spinners for clean look */
+    #bulk_stock_input::-webkit-outer-spin-button,
+    #bulk_stock_input::-webkit-inner-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0 !important;
+    }
+    #bulk_stock_input {
+        -moz-appearance: textfield !important;
     }
 
     @keyframes fadeIn {
@@ -435,6 +447,60 @@
         to {
             opacity: 1;
             transform: translateY(0);
+        }
+    }
+
+    /* Cohesive Responsive Rules */
+    @media (max-width: 992px) {
+        .form-card {
+            padding: 30px;
+        }
+        .form-grid {
+            gap: 25px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .admin-form-container {
+            padding: 20px 12px 100px;
+        }
+        .form-card {
+            padding: 24px 20px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+        }
+        .form-section-title {
+            font-size: 1.35rem;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            gap: 12px;
+        }
+        .form-section-title i {
+            width: 36px;
+            height: 36px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+        }
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        .var-info {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        .variation-card {
+            padding: 20px;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .variation-card > div:last-child {
+            padding: 15px 0 0 0 !important;
+            border-left: none !important;
+            border-top: 2px solid #f1f5f9;
+            flex-direction: row !important;
+            justify-content: space-between !important;
+            width: 100%;
         }
     }
 </style>
@@ -726,15 +792,14 @@
                     <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
                         <div class="bulk-stock-container">
                             <span
-                                style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em;">Bulk
-                                Stock:</span>
+                                style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; display: inline-block;">Bulk Stock:</span>
                             <input type="number" id="bulk_stock_input" value="10"
-                                style="width: 70px; border: none; outline: none; background: transparent; font-weight: 800; text-align: center; color: var(--luvtale-dark); font-size: 1.1rem; border-bottom: 2px solid var(--luvtale-gold);">
+                                style="width: 75px !important; border: 1.5px solid rgba(184, 138, 68, 0.3) !important; padding: 6px 8px !important; border-radius: 10px !important; background-color: #fff !important; font-weight: 800 !important; text-align: center !important; color: var(--luvtale-dark) !important; font-size: 1.05rem !important; height: 36px !important; outline: none !important; margin: 0 4px !important; box-shadow: none !important;">
                             <button type="button" class="action-btn-gold"
-                                style="padding: 10px 20px; font-size: 0.8rem; border-radius: 10px; box-shadow: none;"
+                                style="padding: 0 16px !important; height: 36px !important; font-size: 0.85rem !important; border-radius: 10px !important; box-shadow: none !important; font-weight: 800 !important; margin: 0 !important; display: inline-flex !important; align-items: center !important;"
                                 onclick="applyBulkStock()">Apply</button>
                         </div>
-                        <button type="button" class="action-btn-outline" style="padding: 14px 25px; font-size: 1rem;"
+                        <button type="button" class="action-btn-outline" style="padding: 14px 25px; font-size: 1rem; height: 52px; display: inline-flex; align-items: center;"
                             onclick="addVariation()">
                             <i class="fas fa-plus"></i> Manual Add
                         </button>
@@ -756,10 +821,10 @@
 
             <!-- FORM ACTIONS -->
             <div
-                style="display: flex; justify-content: flex-end; gap: 20px; margin-top: 40px; padding: 25px 40px; background: white; border-radius: 24px; box-shadow: 0 -10px 40px rgba(0,0,0,0.04); position: sticky; bottom: 25px; z-index: 100; border: 1px solid rgba(184, 138, 68, 0.1);">
-                <a href="{{ url_for('admin.products') }}" class="action-btn-outline" style="background: white;">Discard
+                style="display: flex; justify-content: flex-end; align-items: center; gap: 20px; margin-top: 40px; padding: 25px 40px; background: white; border-radius: 24px; box-shadow: 0 -10px 40px rgba(0,0,0,0.04); position: sticky; bottom: 25px; z-index: 100; border: 1px solid rgba(184, 138, 68, 0.1);">
+                <a href="{{ url_for('admin.products') }}" class="action-btn-outline" style="background: white; display: inline-flex; align-items: center; height: 52px; justify-content: center; box-sizing: border-box;">Discard
                     Changes</a>
-                <button type="submit" class="action-btn-gold" style="min-width: 240px; font-size: 1rem;">
+                <button type="submit" class="action-btn-gold" style="min-width: 240px; font-size: 1rem; display: inline-flex; align-items: center; height: 52px; justify-content: center; box-sizing: border-box;">
                     <i class="fas fa-save"></i> {{ 'Update Jewelry Listing' if product else 'Publish Jewelry Listing' }}
                 </button>
             </div>

@@ -19,6 +19,7 @@
         <table id="customersTable">
             <thead>
                 <tr>
+                    <th>Customer ID</th>
                     <th>Customer</th>
                     <th>Email</th>
                     <th>Joined Date</th>
@@ -29,6 +30,7 @@
             <tbody>
                 {% for user in users %}
                 <tr>
+                    <td><strong style="color: #8e6a34;">#{{ user.id }}</strong></td>
                     <td>
                         <div class="user-cell">
                             <div class="avatar-circle" style="background: {{ ['#f59e0b', '#4f46e5', '#10b981', '#ef4444'] | random }};">
@@ -36,6 +38,9 @@
                             </div>
                             <div class="user-meta">
                                 <strong>{{ user.username or user.email.split('@')[0] }}</strong>
+                                {% if user.is_admin %}
+                                <span class="badge-tag" style="background: rgba(184, 138, 68, 0.15); color: #8e6a34; font-size: 0.75rem; padding: 2px 8px; margin-left: 6px; border: 1px solid rgba(184, 138, 68, 0.25); display: inline-block; vertical-align: middle;">Admin</span>
+                                {% endif %}
                             </div>
                         </div>
                     </td>

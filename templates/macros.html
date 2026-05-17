@@ -24,7 +24,7 @@
 <div class="product-card">
     <div class="product-img-wrap">
         <a href="{{ url_for('public.product_detail', id=product.id, v=variation.id if variation else None) }}">
-            <img src="{{ display_img }}" alt="{{ product.name }}" loading="lazy">
+            <img src="{{ display_img }}" alt="{{ product.name }}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=500&q=80';">
             <!-- Mobile category-card style overlay (visible only in new arrivals on mobile) -->
             <div class="na-mobile-overlay">
                 <div class="na-mobile-name">{{ product.name }}</div>

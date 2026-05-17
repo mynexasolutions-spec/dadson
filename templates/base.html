@@ -22,7 +22,6 @@
                 <a href="{{ url_for('public.home') }}" class="logo" aria-label="Go to homepage">
                     <img src="{{ url_for('static', filename='images/logo.png') }}" alt="DADSON logo" class="logo-image">
                     <span class="logo-text-wrap">
-                        <span class="logo-text">DADSON</span>
                         <span class="logo-tagline">Get the door - it's DADSON</span>
                     </span>
                 </a>
@@ -31,7 +30,7 @@
             <div class="navbar-center">
                 <ul class="nav-links">
                     <li class="nav-item"><a href="{{ url_for('public.home') }}">Home</a></li>
-                    <li class="nav-item"><a href="{{ url_for('public.shop') }}">New Arrivals</a></li>
+                    <li class="nav-item"><a href="{{ url_for('public.home') }}#new-arrivals">New Arrivals</a></li>
                     <li class="nav-item"><a href="{{ url_for('public.shop') }}">Shop</a></li>
                     <li class="nav-item dropdown-trigger">
                         <span>Categories <i class="fas fa-chevron-down" style="font-size: 0.8em; margin-left: 4px;"></i></span>
@@ -54,6 +53,16 @@
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
                 </button>
+                {% if session.get('is_admin') %}
+                <a href="{{ url_for('admin.dashboard') }}" class="icon-btn admin-btn" aria-label="Admin Dashboard" style="color: var(--gold-primary); position: relative; display: inline-flex; align-items: center; justify-content: center; margin-right: 8px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        <path d="M12 8v4"></path>
+                        <path d="M12 16h.01"></path>
+                    </svg>
+                    <span style="position: absolute; top: -6px; right: -6px; background: #c2185b; color: #fff; font-size: 7px; font-weight: 800; padding: 2px 4px; border-radius: 4px; border: 1px solid var(--gold-primary); line-height: 1; text-transform: uppercase; letter-spacing: 0.5px;">Admin</span>
+                </a>
+                {% endif %}
                 <a href="{{ url_for('auth.profile') if session.get('user_id') else url_for('auth.login') }}"
                     class="icon-btn" aria-label="Account">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -94,7 +103,7 @@
                 <div class="footer-section">
                     <h4>Shop</h4>
                     <ul>
-                        <li><a href="{{ url_for('public.shop') }}">New Arrivals</a></li>
+                        <li><a href="{{ url_for('public.home') }}#new-arrivals">New Arrivals</a></li>
                         <li><a href="{{ url_for('public.shop') }}">Best Sellers</a></li>
                         <li><a href="{{ url_for('public.shop') }}">Collections</a></li>
                         <li><a href="{{ url_for('public.shop') }}">Gifts</a></li>

@@ -132,4 +132,5 @@ def inject_globals():
     )
 
 if __name__ == '__main__':
+    # All routes loaded - mobile checkout fix + customer delete route
     app.run(debug=True, port=5000)

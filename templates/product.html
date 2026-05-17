@@ -12,17 +12,17 @@
             <div class="main-img">
                 {% set initial_img = product.img %}
                 {% if selected_variation %}
-                    {% set color_opt = None %}
-                    {% for opt in selected_variation.options if 'color' in opt.attribute_value.attribute.name.lower() %}
-                        {% set color_opt = opt %}
-                    {% endfor %}
-                    {% if color_opt %}
-                        {% for p_img in product.images %}
-                            {% if p_img.attribute_value_id == color_opt.attribute_value_id %}
-                                {% set initial_img = p_img.img_url %}
-                            {% endif %}
-                        {% endfor %}
-                    {% endif %}
+                {% set color_opt = None %}
+                {% for opt in selected_variation.options if 'color' in opt.attribute_value.attribute.name.lower() %}
+                {% set color_opt = opt %}
+                {% endfor %}
+                {% if color_opt %}
+                {% for p_img in product.images %}
+                {% if p_img.attribute_value_id == color_opt.attribute_value_id %}
+                {% set initial_img = p_img.img_url %}
+                {% endif %}
+                {% endfor %}
+                {% endif %}
                 {% endif %}
                 <img src="{{ initial_img }}" alt="{{ product.name }}" id="mainProductImg">
             </div>
@@ -32,8 +32,7 @@
                     <img src="{{ product.img }}" alt="Main Preview">
                 </div>
                 {% for p_img in product.images %}
-                <div class="thumb" 
-                    onclick="changeMainImg('{{ p_img.img_url }}', this)" 
+                <div class="thumb" onclick="changeMainImg('{{ p_img.img_url }}', this)"
                     data-attr-val="{{ p_img.attribute_value_id or 'none' }}"
                     style="display: {{ 'block' if not selected_variation or not color_opt or p_img.attribute_value_id == color_opt.attribute_value_id else 'none' }}">
                     <img src="{{ p_img.img_url }}" alt="Gallery View">
@@ -46,32 +45,37 @@
         <div class="product-info-sect">
             <div class="product-meta-top">
                 <span class="cat-tag">{{ product.category.name if product.category else product.cat_name }}</span>
-                <div id="displayStock" class="stock-status-new {{ selected_variation.stock_status if selected_variation else product.stock_status }}">
-                    {% if (selected_variation.stock_status if selected_variation else product.stock_status) == 'instock' %}
+                <div id="displayStock"
+                    class="stock-status-new {{ selected_variation.stock_status if selected_variation else product.stock_status }}">
+                    {% if (selected_variation.stock_status if selected_variation else product.stock_status) == 'instock'
+                    %}
                     <span class="stock-dot"></span> In Stock
                     {% else %}
                     <span class="stock-dot out"></span> Out of Stock
                     {% endif %}
                 </div>
             </div>
-            
+
             <h1 class="product-main-title">{{ product.name }}</h1>
-            
+
             <div class="product-price-box">
-                <span class="price-now" id="displayPrice">{{ selected_variation.price if selected_variation else product.price }}</span>
+                <span class="price-now" id="displayPrice">{{ selected_variation.price if selected_variation else
+                    product.price }}</span>
                 {% set current_orig = selected_variation.orig_price if selected_variation else product.orig %}
-                <span class="price-was" id="displayOrig" style="display: {{ 'inline' if current_orig else 'none' }};">{{ current_orig }}</span>
+                <span class="price-was" id="displayOrig" style="display: {{ 'inline' if current_orig else 'none' }};">{{
+                    current_orig }}</span>
                 <span class="save-badge" id="displayBadge" style="display: {{ 'inline' if current_orig else 'none' }};">
                     {% if current_orig %}
-                        {% set p1 = (selected_variation.price if selected_variation else product.price)|replace('₹','')|replace(',','')|float %}
-                        {% set p2 = current_orig|replace('₹','')|replace(',','')|float %}
-                        {% if p2 > p1 %}
-                            {{ ((p2 - p1) / p2 * 100)|round|int }}% OFF
-                        {% else %}
-                            Special Offer
-                        {% endif %}
+                    {% set p1 = (selected_variation.price if selected_variation else
+                    product.price)|replace('₹','')|replace(',','')|float %}
+                    {% set p2 = current_orig|replace('₹','')|replace(',','')|float %}
+                    {% if p2 > p1 %}
+                    {{ ((p2 - p1) / p2 * 100)|round|int }}% OFF
                     {% else %}
-                        Special Offer
+                    Special Offer
+                    {% endif %}
+                    {% else %}
+                    Special Offer
                     {% endif %}
                 </span>
             </div>
@@ -90,13 +94,12 @@
                         <a href="#sizeChartModal" class="size-link">Size Guide</a>
                         {% endif %}
                     </div>
-                    <div class="selector-grid {{ 'is-color' if 'color' in p_attr.attribute.name.lower() or 'metal' in p_attr.attribute.name.lower() else 'is-text' }}" id="attr-{{ p_attr.attribute.id }}">
+                    <div class="selector-grid {{ 'is-color' if 'color' in p_attr.attribute.name.lower() or 'metal' in p_attr.attribute.name.lower() else 'is-text' }}"
+                        id="attr-{{ p_attr.attribute.id }}">
                         {% for val_obj in product.selected_values if val_obj.attribute_id == p_attr.attribute.id %}
                         {% set val = val_obj.attribute_value %}
-                        <button class="premium-swatch" 
-                            data-attr-id="{{ p_attr.attribute.id }}" 
-                            data-val-id="{{ val.id }}"
-                            onclick="handleAttrSelect(this)">
+                        <button class="premium-swatch" data-attr-id="{{ p_attr.attribute.id }}"
+                            data-val-id="{{ val.id }}" onclick="handleAttrSelect(this)">
                             {% if val.image_url %}
                             <div class="swatch-img" style="background-image: url('{{ val.image_url }}');"></div>
                             {% elif '#' in val.value %}
@@ -111,11 +114,13 @@
             </div>
 
             <div class="main-actions-row">
-                <button id="addToCartBtn" class="btn-add-bag-premium" data-id="{{ product.id }}" onclick="addToCart(this)" {{ 'disabled' if product.product_type == 'variable' }}>
+                <button id="addToCartBtn" class="btn-add-bag-premium" data-id="{{ product.id }}"
+                    onclick="addToCart(this)" {{ 'disabled' if product.product_type=='variable' }}>
                     Add to Bag
                 </button>
                 {% set in_wishlist = product.id in session.get('wishlist', []) %}
-                <button class="btn-wish-circle-premium {{ 'active' if in_wishlist }}" onclick="toggleWishlist()" title="Add to Wishlist">
+                <button class="btn-wish-circle-premium {{ 'active' if in_wishlist }}" onclick="toggleWishlist()"
+                    title="Add to Wishlist">
                     <i class="{{ 'fas' if in_wishlist else 'far' }} fa-heart" id="wish-icon"></i>
                 </button>
             </div>
@@ -130,7 +135,7 @@
                         <p>{{ product.desc }}</p>
                     </div>
                 </div>
-                
+
                 {% if product.materials and product.materials != 'None' and product.materials != '' %}
                 <div class="info-acc-item">
                     <div class="info-acc-header" onclick="toggleAccordion(this)">
@@ -161,7 +166,8 @@
                         <i class="fas fa-plus"></i>
                     </div>
                     <div class="info-acc-content">
-                        <p>Complimentary shipping on all orders. Each piece is handcrafted to order and typically ships within 3-5 business days. Returns accepted within 14 days.</p>
+                        <p>Complimentary shipping on all orders. Each piece is handcrafted to order and typically ships
+                            within 3-5 business days. Returns accepted within 14 days.</p>
                     </div>
                 </div>
             </div>
@@ -181,18 +187,18 @@
                 </div>
             </div>
         </div>
-        </div>
     </div>
+</div>
 
-    <!-- RELATED PRODUCTS -->
-    <section class="related-products">
-        <h2 class="related-title">Complete The Look</h2>
-        <div class="related-grid">
-            {% for p in related %}
-            {{ product_card(p) }}
-            {% endfor %}
-        </div>
-    </section>
+<!-- RELATED PRODUCTS -->
+<section class="related-products">
+    <h2 class="related-title">Complete The Look</h2>
+    <div class="related-grid">
+        {% for p in related %}
+        {{ product_card(p) }}
+        {% endfor %}
+    </div>
+</section>
 </div>
 
 <!-- Size Chart Modal -->
@@ -211,79 +217,324 @@
 {% block head %}
 <style>
     /* Premium Product Page Design */
-    .product-info-sect { padding-left: 40px; }
-    
-    .product-meta-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .cat-tag { font-size: 0.75rem; font-weight: 700; color: #b88a44; text-transform: uppercase; letter-spacing: 1.5px; }
-    
-    .stock-status-new { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; color: #10b981; }
-    .stock-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); }
-    .stock-dot.out { background: #ef4444; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1); }
-    .stock-status-new.outofstock { color: #ef4444; }
-
-    .product-main-title { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: #241914; margin-bottom: 15px; line-height: 1.2; }
-    
-    .product-price-box { display: flex; align-items: baseline; gap: 15px; margin-bottom: 25px; }
-    .price-now { font-size: 1.8rem; font-weight: 800; color: #241914; }
-    .price-was { font-size: 1.2rem; color: #7d6b61; text-decoration: line-through; }
-    .save-badge { background: #fdfaf6; color: #b88a44; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(184, 138, 68, 0.2); }
-
-    .product-short-intro { color: #64748b; line-height: 1.6; margin-bottom: 35px; font-size: 0.95rem; }
-
-    .attr-group-sect { margin-bottom: 30px; }
-    .attr-group-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
-    .attr-label { font-size: 0.8rem; font-weight: 700; color: #241914; text-transform: uppercase; letter-spacing: 1px; }
-    .size-link { font-size: 0.75rem; color: #b88a44; text-decoration: none; border-bottom: 1px solid #b88a44; font-weight: 600; }
-
-    .selector-grid { display: flex; flex-wrap: wrap; gap: 12px; }
-    
-    .premium-swatch { 
-        background: #fff; border: 1.5px solid #e2e8f0; border-radius: 30px; padding: 6px 16px; 
-        cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 10px;
+    .product-info-sect {
+        padding-left: 40px;
     }
-    .premium-swatch:hover { border-color: #b88a44; background: #fdfaf6; }
-    .premium-swatch.active { border-color: #241914; background: #241914; color: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(36, 25, 20, 0.15); }
 
-    .swatch-color { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); }
-    .swatch-img { width: 18px; height: 18px; border-radius: 50%; background-size: cover; background-position: center; border: 1px solid rgba(0,0,0,0.1); }
-    .premium-swatch.active .swatch-color, .premium-swatch.active .swatch-img { border-color: rgba(255,255,255,0.3); }
-    .swatch-text { font-size: 0.85rem; font-weight: 600; }
-
-    .main-actions-row { display: flex; gap: 15px; margin: 40px 0; }
-    .btn-add-bag-premium { 
-        flex: 1; height: 60px; background: #241914; color: #fff; border: none; border-radius: 30px; 
-        font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; letter-spacing: 0.5px;
+    .product-meta-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
     }
-    .btn-add-bag-premium:hover { background: #3d2b23; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(36, 25, 20, 0.2); }
-    .btn-add-bag-premium:disabled { background: #cbd5e1; color: #64748b; cursor: not-allowed; transform: none; box-shadow: none; }
 
-    .btn-wish-circle-premium { 
-        width: 60px; height: 60px; border-radius: 50%; border: 1.5px solid #241914; background: #fff;
-        display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s;
-        color: #241914; font-size: 1.2rem;
+    .cat-tag {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #b88a44;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
     }
-    .btn-wish-circle-premium:hover { background: #fdfaf6; border-color: #b88a44; color: #b88a44; }
-    .btn-wish-circle-premium.active { background: #241914; color: #fff; }
 
-    .product-info-accordions { margin-top: 40px; border-top: 1px solid #f1f5f9; }
-    .info-acc-item { border-bottom: 1px solid #f1f5f9; }
-    .info-acc-header { 
-        padding: 20px 0; display: flex; justify-content: space-between; align-items: center; 
-        cursor: pointer; font-weight: 700; color: #241914; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;
+    .stock-status-new {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #10b981;
     }
-    .info-acc-header i { font-size: 0.8rem; transition: transform 0.3s; }
-    .info-acc-item.active .info-acc-header i { transform: rotate(45deg); }
-    .info-acc-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; color: #64748b; font-size: 0.95rem; line-height: 1.7; }
-    .info-acc-item.active .info-acc-content { max-height: 500px; padding-bottom: 20px; }
 
-    .premium-trust-row { display: flex; justify-content: space-between; margin-top: 50px; padding: 25px; background: #fdfaf6; border-radius: 20px; }
-    .trust-item-box { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; }
-    .trust-item-box i { color: #b88a44; font-size: 1.4rem; }
-    .trust-item-box span { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #7d6b61; text-align: center; }
+    .stock-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    }
+
+    .stock-dot.out {
+        background: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+    }
+
+    .stock-status-new.outofstock {
+        color: #ef4444;
+    }
+
+    .product-main-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        color: #241914;
+        margin-bottom: 15px;
+        line-height: 1.2;
+    }
+
+    .product-price-box {
+        display: flex;
+        align-items: baseline;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .price-now {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #241914;
+    }
+
+    .price-was {
+        font-size: 1.2rem;
+        color: #7d6b61;
+        text-decoration: line-through;
+    }
+
+    .save-badge {
+        background: #fdfaf6;
+        color: #b88a44;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border: 1px solid rgba(184, 138, 68, 0.2);
+    }
+
+    .product-short-intro {
+        color: #64748b;
+        line-height: 1.6;
+        margin-bottom: 35px;
+        font-size: 0.95rem;
+    }
+
+    .attr-group-sect {
+        margin-bottom: 30px;
+    }
+
+    .attr-group-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 12px;
+    }
+
+    .attr-label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #241914;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .size-link {
+        font-size: 0.75rem;
+        color: #b88a44;
+        text-decoration: none;
+        border-bottom: 1px solid #b88a44;
+        font-weight: 600;
+    }
+
+    .selector-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .premium-swatch {
+        background: #fff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 30px;
+        padding: 6px 16px;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .premium-swatch:hover {
+        border-color: #b88a44;
+        background: #fdfaf6;
+    }
+
+    .premium-swatch.active {
+        border-color: #241914;
+        background: #241914;
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(36, 25, 20, 0.15);
+    }
+
+    .swatch-color {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .swatch-img {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background-size: cover;
+        background-position: center;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .premium-swatch.active .swatch-color,
+    .premium-swatch.active .swatch-img {
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .swatch-text {
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .main-actions-row {
+        display: flex;
+        gap: 15px;
+        margin: 40px 0;
+    }
+
+    .btn-add-bag-premium {
+        flex: 1;
+        height: 60px;
+        background: #241914;
+        color: #fff;
+        border: none;
+        border-radius: 30px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-add-bag-premium:hover {
+        background: #3d2b23;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(36, 25, 20, 0.2);
+    }
+
+    .btn-add-bag-premium:disabled {
+        background: #cbd5e1;
+        color: #64748b;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .btn-wish-circle-premium {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: 1.5px solid #241914;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        color: #241914;
+        font-size: 1.2rem;
+    }
+
+    .btn-wish-circle-premium:hover {
+        background: #fdfaf6;
+        border-color: #b88a44;
+        color: #b88a44;
+    }
+
+    .btn-wish-circle-premium.active {
+        background: #241914;
+        color: #fff;
+    }
+
+    .product-info-accordions {
+        margin-top: 40px;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .info-acc-item {
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .info-acc-header {
+        padding: 20px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        font-weight: 700;
+        color: #241914;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .info-acc-header i {
+        font-size: 0.8rem;
+        transition: transform 0.3s;
+    }
+
+    .info-acc-item.active .info-acc-header i {
+        transform: rotate(45deg);
+    }
+
+    .info-acc-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+        color: #64748b;
+        font-size: 0.95rem;
+        line-height: 1.7;
+    }
+
+    .info-acc-item.active .info-acc-content {
+        max-height: 500px;
+        padding-bottom: 20px;
+    }
+
+    .premium-trust-row {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 50px;
+        padding: 25px;
+        background: #fdfaf6;
+        border-radius: 20px;
+    }
+
+    .trust-item-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+    }
+
+    .trust-item-box i {
+        color: #b88a44;
+        font-size: 1.4rem;
+    }
+
+    .trust-item-box span {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #7d6b61;
+        text-align: center;
+    }
 
     @media (max-width: 992px) {
-        .product-info-sect { padding-left: 0; margin-top: 40px; }
-        .product-main-title { font-size: 2rem; }
+        .product-info-sect {
+            padding-left: 0;
+            margin-top: 40px;
+        }
+
+        .product-main-title {
+            font-size: 2rem;
+        }
     }
 </style>
 {% endblock %}
@@ -323,16 +574,16 @@
     function handleAttrSelect(btn) {
         const isAlreadyActive = btn.classList.contains('active');
         const group = btn.closest('.selector-grid');
-        
+
         // Remove active from all in this group
         group.querySelectorAll('.premium-swatch').forEach(b => b.classList.remove('active'));
-        
+
         if (!isAlreadyActive) {
             btn.classList.add('active');
-            
+
             const valId = btn.getAttribute('data-val-id');
             const attrId = btn.getAttribute('data-attr-id');
-            
+
             // Instant Image Update for colors
             const firstMatch = variations.find(v => v.options[attrId] == valId);
             if (firstMatch && firstMatch.img && firstMatch.img !== 'None' && firstMatch.img !== '') {
@@ -379,7 +630,7 @@
         const selected = {};
         const attrGroups = document.querySelectorAll('.attr-group-sect');
         const totalGroups = attrGroups.length;
-        
+
         document.querySelectorAll('.premium-swatch.active').forEach(btn => {
             selected[btn.getAttribute('data-attr-id')] = btn.getAttribute('data-val-id');
         });
@@ -402,17 +653,17 @@
 
         if (match) {
             document.getElementById('displayPrice').innerText = match.price;
-            
+
             const origPriceEl = document.getElementById('displayOrig');
             const discountTag = document.getElementById('displayBadge');
-            
+
             if (match.orig_price && match.orig_price !== '') {
                 origPriceEl.innerText = match.orig_price;
                 origPriceEl.style.display = 'inline';
-                
+
                 const pNow = parseFloat(match.price.replace(/[₹,]/g, ''));
                 const pWas = parseFloat(match.orig_price.replace(/[₹,]/g, ''));
-                
+
                 if (pWas > pNow) {
                     const pct = Math.round(((pWas - pNow) / pWas) * 100);
                     discountTag.innerText = `${pct}% OFF`;
@@ -444,7 +695,7 @@
             }
 
             const newUrl = window.location.pathname + '?v=' + match.id;
-            window.history.pushState({path: newUrl}, '', newUrl);
+            window.history.pushState({ path: newUrl }, '', newUrl);
         } else {
             console.log("Selection Debug - Selected:", selected, "Variations Array:", variations);
             addToCartBtn.disabled = true;
@@ -456,7 +707,7 @@
         const productId = btn.getAttribute('data-id');
         const isVariable = variations.length > 0;
         const selected = {};
-        
+
         if (isVariable) {
             document.querySelectorAll('.premium-swatch.active').forEach(btn => {
                 selected[btn.getAttribute('data-attr-id')] = btn.getAttribute('data-val-id');
@@ -470,7 +721,7 @@
                 alert("Please select all options before adding to Bag.");
                 return;
             }
-            
+
             performAddToCart(btn, productId, match.id);
         } else {
             performAddToCart(btn, productId, null);
@@ -492,40 +743,40 @@
             body: formData,
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                const badge = document.getElementById('cartBadge');
-                if (badge) badge.innerText = data.cart_count;
-                
-                btn.innerText = '✓ Added';
-                btn.classList.add('added');
-                
-                setTimeout(() => {
-                    btn.innerText = originalText;
-                    btn.classList.remove('added');
-                    btn.disabled = false;
-                }, 2000);
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            btn.innerText = 'Error';
-            btn.disabled = false;
-        });
-    }    function toggleWishlist() {
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const badge = document.getElementById('cartBadge');
+                    if (badge) badge.innerText = data.cart_count;
+
+                    btn.innerText = '✓ Added';
+                    btn.classList.add('added');
+
+                    setTimeout(() => {
+                        btn.innerText = originalText;
+                        btn.classList.remove('added');
+                        btn.disabled = false;
+                    }, 2000);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                btn.innerText = 'Error';
+                btn.disabled = false;
+            });
+    } function toggleWishlist() {
         const btn = document.querySelector('.btn-wish-circle-premium');
         const icon = document.getElementById('wish-icon');
         const productId = "{{ product.id }}";
         const isVariable = variations.length > 0;
         let idToToggle = productId;
-        
+
         if (isVariable) {
             const selected = {};
             document.querySelectorAll('.premium-swatch.active').forEach(b => {
                 selected[b.getAttribute('data-attr-id')] = b.getAttribute('data-val-id');
             });
-            
+
             const attrGroupsCount = document.querySelectorAll('.attr-group-sect').length;
             if (Object.keys(selected).length === attrGroupsCount) {
                 const match = variations.find(v => {
@@ -539,20 +790,20 @@
             method: 'POST',
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                if (data.action === 'added') {
-                    btn.classList.add('active');
-                    icon.className = 'fas fa-heart';
-                } else {
-                    btn.classList.remove('active');
-                    icon.className = 'far fa-heart';
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.action === 'added') {
+                        btn.classList.add('active');
+                        icon.className = 'fas fa-heart';
+                    } else {
+                        btn.classList.remove('active');
+                        icon.className = 'far fa-heart';
+                    }
+                    const badge = document.getElementById('wishlistBadge');
+                    if (badge) badge.innerText = data.wishlist_count;
                 }
-                const badge = document.getElementById('wishlistBadge');
-                if (badge) badge.innerText = data.wishlist_count;
-            }
-        });
+            });
     }
 
     // Modal logic
@@ -561,13 +812,13 @@
     }
 
     document.querySelectorAll(".size-link").forEach(link => {
-        link.onclick = function(e) {
+        link.onclick = function (e) {
             e.preventDefault();
             document.getElementById("sizeChartModal").style.display = "block";
         }
     });
 
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         const modal = document.getElementById("sizeChartModal");
         if (event.target == modal) {
             modal.style.display = "none";
