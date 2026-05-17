@@ -2371,7 +2371,7 @@ section:nth-of-type(even) {
 
 /* --- PRODUCT DETAIL PAGE REDESIGN (Luvtale Style) --- */
 .product-detail-page {
-    padding-top: 1rem;
+    padding-top: 0;
     background: #fff;
     margin-bottom: 3rem;
 }
@@ -2460,9 +2460,9 @@ section:nth-of-type(even) {
 
 /* Info Styles */
 .product-info-sect {
-    padding-top: 1rem;
+    padding-top: 0;
     position: sticky;
-    top: 100px;
+    top: 120px;
     height: fit-content;
 }
 
