@@ -100,8 +100,24 @@
     .curr-price { font-size: 1.2rem; font-weight: 800; color: #241914; }
     .orig-price { font-size: 1rem; color: #94a3b8; text-decoration: line-through; }
 
-    .move-to-cart-btn { width: 100%; padding: 14px; background: transparent; border: 1.5px solid #241914; color: #241914; border-radius: 30px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-    .move-to-cart-btn:hover { background: #241914; color: #fff; }
+    .move-to-cart-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
+        color: #fff;
+        border: none;
+        border-radius: 30px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 15px rgba(184, 138, 68, 0.15);
+    }
+    .move-to-cart-btn:hover {
+        background: linear-gradient(135deg, var(--gold-accent), var(--gold-primary));
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(184, 138, 68, 0.22);
+    }
 
     .empty-wishlist { text-align: center; padding: 100px 20px; }
     .empty-icon { font-size: 4rem; margin-bottom: 24px; }

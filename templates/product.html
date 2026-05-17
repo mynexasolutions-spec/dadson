@@ -399,7 +399,7 @@
     .btn-add-bag-premium {
         flex: 1;
         height: 60px;
-        background: #241914;
+        background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
         color: #fff;
         border: none;
         border-radius: 30px;
@@ -408,12 +408,13 @@
         cursor: pointer;
         transition: all 0.3s ease;
         letter-spacing: 0.5px;
+        box-shadow: 0 6px 20px rgba(184, 138, 68, 0.15);
     }
 
     .btn-add-bag-premium:hover {
-        background: #3d2b23;
+        background: linear-gradient(135deg, var(--gold-accent), var(--gold-primary));
         transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(36, 25, 20, 0.2);
+        box-shadow: 0 10px 20px rgba(184, 138, 68, 0.22);
     }
 
     .btn-add-bag-premium:disabled {

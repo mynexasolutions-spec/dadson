@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% from "macros.html" import product_card %}
 <html lang="en">
 
 <head>
@@ -106,51 +107,15 @@
             <p class="section-intro">Browse the collections that define DADSON, from sculpted earrings and layered
                 necklaces to statement rings and gifting favourites.</p>
             <div class="category-grid">
+                {% for cat in categories %}
                 <div class="category-card">
-                    <img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&w=700&q=80"
-                        alt="Gold rings collection">
+                    <img src="{{ cat.img }}" alt="{{ cat.name }} collection">
                     <div class="category-overlay">
-                        <h3>Rings</h3>
-                        <a href="{{ url_for('public.shop', category='Rings') }}" class="btn btn-outline">Explore</a>
+                        <h3>{{ cat.name }}</h3>
+                        <a href="{{ url_for('public.shop', category=cat.name) }}" class="btn btn-outline">Explore</a>
                     </div>
                 </div>
-
-                <div class="category-card">
-                    <img src="https://images.unsplash.com/photo-1635767798638-3e25273a8236?auto=format&fit=crop&w=700&q=80"
-                        alt="Elegant earrings">
-                    <div class="category-overlay">
-                        <h3>Earrings</h3>
-                        <a href="{{ url_for('public.shop', category='Earrings') }}" class="btn btn-outline">Explore</a>
-                    </div>
-                </div>
-
-                <div class="category-card">
-                    <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=700&q=80"
-                        alt="Layered necklaces">
-                    <div class="category-overlay">
-                        <h3>Necklaces</h3>
-                        <a href="{{ url_for('public.shop', category='Necklaces') }}" class="btn btn-outline">Explore</a>
-                    </div>
-                </div>
-
-                <div class="category-card">
-                    <img src="https://images.unsplash.com/photo-1611085583191-a3b181a88401?auto=format&fit=crop&w=700&q=80"
-                        alt="Gold bracelets">
-                    <div class="category-overlay">
-                        <h3>Bracelets</h3>
-                        <a href="{{ url_for('public.shop', category='Bracelets') }}" class="btn btn-outline">Explore</a>
-                    </div>
-                </div>
-
-                <div class="category-card">
-                    <img src="https://images.unsplash.com/photo-1588444650700-6ad8eac5dcaf?auto=format&fit=crop&w=700&q=80"
-                        alt="Modern mangalsutra necklace">
-                    <div class="category-overlay">
-                        <h3>Mangalsutra</h3>
-                        <a href="{{ url_for('public.shop', category='Mangalsutra') }}"
-                            class="btn btn-outline">Explore</a>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
         </div>
     </section>
@@ -259,30 +224,11 @@
                     <span class="eyebrow centered-eyebrow">Fresh In</span>
                     <h2 class="section-title">New Arrivals</h2>
                 </div>
-                <a href="{{ url_for('public.shop') }}" class="section-link">Shop All</a>
+                <a href="{{ url_for('public.shop') }}" class="btn btn-primary btn-small">Shop Now</a>
             </div>
             <div class="products-grid">
                 {% for item in new_arrivals %}
-                {% set p = item.product %}
-                {% set v = item.variation %}
-                <div class="product-card">
-                    <a href="{{ url_for('public.product_detail', id=p.id) }}{{ '?v=' ~ v.id if v else '' }}">
-                        <img src="{{ v.img_url if v and v.img_url else p.img }}" alt="{{ p.name }}" class="product-image">
-                    </a>
-                    <div class="product-info">
-                        <h3>{{ p.name }}</h3>
-                        <p class="product-material">{{ (p.materials[:30] ~ '...') if p.materials else 'New Collection' }}</p>
-                        <div class="product-price">
-                            <span class="price">{{ v.price if v else p.price }}</span>
-                            {% if v and v.orig_price %}
-                            <span class="original-price">{{ v.orig_price }}</span>
-                            {% elif p.orig %}
-                            <span class="original-price">{{ p.orig }}</span>
-                            {% endif %}
-                        </div>
-                        <button class="btn btn-primary btn-small add-to-cart-ajax" data-id="{{ 'var:' ~ v.id if v else p.id }}">Add to Cart</button>
-                    </div>
-                </div>
+                {{ product_card(item) }}
                 {% endfor %}
             </div>
         </div>
@@ -297,30 +243,11 @@
                     <span class="eyebrow centered-eyebrow">{{ section.name }}</span>
                     <h2 class="section-title">{{ section.name }} Collection</h2>
                 </div>
-                <a href="{{ url_for('public.shop', category=section.name) }}" class="section-link">View All</a>
+                <a href="{{ url_for('public.shop', category=section.name) }}" class="btn btn-primary btn-small">View All</a>
             </div>
             <div class="products-grid">
                 {% for item in section.products %}
-                {% set p = item.product %}
-                {% set v = item.variation %}
-                <div class="product-card">
-                    <a href="{{ url_for('public.product_detail', id=p.id) }}{{ '?v=' ~ v.id if v else '' }}">
-                        <img src="{{ v.img_url if v and v.img_url else p.img }}" alt="{{ p.name }}" class="product-image">
-                    </a>
-                    <div class="product-info">
-                        <h3>{{ p.name }}</h3>
-                        <p class="product-material">{{ (p.materials[:30] ~ '...') if p.materials else 'Premium Quality' }}</p>
-                        <div class="product-price">
-                            <span class="price">{{ v.price if v else p.price }}</span>
-                            {% if v and v.orig_price %}
-                            <span class="original-price">{{ v.orig_price }}</span>
-                            {% elif p.orig %}
-                            <span class="original-price">{{ p.orig }}</span>
-                            {% endif %}
-                        </div>
-                        <button class="btn btn-primary btn-small add-to-cart-ajax" data-id="{{ 'var:' ~ v.id if v else p.id }}">Add to Cart</button>
-                    </div>
-                </div>
+                {{ product_card(item) }}
                 {% endfor %}
             </div>
         </div>
@@ -335,30 +262,11 @@
                     <span class="eyebrow centered-eyebrow">Most Loved</span>
                     <h2 class="section-title">Best Sellers</h2>
                 </div>
-                <a href="{{ url_for('public.shop') }}" class="section-link">Shop All</a>
+                <a href="{{ url_for('public.shop') }}" class="btn btn-primary btn-small">Shop Now</a>
             </div>
             <div class="products-grid">
                 {% for item in featured_products %}
-                {% set p = item.product %}
-                {% set v = item.variation %}
-                <div class="product-card">
-                    <a href="{{ url_for('public.product_detail', id=p.id) }}{{ '?v=' ~ v.id if v else '' }}">
-                        <img src="{{ v.img_url if v and v.img_url else p.img }}" alt="{{ p.name }}" class="product-image">
-                    </a>
-                    <div class="product-info">
-                        <h3>{{ p.name }}</h3>
-                        <p class="product-material">{{ (p.materials[:30] ~ '...') if p.materials else 'Best Seller' }}</p>
-                        <div class="product-price">
-                            <span class="price">{{ v.price if v else p.price }}</span>
-                            {% if v and v.orig_price %}
-                            <span class="original-price">{{ v.orig_price }}</span>
-                            {% elif p.orig %}
-                            <span class="original-price">{{ p.orig }}</span>
-                            {% endif %}
-                        </div>
-                        <button class="btn btn-primary btn-small add-to-cart-ajax" data-id="{{ 'var:' ~ v.id if v else p.id }}">Add to Cart</button>
-                    </div>
-                </div>
+                {{ product_card(item) }}
                 {% endfor %}
             </div>
         </div>

@@ -445,7 +445,7 @@
     }
     .btn-save {
         margin-top: 2rem;
-        background: var(--crimson-dark);
+        background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
         color: #fff;
         border: none;
         padding: 12px 30px;
@@ -453,10 +453,12 @@
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(184, 138, 68, 0.15);
     }
     .btn-save:hover {
-        background: #4f253d;
+        background: linear-gradient(135deg, var(--gold-accent), var(--gold-primary));
         transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(184, 138, 68, 0.22);
     }
     .empty-state {
         text-align: center;
@@ -469,17 +471,19 @@
     .btn-shop {
         display: inline-block;
         margin-top: 1.5rem;
-        background: var(--crimson-dark);
+        background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
         color: #fff;
         padding: 10px 25px;
         border-radius: 30px;
         text-decoration: none;
         font-weight: 600;
         transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(184, 138, 68, 0.15);
     }
     .btn-shop:hover {
-        background: #4f253d;
+        background: linear-gradient(135deg, var(--gold-accent), var(--gold-primary));
         transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(184, 138, 68, 0.22);
     }
 
     @media (max-width: 900px) {
