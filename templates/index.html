@@ -100,7 +100,7 @@
         </div>
     </section>
 
-    <section class="categories" id="categories">
+    <section class="categories light-section" id="categories" style="padding-top: 4rem;">
         <div class="container">
             <span class="eyebrow centered-eyebrow">Shop First</span>
             <h2 class="section-title">Explore By Category</h2>
@@ -120,9 +120,9 @@
         </div>
     </section>
 
-    <section class="collection-spotlight">
-        <div class="container">
-            <div class="spotlight-banner">
+    <section class="collection-spotlight purple-section" style="padding: 0;">
+        <div class="spotlight-banner">
+            <div class="spotlight-content-wrapper">
                 <div class="spotlight-header">
                     <span class="eyebrow">Features Collection</span>
                     <h2>Crafted to Shine, Built to Last</h2>
@@ -217,57 +217,63 @@
     </section>
     
     {% if new_arrivals %}
-    <section class="products category-products" id="new-arrivals">
+    <section class="products category-products light-section" id="new-arrivals">
         <div class="container">
-            <div class="section-heading-row">
+            <div class="section-heading-row" style="justify-content: center; text-align: center; margin-bottom: 3rem;">
                 <div>
                     <span class="eyebrow centered-eyebrow">Fresh In</span>
                     <h2 class="section-title">New Arrivals</h2>
                 </div>
-                <a href="{{ url_for('public.shop') }}" class="btn btn-primary btn-small">Shop Now</a>
             </div>
             <div class="products-grid">
                 {% for item in new_arrivals %}
                 {{ product_card(item) }}
                 {% endfor %}
             </div>
+            <div class="section-actions" style="display: flex; justify-content: center; margin-top: 3rem;">
+                <a href="{{ url_for('public.shop') }}" class="btn btn-primary">Shop New Arrivals</a>
+            </div>
         </div>
     </section>
     {% endif %}
 
     {% for section in category_sections %}
-    <section class="products category-products" id="{{ section.id }}">
+    <section class="products category-products {% if loop.index is odd %}purple-section{% else %}light-section{% endif %}" id="{{ section.id }}">
         <div class="container">
-            <div class="section-heading-row">
+            <div class="section-heading-row" style="justify-content: center; text-align: center; margin-bottom: 3rem;">
                 <div>
                     <span class="eyebrow centered-eyebrow">{{ section.name }}</span>
                     <h2 class="section-title">{{ section.name }} Collection</h2>
                 </div>
-                <a href="{{ url_for('public.shop', category=section.name) }}" class="btn btn-primary btn-small">View All</a>
             </div>
             <div class="products-grid">
                 {% for item in section.products %}
                 {{ product_card(item) }}
                 {% endfor %}
             </div>
+            <div class="section-actions" style="display: flex; justify-content: center; margin-top: 3rem;">
+                <a href="{{ url_for('public.shop', category=section.name) }}" class="btn btn-primary">View All {{ section.name }}</a>
+            </div>
         </div>
     </section>
     {% endfor %}
 
     {% if featured_products %}
-    <section class="products best-sellers" id="best-sellers">
+    <section class="products best-sellers {% if category_sections|length is odd %}light-section{% else %}purple-section{% endif %}" id="best-sellers">
         <div class="container">
-            <div class="section-heading-row">
+            <div class="section-heading-row" style="justify-content: center; text-align: center; margin-bottom: 3rem;">
                 <div>
                     <span class="eyebrow centered-eyebrow">Most Loved</span>
                     <h2 class="section-title">Best Sellers</h2>
                 </div>
-                <a href="{{ url_for('public.shop') }}" class="btn btn-primary btn-small">Shop Now</a>
             </div>
             <div class="products-grid">
                 {% for item in featured_products %}
                 {{ product_card(item) }}
                 {% endfor %}
+            </div>
+            <div class="section-actions" style="display: flex; justify-content: center; margin-top: 3rem;">
+                <a href="{{ url_for('public.shop') }}" class="btn btn-primary">Shop All Best Sellers</a>
             </div>
         </div>
     </section>
@@ -283,7 +289,7 @@
         </div>
     </section>
 
-    <section class="features">
+    <section class="features light-section">
         <div class="container">
             <span class="eyebrow centered-eyebrow">Why DADSON</span>
             <h2 class="section-title">Made To Be Worn, Loved, And Gifted</h2>
@@ -335,11 +341,11 @@
         </div>
     </section>
 
-    <section class="brand-story">
+    <section class="brand-story purple-section">
         <div class="container">
             <div class="brand-grid">
                 <img src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80"
-                    alt="DADSON jewelry display" class="brand-image">
+                    alt="DADSON jewellery display" class="brand-image">
                 <div class="brand-content">
                     <span class="eyebrow">Our Story</span>
                     <h2 class="section-title section-title-left">Jewellery Designed To Feel Personal</h2>
@@ -353,7 +359,7 @@
         </div>
     </section>
 
-    <section class="testimonials-section">
+    <section class="testimonials-section light-section">
         <div class="container">
             <span class="eyebrow centered-eyebrow">Customer Voice</span>
             <h2 class="section-title">What Our Customers Say</h2>
@@ -490,6 +496,15 @@
     <footer class="footer">
         <div class="container">
             <div class="footer-grid">
+                <div class="footer-section footer-brand">
+                    <a href="{{ url_for('public.home') }}" class="logo" aria-label="Go to homepage" style="height: auto; align-items: flex-start; justify-content: flex-start; text-align: left; margin-bottom: 1.5rem;">
+                        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="DADSON logo" class="logo-image" style="height: 72px;">
+                        <span class="logo-text-wrap" style="align-items: flex-start;">
+                            <span class="logo-tagline" style="color: rgba(255, 255, 255, 0.6); margin-top: 4px;">Get the door - it's DADSON</span>
+                        </span>
+                    </a>
+                </div>
+
                 <div class="footer-section">
                     <h4>Shop</h4>
                     <ul>

@@ -246,10 +246,16 @@ section:nth-of-type(even) {
     transform: translateY(-1px);
 }
 
-.logo:focus-visible {
-    outline: 2px solid rgba(184, 138, 68, 0.55);
-    outline-offset: 4px;
-    border-radius: 14px;
+.logo:focus,
+.logo:focus-visible,
+.logo:active,
+.navbar a,
+.navbar a:focus,
+.navbar a:active,
+.nav-item a,
+.nav-item a:focus {
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .logo-image {
@@ -2356,7 +2362,26 @@ section:nth-of-type(even) {
 
 @media (max-width: 768px) {
     .testimonials-grid {
-        grid-template-columns: 1fr;
+        display: flex !important;
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        scroll-snap-type: x mandatory !important;
+        scroll-behavior: smooth !important;
+        gap: 1.5rem !important;
+        padding: 1.5rem 1.5rem !important;
+        margin: 0 -1.5rem !important;
+        scrollbar-width: none !important;
+    }
+
+    .testimonials-grid::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    .testimonial-card {
+        flex: 0 0 82% !important;
+        scroll-snap-align: center !important;
+        margin-bottom: 0.5rem !important;
+        box-shadow: 0 8px 24px rgba(62, 27, 47, 0.08) !important;
     }
 
     .faq-question {
@@ -2371,15 +2396,15 @@ section:nth-of-type(even) {
 
 /* --- PRODUCT DETAIL PAGE REDESIGN (Luvtale Style) --- */
 .product-detail-page {
-    padding-top: 0;
+    padding-top: 2rem;
     background: #fff;
-    margin-bottom: 3rem;
+    margin-bottom: 4rem;
 }
 
 .detail-container {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2.5rem;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 4rem;
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 4rem;
@@ -2388,31 +2413,16 @@ section:nth-of-type(even) {
 /* Gallery Styles */
 .product-gallery {
     display: flex;
-    flex-direction: row;
-    gap: 1.2rem;
+    flex-direction: row-reverse;
+    gap: 1.5rem;
     position: sticky;
-    top: 120px;
+    top: 90px;
     align-self: start;
-}
-
-.gallery-thumbnails {
-    display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
-    overflow-y: auto;
-    overflow-x: hidden;
-    max-height: 480px;
-    scrollbar-width: none;
-    flex-shrink: 0;
-    order: 1;
-}
-
-.gallery-thumbnails::-webkit-scrollbar {
-    display: none;
+    align-items: flex-start;
+    margin-top: -3.2rem;
 }
 
 .main-img {
-    order: 2;
     flex-grow: 1;
     background: #ffffff;
     border-radius: 18px;
@@ -2433,6 +2443,16 @@ section:nth-of-type(even) {
 
 .main-img:hover img {
     transform: scale(1.05);
+}
+
+.gallery-thumbnails {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    overflow-y: auto;
+    max-height: 480px;
+    scrollbar-width: thin;
+    flex-shrink: 0;
 }
 
 .thumb {
@@ -2460,9 +2480,9 @@ section:nth-of-type(even) {
 
 /* Info Styles */
 .product-info-sect {
-    padding-top: 0;
+    padding-top: 1rem;
     position: sticky;
-    top: 120px;
+    top: 100px;
     height: fit-content;
 }
 
@@ -2742,7 +2762,7 @@ section:nth-of-type(even) {
 
 .related-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 2.5rem;
     max-width: 1400px;
     margin: 0 auto;
@@ -2756,7 +2776,7 @@ section:nth-of-type(even) {
     }
 
     .related-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
     }
 }
 
@@ -2766,27 +2786,23 @@ section:nth-of-type(even) {
         gap: 3rem;
     }
 
+    .related-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
     .product-gallery {
-        flex-direction: column;
         max-width: 700px;
         margin: 0 auto;
         width: 100%;
-        position: static;
-        gap: 1rem;
+        flex-direction: column !important;
+        position: static !important;
     }
 
     .gallery-thumbnails {
-        flex-direction: row;
-        order: 2;
-        max-height: none;
-        overflow-x: auto;
-        overflow-y: hidden;
-        padding-bottom: 0.5rem;
-    }
-
-    .main-img {
-        order: 1;
-        max-height: 550px;
+        flex-direction: row !important;
+        max-height: none !important;
+        overflow-x: auto !important;
+        overflow-y: visible !important;
     }
 
     .product-info-sect {
@@ -2865,5 +2881,164 @@ section:nth-of-type(even) {
         grid-template-columns: 1fr;
         gap: 1.5rem;
         padding: 2rem 1.5rem;
+    }
+}
+
+/* ALTERNATING HOME PAGE SHADES & FULL-WIDTH SPOTLIGHT */
+.purple-section {
+    background: #3e1b2f !important;
+    color: #ffffff !important;
+    padding: 6rem 0;
+}
+
+.purple-section .section-title {
+    color: #ffffff !important;
+}
+
+.purple-section .eyebrow {
+    color: var(--gold-accent) !important;
+}
+
+.purple-section .section-intro,
+.purple-section .testimonial-text,
+.purple-section p {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.purple-section .btn-primary {
+    background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent)) !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+}
+
+.purple-section .btn-primary:hover {
+    background: linear-gradient(135deg, var(--gold-accent), var(--gold-primary)) !important;
+    box-shadow: 0 10px 20px rgba(184, 138, 68, 0.22) !important;
+}
+
+.purple-section .product-card {
+    background: #ffffff !important;
+    color: var(--text-primary) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.purple-section .product-card .product-title {
+    color: var(--text-primary) !important;
+}
+
+.purple-section .product-card .price {
+    color: var(--text-primary) !important;
+}
+
+.purple-section .product-card p {
+    color: var(--text-secondary) !important;
+}
+
+.light-section {
+    background: #fdfaf7 !important;
+    color: var(--text-primary) !important;
+    padding: 6rem 0;
+}
+
+.light-section .section-title {
+    color: var(--text-primary) !important;
+}
+
+.light-section .eyebrow {
+    color: var(--gold-primary) !important;
+}
+
+.light-section p {
+    color: var(--text-secondary) !important;
+}
+
+.spotlight-banner {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 auto !important;
+    padding: 6rem 4rem !important;
+    background: linear-gradient(135deg, #3e1b2f 0%, #5e2b48 100%) !important;
+    border-radius: 0 !important;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: none !important;
+}
+
+.spotlight-content-wrapper {
+    max-width: 1300px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .spotlight-banner {
+        padding: 4rem 1.5rem !important;
+    }
+}
+
+/* REUSABLE PAGE HERO BANNER */
+.page-hero {
+    position: relative;
+    min-height: 48vh;
+    background-image: url('../images/hero_premium.png');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem var(--content-gutter);
+    overflow: hidden;
+}
+
+.page-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+        linear-gradient(180deg, rgba(62, 27, 47, 0.5) 0%, transparent 40%, rgba(62, 27, 47, 0.8) 100%),
+        radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+    z-index: 1;
+}
+
+.page-hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 860px;
+    color: #fffaf4;
+}
+
+.page-hero .header-tag {
+    color: var(--gold-accent);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    display: block;
+    font-size: 0.9rem;
+}
+
+.page-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 6vw, 4.2rem) !important;
+    margin-bottom: 1.5rem;
+    color: inherit !important;
+    line-height: 1.2;
+}
+
+.page-hero p {
+    font-size: clamp(1.1rem, 1.8vw, 1.25rem);
+    opacity: 0.95;
+    line-height: 1.7;
+    max-width: 700px;
+    margin: 0 auto;
+    color: inherit !important;
+}
+
+@media (max-width: 480px) {
+    .page-hero {
+        min-height: 32vh;
+        padding: 2.5rem 1rem;
     }
 }

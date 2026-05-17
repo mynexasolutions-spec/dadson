@@ -2,13 +2,13 @@
 
 {% block title %}Your Shopping Bag | DADSON{% endblock %}
 
+{% block page_hero_tag %}Your Bag{% endblock %}
+{% block page_hero_title %}Your Shopping Bag{% endblock %}
+{% block page_hero_subtitle %}You have {{ cart_items|length }} items in your bag{% endblock %}
+
 {% block content %}
 <div class="cart-page">
     <div class="cart-container">
-        <div class="cart-header">
-            <h1>Your Shopping Bag</h1>
-            <p>You have {{ cart_items|length }} items in your bag</p>
-        </div>
 
         {% if cart_items %}
         <div class="cart-flex">

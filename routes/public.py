@@ -101,7 +101,7 @@ def product_detail(id):
         from models import ProductVariation
         selected_variation = ProductVariation.query.get(variation_id)
         
-    related = Product.query.filter(Product.cat_name == product.cat_name, Product.id != product.id).limit(4).all()
+    related = Product.query.filter(Product.cat_name == product.cat_name, Product.id != product.id).limit(5).all()
     return render_template('product.html', product=product, related=related, selected_variation=selected_variation)
 
 @public_bp.route('/blogs')

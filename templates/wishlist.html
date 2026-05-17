@@ -2,14 +2,13 @@
 
 {% block title %}My Wishlist | DADSON{% endblock %}
 
+{% block page_hero_tag %}My Favorites{% endblock %}
+{% block page_hero_title %}Your Curated Collection{% endblock %}
+{% block page_hero_subtitle %}A collection of pieces you love. Move them to your bag when you're ready.{% endblock %}
+
 {% block content %}
 <div class="wishlist-page">
     <div class="wishlist-container">
-        <div class="wishlist-header">
-            <div class="header-tag">✦ My Favorites</div>
-            <h1>Your Curated Collection</h1>
-            <p>A collection of pieces you love. Move them to your bag when you're ready.</p>
-        </div>
 
         {% if items %}
         <div class="wishlist-grid">

@@ -95,11 +95,30 @@
         </div>
     </nav>
 
+    {% block page_hero %}
+    <section class="page-hero" style="background-image: url('{{ url_for('static', filename='images/hero_premium.png') }}');">
+        <div class="page-hero-content">
+            <div class="header-tag"><span>✦</span> {% block page_hero_tag %}Premium Collection{% endblock %}</div>
+            <h1>{% block page_hero_title %}DADSON Jewellery{% endblock %}</h1>
+            <p>{% block page_hero_subtitle %}Exquisite craftsmanship chosen to bring warmth and timeless elegance to every look.{% endblock %}</p>
+        </div>
+    </section>
+    {% endblock %}
+
     {% block content %}{% endblock %}
 
     <footer class="footer">
         <div class="container">
             <div class="footer-grid">
+                <div class="footer-section footer-brand">
+                    <a href="{{ url_for('public.home') }}" class="logo" aria-label="Go to homepage" style="height: auto; align-items: flex-start; justify-content: flex-start; text-align: left; margin-bottom: 1.5rem;">
+                        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="DADSON logo" class="logo-image" style="height: 72px;">
+                        <span class="logo-text-wrap" style="align-items: flex-start;">
+                            <span class="logo-tagline" style="color: rgba(255, 255, 255, 0.6); margin-top: 4px;">Get the door - it's DADSON</span>
+                        </span>
+                    </a>
+                </div>
+
                 <div class="footer-section">
                     <h4>Shop</h4>
                     <ul>
