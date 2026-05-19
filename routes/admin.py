@@ -897,10 +897,33 @@ def delete_coupon(id):
 @admin_required
 def settings():
     if request.method == 'POST':
-        for key, value in request.form.items():
+        expected_keys = [
+            'shipping_charges', 
+            'free_shipping_above', 
+            'contact_email',
+            'payment_method_cod',
+            'payment_method_razorpay',
+            'razorpay_key_id',
+            'razorpay_key_secret'
+        ]
+        for key in expected_keys:
+            value = request.form.get(key, '') # Omitted checkboxes default to empty string
             config = AppConfig.query.filter_by(key=key).first()
             if config: config.value = value
             else: db.session.add(AppConfig(key=key, value=value))
+            
+        # Reconstruct and synchronize legacy payment_methods comma-separated string
+        enabled_methods = []
+        if request.form.get('payment_method_cod') == 'on':
+            enabled_methods.append('COD')
+        if request.form.get('payment_method_razorpay') == 'on':
+            enabled_methods.append('Razorpay')
+            
+        legacy_pm = ", ".join(enabled_methods)
+        pm_config = AppConfig.query.filter_by(key='payment_methods').first()
+        if pm_config: pm_config.value = legacy_pm
+        else: db.session.add(AppConfig(key='payment_methods', value=legacy_pm))
+        
         db.session.commit()
         flash('Settings updated!', 'success')
         return redirect(url_for('admin.settings'))

@@ -1,7 +1,7 @@
 :root {
-    --primary: #5e2b48; /* Deep Plum Purple */
-    --primary-light: #8e4a75;
-    --primary-dark: #3e1b2f;
+    --primary: #6e048b; /* Deep Purple */
+    --primary-light: #8f06b5;
+    --primary-dark: #4a025e;
     --secondary: #b88a44; /* Darker Gold to match logo icon */
     --bg-main: #f3f4f6; /* Slightly darker off-white for better card contrast */
     --sidebar-bg: #ffffff; /* White */
@@ -12,7 +12,7 @@
     --success: #10b981;
     --warning: #b88a44;
     --error: #ef4444;
-    --info: #5e2b48;
+    --info: #6e048b;
     --sand: #f9fafb;
     --bg-recent: #ffffff;
     --bg-low-stock: #ffffff;
@@ -49,15 +49,17 @@ body {
 }
 
 .sidebar-header {
-    padding: 1.5rem 1rem;
+    padding: 2rem 1rem;
     display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 12px;
 }
 
 .admin-logo {
-    width: 50px;
-    height: 40px;
+    width: 70px;
+    height: auto;
+    max-height: 55px;
+    object-fit: contain;
 }
 
 .brand-name {
@@ -1385,7 +1387,7 @@ th {
 
 /* Premium Crimson Dark Sidebar Overrides */
 .sidebar {
-    background: #3e1b2f !important;
+    background: #6e048b !important;
     border-right: 1px solid rgba(184, 138, 68, 0.15) !important;
 }
 .sidebar .brand-name {
@@ -1407,7 +1409,7 @@ th {
     color: #fff !important;
 }
 .sidebar-footer {
-    background: #3e1b2f !important;
+    background: #6e048b !important;
     border-top: 1px solid rgba(184, 138, 68, 0.15) !important;
 }
 .view-site-btn {
@@ -1416,6 +1418,6 @@ th {
 }
 .view-site-btn:hover {
     background: #b88a44 !important;
-    color: #3e1b2f !important;
+    color: #6e048b !important;
     box-shadow: 0 4px 12px rgba(184, 138, 68, 0.2) !important;
 }

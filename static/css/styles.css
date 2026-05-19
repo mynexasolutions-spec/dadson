@@ -1,5 +1,5 @@
 :root {
-    --crimson-dark: #3e1b2f;
+    --crimson-dark: #6e048b;
     --bg-main: #fbf7f9;
     /* Soft plum-white */
     --bg-cream: #f5ebf0;
@@ -7,21 +7,21 @@
     --bg-gold: #b88a44;
     /* Darker Gold to match logo */
     --bg-card: rgba(255, 255, 255, 0.95);
-    --bg-deep: #3e1b2f;
-    /* Deep plum */
-    --text-primary: #3e1b2f;
-    /* Deep Plum instead of blue-ish slate */
-    --text-secondary: #5e2b48;
-    /* Plum instead of blue-ish slate */
-    --text-soft: #8e7a84;
-    /* Muted Plum-Grey */
+    --bg-deep: #6e048b;
+    /* Deep purple */
+    --text-primary: #1d0026;
+    /* Very dark purple-black for high contrast readability */
+    --text-secondary: #4a025e;
+    /* Darker purple accent */
+    --text-soft: #8a7a8e;
+    /* Muted Purple-Grey */
     --gold-primary: #b88a44;
     /* Darker Gold as primary */
     --gold-accent: #d4af37;
     /* Original gold as accent */
-    --gold-soft: #5e2b48;
-    /* Plum Soft */
-    --border-light: rgba(94, 43, 72, 0.15);
+    --gold-soft: #4a025e;
+    /* Purple Soft */
+    --border-light: rgba(110, 4, 139, 0.15);
     --shadow-soft: 0 16px 34px rgba(65, 44, 30, 0.08);
     --shadow-medium: 0 24px 60px rgba(55, 38, 26, 0.14);
     --radius-sm: 12px;
@@ -268,11 +268,17 @@ section:nth-of-type(even) {
     margin: 0;
 }
 
+.navbar .logo-image {
+    height: 70px;
+    margin-top: 6px;
+}
+
 .logo-text-wrap {
     display: flex;
     flex-direction: column;
     align-items: center;
     line-height: 1;
+    margin-top: -8px;
 }
 
 .logo-text {
@@ -286,12 +292,23 @@ section:nth-of-type(even) {
 
 .logo-tagline {
     margin-top: 2px;
-    font-size: 0.65rem;
+    margin-bottom: 8px;
+    font-size: 0.52rem;
     font-weight: 700;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.103rem;
     text-transform: uppercase;
-    color: var(--bg-gold);
-    /* Crimson slogan on desktop */
+    color: var(--gold-accent);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    white-space: nowrap;
+}
+
+.footer .logo-image {
+    height: 95px;
+}
+
+.footer .logo-tagline {
+    font-size: 0.58rem;
+    letter-spacing: 0.115rem;
 }
 
 .nav-links {
@@ -326,7 +343,7 @@ section:nth-of-type(even) {
     position: absolute;
     top: calc(100% + 1rem);
     left: -20px;
-    background: #4a2138; /* Slightly lighter plum for dropdown depth */
+    background: #520268; /* Slightly lighter purple for dropdown depth */
     border: 1px solid rgba(212, 175, 55, 0.3);
     border-radius: 22px;
     min-width: 210px;
@@ -444,7 +461,7 @@ section:nth-of-type(even) {
     inset: 0;
     background:
         radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.55), transparent 24%),
-        radial-gradient(circle at 85% 80%, rgba(94, 43, 72, 0.08), transparent 24%);
+        radial-gradient(circle at 85% 80%, rgba(110, 4, 139, 0.08), transparent 24%);
 }
 
 .hero-background-img {
@@ -460,7 +477,7 @@ section:nth-of-type(even) {
     position: absolute;
     inset: 0;
     background: 
-        linear-gradient(180deg, rgba(62, 27, 47, 0.5) 0%, transparent 40%, rgba(62, 27, 47, 0.8) 100%),
+        linear-gradient(180deg, rgba(110, 4, 139, 0.5) 0%, transparent 40%, rgba(110, 4, 139, 0.8) 100%),
         radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
     z-index: 1;
 }
@@ -846,7 +863,7 @@ section:nth-of-type(even) {
     max-width: 1200px;
     margin: 4rem auto;
     padding: 4rem 2rem 2rem;
-    background: linear-gradient(135deg, #3e1b2f 0%, #5e2b48 100%);
+    background: linear-gradient(135deg, #6e048b 0%, #4a025e 100%);
     border-radius: 40px;
     text-align: center;
     position: relative;
@@ -934,9 +951,11 @@ section:nth-of-type(even) {
 
 .trust-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.8rem;
-    text-align: left;
+    justify-content: center;
+    gap: 0.5rem;
+    text-align: center;
 }
 
 .trust-item i {
@@ -1184,13 +1203,13 @@ section:nth-of-type(even) {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: var(--gold-primary);
+    border: 1px solid var(--gold-primary);
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all var(--transition);
-    color: var(--gold-primary);
+    transition: none;
+    color: var(--crimson-dark);
     font-size: 1.1rem;
     line-height: 1;
     text-decoration: none !important;
@@ -1208,7 +1227,7 @@ section:nth-of-type(even) {
     background: var(--gold-primary);
     color: var(--crimson-dark);
     border-color: var(--gold-primary);
-    transform: translateY(-2px);
+    transform: none;
 }
 
 .footer-bottom {
@@ -2886,7 +2905,7 @@ section:nth-of-type(even) {
 
 /* ALTERNATING HOME PAGE SHADES & FULL-WIDTH SPOTLIGHT */
 .purple-section {
-    background: #3e1b2f !important;
+    background: #6e048b !important;
     color: #ffffff !important;
     padding: 6rem 0;
 }
@@ -2957,7 +2976,7 @@ section:nth-of-type(even) {
     max-width: none !important;
     margin: 0 auto !important;
     padding: 6rem 4rem !important;
-    background: linear-gradient(135deg, #3e1b2f 0%, #5e2b48 100%) !important;
+    background: linear-gradient(135deg, #6e048b 0%, #4a025e 100%) !important;
     border-radius: 0 !important;
     text-align: center;
     position: relative;
@@ -2997,7 +3016,7 @@ section:nth-of-type(even) {
     position: absolute;
     inset: 0;
     background: 
-        linear-gradient(180deg, rgba(62, 27, 47, 0.5) 0%, transparent 40%, rgba(62, 27, 47, 0.8) 100%),
+        linear-gradient(180deg, rgba(110, 4, 139, 0.5) 0%, transparent 40%, rgba(110, 4, 139, 0.8) 100%),
         radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
     z-index: 1;
 }

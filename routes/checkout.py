@@ -10,8 +10,14 @@ from models import db, User, Order, OrderItem, Product, ProductVariation, AppCon
 
 checkout_bp = Blueprint('checkout', __name__)
 
-RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID', 'rzp_test_zHk1B8i6N7m4qF')
-RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET', 'k1B8i6N7m4qFzHk1B8i6N7m4')
+def get_razorpay_keys():
+    key_id_cfg = AppConfig.query.filter_by(key='razorpay_key_id').first()
+    key_secret_cfg = AppConfig.query.filter_by(key='razorpay_key_secret').first()
+    
+    key_id = key_id_cfg.value.strip() if (key_id_cfg and key_id_cfg.value) else os.getenv('RAZORPAY_KEY_ID', 'rzp_test_zHk1B8i6N7m4qF')
+    key_secret = key_secret_cfg.value.strip() if (key_secret_cfg and key_secret_cfg.value) else os.getenv('RAZORPAY_KEY_SECRET', 'k1B8i6N7m4qFzHk1B8i6N7m4')
+    
+    return key_id, key_secret
 
 import re
 
@@ -160,6 +166,12 @@ def checkout():
             coupon_code = None
 
     total = subtotal - discount_amount + actual_shipping
+    razorpay_key_id, _ = get_razorpay_keys()
+    
+    cod_cfg = AppConfig.query.filter_by(key='payment_method_cod').first()
+    razorpay_cfg = AppConfig.query.filter_by(key='payment_method_razorpay').first()
+    is_cod_enabled = (cod_cfg.value == 'on') if cod_cfg else True
+    is_razorpay_enabled = (razorpay_cfg.value == 'on') if razorpay_cfg else True
         
     return render_template('checkout.html', 
                            cart_items=cart_items, 
@@ -173,7 +185,9 @@ def checkout():
                            total=total,
                            total_str=f"₹{total:,}",
                            user=user,
-                           razorpay_key_id=RAZORPAY_KEY_ID)
+                           razorpay_key_id=razorpay_key_id,
+                           is_cod_enabled=is_cod_enabled,
+                           is_razorpay_enabled=is_razorpay_enabled)
 
 @checkout_bp.route('/checkout/create-order', methods=['POST'])
 def create_order():
@@ -311,15 +325,17 @@ def create_order():
     # Create Razorpay Order for Online Payment method
     amount_paise = int(total * 100)
     razorpay_order_id = ""
+    key_id, key_secret = get_razorpay_keys()
     
     try:
         res = requests.post(
             'https://api.razorpay.com/v1/orders',
-            auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET),
+            auth=(key_id, key_secret),
             json={
                 'amount': amount_paise,
                 'currency': 'INR',
-                'receipt': order_num
+                'receipt': order_num,
+                'payment_capture': 1  # Enable dynamic auto capture
             },
             timeout=10
         )
@@ -340,7 +356,7 @@ def create_order():
         'razorpay_order_id': razorpay_order_id,
         'amount': amount_paise,
         'currency': 'INR',
-        'key_id': RAZORPAY_KEY_ID,
+        'key_id': key_id,
         'customer_name': name,
         'customer_email': user.email,
         'customer_phone': phone
@@ -360,6 +376,7 @@ def verify_payment():
         
     # Signature verification
     verified = False
+    _, key_secret = get_razorpay_keys()
     if razorpay_order_id and payment_id and signature:
         if razorpay_order_id.startswith('order_mock_'):
             # In mock test mode, allow it automatically
@@ -368,7 +385,7 @@ def verify_payment():
             try:
                 msg = f"{razorpay_order_id}|{payment_id}"
                 generated_sig = hmac.new(
-                    key=RAZORPAY_KEY_SECRET.encode('utf-8'),
+                    key=key_secret.encode('utf-8'),
                     msg=msg.encode('utf-8'),
                     digestmod=hashlib.sha256
                 ).hexdigest()

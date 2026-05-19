@@ -22,10 +22,47 @@
             </div>
 
             <h2 class="section-title" style="margin-top: 2rem;"><i class="fas fa-credit-card"></i> Payment Methods</h2>
-            <div class="form-group">
-                <label>Enabled Payment Methods (Comma separated)</label>
-                <input type="text" name="payment_methods" value="{{ configs.get('payment_methods', '') }}" placeholder="COD, Razorpay, UPI">
-                <p class="form-hint">Separate each method with a comma.</p>
+            <div class="payment-method-toggle-group">
+                <div class="payment-method-toggle-card">
+                    <div class="toggle-card-left">
+                        <span class="toggle-card-title"><i class="fas fa-money-bill-wave"></i> Cash on Delivery (COD)</span>
+                        <p class="toggle-card-desc">Allow customers to pay in cash upon order delivery.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="payment_method_cod" id="paymentCod" {% if configs.get('payment_method_cod') == 'on' %}checked{% endif %}>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <div class="payment-method-toggle-card" style="margin-top: 1rem;">
+                    <div class="toggle-card-left">
+                        <span class="toggle-card-title"><i class="fas fa-university"></i> Razorpay Online Payment</span>
+                        <p class="toggle-card-desc">Accept debit/credit cards, UPI, net banking, and wallets.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="payment_method_razorpay" id="paymentRazorpay" {% if configs.get('payment_method_razorpay') == 'on' %}checked{% endif %} onchange="toggleRazorpayFields()">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Razorpay Configuration Keys Sub-panel -->
+            <div id="razorpayKeysPanel" class="settings-sub-panel" style="margin-top: 1.5rem; background: #fafaf9; padding: 1.5rem; border-radius: 12px; border: 1px dashed #e2e8f0; display: none;">
+                <h4 style="font-size: 0.95rem; font-weight: 700; color: #241914; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-key" style="color: #b88a44;"></i> Razorpay Credentials
+                </h4>
+                <p class="form-hint" style="margin-bottom: 1rem; color: #71717a;">Please enter your live or test API keys from your Razorpay Dashboard (Settings &gt; API Keys).</p>
+                
+                <div class="form-group">
+                    <label>Razorpay Key ID</label>
+                    <input type="text" name="razorpay_key_id" id="razorpayKeyId" value="{{ configs.get('razorpay_key_id', '') }}" placeholder="rzp_test_..." style="background: #fff;">
+                    <span id="keyIdAlert" class="panel-alert" style="color: #c2410c; font-size: 0.8rem; font-weight: 600; display: none; margin-top: 4px;"><i class="fas fa-exclamation-triangle"></i> Key ID is required when Razorpay is enabled!</span>
+                </div>
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label>Razorpay Key Secret</label>
+                    <input type="password" name="razorpay_key_secret" id="razorpayKeySecret" value="{{ configs.get('razorpay_key_secret', '') }}" placeholder="••••••••••••••••" style="background: #fff;">
+                    <span id="keySecretAlert" class="panel-alert" style="color: #c2410c; font-size: 0.8rem; font-weight: 600; display: none; margin-top: 4px;"><i class="fas fa-exclamation-triangle"></i> Key Secret is required when Razorpay is enabled!</span>
+                </div>
             </div>
 
             <h2 class="section-title" style="margin-top: 2rem;"><i class="fas fa-envelope"></i> Contact Information</h2>
@@ -110,5 +147,114 @@
             grid-template-columns: 1fr;
         }
     }
+
+    /* Premium Switch and Payment toggle card styles */
+    .payment-method-toggle-card {
+        background: #fff;
+        border: 1px solid var(--border-color, #e2e8f0);
+        padding: 1.2rem;
+        border-radius: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+    .payment-method-toggle-card:hover {
+        border-color: #b88a44;
+        box-shadow: 0 4px 12px rgba(184, 138, 68, 0.04);
+    }
+    .toggle-card-title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: #241914;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .toggle-card-title i {
+        color: #b88a44;
+    }
+    .toggle-card-desc {
+        font-size: 0.8rem;
+        color: #71717a;
+        margin-top: 0.25rem;
+    }
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 48px;
+        height: 24px;
+        flex-shrink: 0;
+    }
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #e4e4e7;
+        transition: .4s;
+        border-radius: 24px;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    input:checked + .slider {
+        background-color: #b88a44;
+    }
+    input:checked + .slider:before {
+        transform: translateX(24px);
+    }
 </style>
+
+<script>
+    function toggleRazorpayFields() {
+        const razorpayCheckbox = document.getElementById('paymentRazorpay');
+        const keysPanel = document.getElementById('razorpayKeysPanel');
+        
+        if (razorpayCheckbox.checked) {
+            keysPanel.style.display = 'block';
+            validateRazorpayKeys();
+        } else {
+            keysPanel.style.display = 'none';
+            document.getElementById('keyIdAlert').style.display = 'none';
+            document.getElementById('keySecretAlert').style.display = 'none';
+        }
+    }
+    
+    function validateRazorpayKeys() {
+        const keyId = document.getElementById('razorpayKeyId').value.trim();
+        const keySecret = document.getElementById('razorpayKeySecret').value.trim();
+        const razorpayCheckbox = document.getElementById('paymentRazorpay');
+        
+        if (razorpayCheckbox.checked) {
+            document.getElementById('keyIdAlert').style.display = keyId === '' ? 'block' : 'none';
+            document.getElementById('keySecretAlert').style.display = keySecret === '' ? 'block' : 'none';
+        }
+    }
+    
+    // Attach real-time validation listeners
+    document.getElementById('razorpayKeyId').addEventListener('input', validateRazorpayKeys);
+    document.getElementById('razorpayKeySecret').addEventListener('input', validateRazorpayKeys);
+    
+    // Run validation on initial load to ensure consistency
+    document.addEventListener('DOMContentLoaded', () => {
+        toggleRazorpayFields();
+    });
+</script>
 {% endblock %}

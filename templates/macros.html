@@ -36,9 +36,12 @@
             {{ product.badge }}
         </span>
         {% endif %}
-        <div class="product-wishlist {% if product.id in session.get('wishlist', []) %}active{% endif %}"
-            onclick="toggleWishlist(event, '{{ product.id }}')">
-            {% if product.id in session.get('wishlist', []) %}
+        {% set is_var = variation is defined and variation %}
+        {% set wish_id = ('var:' ~ variation.id|string) if is_var else product.id|string %}
+        {% set in_wish = wish_id in session.get('wishlist', []) %}
+        <div class="product-wishlist {% if in_wish %}active{% endif %}"
+            onclick="toggleWishlist(event, '{{ wish_id }}')">
+            {% if in_wish %}
             <img src="https://api.iconify.design/ph:heart-fill.svg?color=%23b88a44" class="icon-img icon-wishlist"
                 alt="wishlist">
             {% else %}

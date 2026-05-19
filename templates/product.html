@@ -190,9 +190,64 @@
             </div>
         </div>
     </div>
-</div>
+
+
+<!-- PRODUCT DETAILS & SPECIFICATIONS SECTION -->
+<section class="product-specs-section">
+    <div class="specs-grid">
+        <!-- COLUMN 1: THE STORY -->
+        <div class="specs-column">
+            <h3 class="specs-title">The Story & Inspiration</h3>
+            <div class="specs-desc-text">
+                <p class="specs-para" style="margin-bottom: 1rem;">Each DADSON piece is born from a legacy of elegance and modern minimalism. Designed in our boutique studio, this exclusive piece captures the ephemeral glow of late afternoon sun, translating soft light and clean geometric lines into precious, wearable art.</p>
+                <p class="specs-para">{% if product.desc and product.desc|length > 10 %}{{ product.desc }}{% else %}A timeless addition to any curator's collection, designed to be worn standalone or layered, transitioning from day to evening opulence.{% endif %}</p>
+            </div>
+        </div>
+
+        <!-- COLUMN 2: MATERIALS & CARE -->
+        <div class="specs-column">
+            <h3 class="specs-title">Materials & Care Guide</h3>
+            <div class="specs-desc-text">
+                <p class="specs-para" style="margin-bottom: 1rem;"><strong>Premium Craftsmanship:</strong> Handcrafted using precious 18K gold plating and premium hypoallergenic alloys. Every curve is polished by hand to a brilliant, high-shine mirror finish.</p>
+                <p class="specs-para"><strong>Preservation Instructions:</strong> To preserve the brilliant lustre of your DADSON jewellery, avoid direct exposure to water, perfumes, soaps, and abrasive cosmetics. Store inside your premium velvet-lined DADSON box when not in use.</p>
+            </div>
+        </div>
+
+        <!-- COLUMN 3: TABULAR DETAILS -->
+        <div class="specs-column">
+            <h3 class="specs-title">Product Details</h3>
+            <table class="specs-table">
+                <tbody>
+                    <tr>
+                        <td>Collection</td>
+                        <td>{{ product.category.name if product.category else 'Exclusive Collection' }}</td>
+                    </tr>
+                    <tr>
+                        <td>Product ID</td>
+                        <td>{{ product.id }}</td>
+                    </tr>
+                    <tr>
+                        <td>Material</td>
+                        <td>{{ product.materials or '18K Gold Plated / Premium Brass' }}</td>
+                    </tr>
+                    <tr>
+                        <td>Availability</td>
+                        <td>
+                            {% if product.stock_status == 'instock' or product.stock_status == 'in_stock' %}
+                            <span class="badge-stock instock">In Stock</span>
+                            {% else %}
+                            <span class="badge-stock outofstock">Out of Stock</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
 
 <!-- RELATED PRODUCTS -->
+{% if related %}
 <section class="related-products">
     <h2 class="related-title">Complete The Look</h2>
     <div class="related-grid">
@@ -201,6 +256,7 @@
         {% endfor %}
     </div>
 </section>
+{% endif %}
 </div>
 
 <!-- Size Chart Modal -->
@@ -539,6 +595,119 @@
             font-size: 2rem;
         }
     }
+
+    /* Product Specifications & Tabular Description Section */
+    .product-specs-section {
+        padding: 5rem 0;
+        background: #fdfcfb;
+        border-top: 1px solid #f0e9e1;
+        border-bottom: 1px solid #f0e9e1;
+        margin: 0;
+    }
+
+    .specs-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1.1fr;
+        gap: 3.5rem;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 3rem;
+    }
+
+    .specs-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.8rem;
+        color: #241914;
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+        position: relative;
+        padding-bottom: 0.75rem;
+    }
+
+    .specs-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 40px;
+        height: 2px;
+        background: #b88a44;
+    }
+
+    .specs-desc-text {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 1.05rem;
+        line-height: 1.8;
+        color: #555;
+    }
+
+    .specs-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .specs-table tr {
+        border-bottom: 1px solid #f0e9e1;
+    }
+
+    .specs-table tr:last-child {
+        border-bottom: none;
+    }
+
+    .specs-table td {
+        padding: 1.2rem 1rem;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.95rem;
+    }
+
+    .specs-table td:first-child {
+        font-weight: 700;
+        color: #333;
+        width: 35%;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+    }
+
+    .specs-table td:last-child {
+        color: #666;
+    }
+
+    .badge-stock {
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-stock.instock {
+        background: #e6f7ed;
+        color: #1f9254;
+    }
+
+    .badge-stock.outofstock {
+        background: #fde8e8;
+        color: #c81e1e;
+    }
+
+    @media (max-width: 1200px) {
+        .specs-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .specs-grid {
+            grid-template-columns: 1fr;
+            gap: 2.5rem;
+        }
+        .product-specs-section {
+            padding: 3rem 0;
+            margin: 0;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -561,6 +730,57 @@
         },
         {% endfor %}
     ];
+
+    // Global wishlist items array for dynamic synchronization
+    const wishlistItems = {{ session.get('wishlist', []) | tojson }};
+
+    function updateWishlistIcon() {
+        const btn = document.querySelector('.btn-wish-circle-premium');
+        const icon = document.getElementById('wish-icon');
+        if (!btn || !icon) return;
+
+        const productId = "{{ product.id }}";
+        const isVariable = variations.length > 0;
+        let currentId = productId;
+
+        if (isVariable) {
+            const selected = {};
+            document.querySelectorAll('.premium-swatch.active').forEach(b => {
+                selected[b.getAttribute('data-attr-id')] = b.getAttribute('data-val-id');
+            });
+
+            const attrGroupsCount = document.querySelectorAll('.attr-group-sect').length;
+            if (Object.keys(selected).length === attrGroupsCount) {
+                const match = variations.find(v => {
+                    return Object.keys(v.options).every(attrId => v.options[attrId] == selected[attrId]);
+                });
+                if (match) {
+                    currentId = `var:${match.id}`;
+                }
+            } else {
+                // If variable product and not all attributes are selected yet,
+                // show active if base product or ANY of its variations is in wishlist.
+                const anyVarInWishlist = variations.some(v => wishlistItems.includes(`var:${v.id}`));
+                const baseInWishlist = wishlistItems.includes(productId);
+                if (baseInWishlist || anyVarInWishlist) {
+                    btn.classList.add('active');
+                    icon.className = 'fas fa-heart';
+                } else {
+                    btn.classList.remove('active');
+                    icon.className = 'far fa-heart';
+                }
+                return;
+            }
+        }
+
+        if (wishlistItems.includes(currentId)) {
+            btn.classList.add('active');
+            icon.className = 'fas fa-heart';
+        } else {
+            btn.classList.remove('active');
+            icon.className = 'far fa-heart';
+        }
+    }
 
     function toggleAccordion(header) {
         const item = header.parentElement;
@@ -644,6 +864,7 @@
         if (selectedCount < totalGroups) {
             addToCartBtn.disabled = true;
             addToCartBtn.innerText = 'Add to Bag';
+            updateWishlistIcon();
             return;
         }
 
@@ -704,6 +925,7 @@
             addToCartBtn.disabled = true;
             addToCartBtn.innerText = variations.length === 0 ? 'Out of Stock' : 'Unavailable';
         }
+        updateWishlistIcon();
     }
 
     function addToCart(btn) {
@@ -797,12 +1019,12 @@
             .then(data => {
                 if (data.success) {
                     if (data.action === 'added') {
-                        btn.classList.add('active');
-                        icon.className = 'fas fa-heart';
+                        if (!wishlistItems.includes(idToToggle)) wishlistItems.push(idToToggle);
                     } else {
-                        btn.classList.remove('active');
-                        icon.className = 'far fa-heart';
+                        const idx = wishlistItems.indexOf(idToToggle);
+                        if (idx > -1) wishlistItems.splice(idx, 1);
                     }
+                    updateWishlistIcon();
                     const badge = document.getElementById('wishlistBadge');
                     if (badge) badge.innerText = data.wishlist_count;
                 }
@@ -827,5 +1049,35 @@
             modal.style.display = "none";
         }
     }
+
+    // Auto-select swatches/variation on load and initialize wishlist icon
+    window.addEventListener('DOMContentLoaded', () => {
+        {% if selected_variation %}
+        const initialVariationId = {{ selected_variation.id }};
+        {% else %}
+        const initialVariationId = null;
+        {% endif %}
+
+        let targetVar = null;
+        if (initialVariationId) {
+            targetVar = variations.find(v => v.id == initialVariationId);
+        }
+        if (!targetVar && variations.length > 0) {
+            // Find first in-stock variation or fall back to the absolute first one
+            targetVar = variations.find(v => v.stock === 'instock') || variations[0];
+        }
+
+        if (targetVar) {
+            Object.keys(targetVar.options).forEach(attrId => {
+                const swatch = document.querySelector(`.premium-swatch[data-attr-id="${attrId}"][data-val-id="${targetVar.options[attrId]}"]`);
+                if (swatch) {
+                    swatch.classList.add('active');
+                }
+            });
+            updateVariationInfo();
+        } else {
+            updateWishlistIcon();
+        }
+    });
 </script>
 {% endblock %}

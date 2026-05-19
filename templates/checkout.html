@@ -70,6 +70,7 @@
                     <div class="payment-method-selector">
                         <label class="section-label">Select Payment Method</label>
                         <div class="payment-options-grid">
+                            {% if is_razorpay_enabled %}
                             <label class="payment-card active" id="card-online">
                                 <input type="radio" name="payment_method" value="online" checked style="display:none;">
                                 <div class="payment-card-header">
@@ -78,15 +79,18 @@
                                 </div>
                                 <span class="payment-card-desc">UPI, Cards, NetBanking via Razorpay</span>
                             </label>
+                            {% endif %}
                             
-                            <label class="payment-card" id="card-cod">
-                                <input type="radio" name="payment_method" value="cod" style="display:none;">
+                            {% if is_cod_enabled %}
+                            <label class="payment-card {% if not is_razorpay_enabled %}active{% endif %}" id="card-cod">
+                                <input type="radio" name="payment_method" value="cod" {% if not is_razorpay_enabled %}checked{% endif %} style="display:none;">
                                 <div class="payment-card-header">
                                     <i class="fas fa-truck icon-dark"></i>
                                     <span>Cash on Delivery (COD)</span>
                                 </div>
                                 <span class="payment-card-desc">Pay in cash upon delivery arrival</span>
                             </label>
+                            {% endif %}
                         </div>
                     </div>
                     
@@ -609,6 +613,12 @@ function processCheckout(event) {
     const zipcode = document.getElementById('shippingZipcode').value.trim();
     const payment_method = document.querySelector('input[name="payment_method"]:checked').value;
     
+    // Internet connection / Razorpay script check
+    if (payment_method === 'online' && typeof Razorpay === 'undefined') {
+        alert("Secure Payment Connection Issue:\n\nWe are unable to connect to our secure online payment partner (Razorpay). Please check your internet connection and try again, or choose Cash on Delivery (COD) to place your order immediately.");
+        return;
+    }
+    
     const payBtn = document.getElementById('payBtn');
     const btnTextText = document.getElementById('btnSubmitText');
     const btnSpinner = payBtn.querySelector('.btn-spinner');
@@ -681,7 +691,7 @@ function processCheckout(event) {
                     "contact": data.customer_phone
                 },
                 "theme": {
-                    "color": "#3e1b2f" // Matches var(--crimson-dark) perfectly!
+                    "color": "#6e048b" // Matches var(--crimson-dark) perfectly!
                 },
                 "modal": {
                     "ondismiss": function() {

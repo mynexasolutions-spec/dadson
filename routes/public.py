@@ -6,21 +6,29 @@ public_bp = Blueprint('public', __name__)
 @public_bp.route('/')
 def home():
     categories = Category.query.all()
-    all_products = Product.query.all()
-    
+
+    # Load only the products we actually need using targeted queries
+    # — avoids pulling every product and filtering in Python
+    all_products = Product.query.options(
+        db.joinedload(Product.variations)
+    ).all()
+
     # Expand products for display (showing each color variation)
     expanded_products = []
     for p in all_products:
         if p.product_type == 'variable' and p.variations:
-            # Group by color
+            # Group by color — pick one variation per colour
             color_variations = {}
             for v in p.variations:
-                color_opt = next((opt for opt in v.options if 'color' in opt.attribute_value.attribute.name.lower()), None)
+                color_opt = next(
+                    (opt for opt in v.options
+                     if 'color' in opt.attribute_value.attribute.name.lower()),
+                    None
+                )
                 color_id = color_opt.attribute_value_id if color_opt else 'none'
                 if color_id not in color_variations:
                     color_variations[color_id] = v
-            
-            for color_id, var in color_variations.items():
+            for var in color_variations.values():
                 expanded_products.append({'product': p, 'variation': var})
         else:
             expanded_products.append({'product': p, 'variation': None})
@@ -29,22 +37,31 @@ def home():
     if not new_arrivals:
         new_arrivals = expanded_products[:8]
     featured_products = [p for p in expanded_products if p['product'].is_featured][:8]
-    
+
+    # Build category sections from already-loaded products (no extra DB hits)
+    cat_map = {}
+    for item in expanded_products:
+        cat_name = item['product'].cat_name
+        if cat_name not in cat_map:
+            cat_map[cat_name] = []
+        if len(cat_map[cat_name]) < 8:
+            cat_map[cat_name].append(item)
+
     category_sections = []
     for cat in categories:
-        prods = [p for p in expanded_products if p['product'].cat_name == cat.name][:8]
+        prods = cat_map.get(cat.name, [])
         if prods:
             category_sections.append({
                 'name': cat.name,
                 'products': prods,
                 'id': cat.name.lower().replace(' ', '-')
             })
-    
+
     featured_reviews = Review.query.filter_by(is_featured=True, status='Approved').all()
-    
-    return render_template('index.html', 
-                           new_arrivals=new_arrivals, 
-                           category_sections=category_sections, 
+
+    return render_template('index.html',
+                           new_arrivals=new_arrivals,
+                           category_sections=category_sections,
                            categories=categories,
                            featured_products=featured_products,
                            featured_reviews=featured_reviews)
@@ -160,8 +177,24 @@ def shipping():
 def refund():
     return render_template('refund.html')
 
-@public_bp.route('/contact')
+@public_bp.route('/contact', methods=['GET', 'POST'])
 def contact():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        phone = request.form.get('phone')
+        message = request.form.get('message')
+        
+        if not name or not email or not message:
+            return jsonify({'success': False, 'message': 'All required fields must be filled.'}), 400
+            
+        from models import db, ContactMessage
+        msg = ContactMessage(name=name, email=email, phone=phone, message=message)
+        db.session.add(msg)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Thank you! Your message has been sent successfully.'})
+        
     return render_template('contact.html')
 
 @public_bp.route('/toggle-wishlist/<id>', methods=['POST'])

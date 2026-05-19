@@ -42,21 +42,26 @@
         </div>
 
         <div class="contact-form-wrapper">
-            <form class="contact-form">
+            <form class="contact-form" id="contactForm">
                 <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" placeholder="Your name" required>
+                    <label>Full Name *</label>
+                    <input type="text" name="name" placeholder="Your name" required>
                 </div>
                 <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" placeholder="email@example.com" required>
+                    <label>Email Address *</label>
+                    <input type="email" name="email" placeholder="email@example.com" required>
                 </div>
                 <div class="form-group">
-                    <label>Message</label>
-                    <textarea rows="5" placeholder="How can we help you?" required></textarea>
+                    <label>Phone Number</label>
+                    <input type="tel" name="phone" placeholder="+91 XXXXX XXXXX">
                 </div>
-                <button type="submit" class="btn-primary">Send Message</button>
+                <div class="form-group">
+                    <label>Message *</label>
+                    <textarea name="message" rows="5" placeholder="How can we help you?" required></textarea>
+                </div>
+                <button type="submit" class="btn-primary" id="submitBtn">Send Message</button>
             </form>
+            <div id="contactResponse" style="display: none; margin-top: 20px; padding: 15px; border-radius: 8px; text-align: center; font-weight: 500; font-size: 15px;"></div>
         </div>
     </div>
 </div>
@@ -184,4 +189,55 @@
     }
 }
 </style>
+
+<script>
+document.getElementById('contactForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = this;
+    const btn = document.getElementById('submitBtn');
+    const responseEl = document.getElementById('contactResponse');
+    
+    btn.disabled = true;
+    const originalText = btn.innerText;
+    btn.innerText = 'Sending...';
+    
+    const formData = new FormData(form);
+    
+    fetch("{{ url_for('public.contact') }}", {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        responseEl.style.display = 'block';
+        if (data.success) {
+            responseEl.style.backgroundColor = '#d1e7dd';
+            responseEl.style.color = '#0f5132';
+            responseEl.style.border = '1px solid #badbcc';
+            responseEl.innerText = data.message;
+            form.reset();
+        } else {
+            responseEl.style.backgroundColor = '#f8d7da';
+            responseEl.style.color = '#842029';
+            responseEl.style.border = '1px solid #f5c2c7';
+            responseEl.innerText = data.message || 'An error occurred. Please try again.';
+        }
+        btn.disabled = false;
+        btn.innerText = originalText;
+    })
+    .catch(err => {
+        console.error(err);
+        responseEl.style.display = 'block';
+        responseEl.style.backgroundColor = '#f8d7da';
+        responseEl.style.color = '#842029';
+        responseEl.style.border = '1px solid #f5c2c7';
+        responseEl.innerText = 'An error occurred. Please try again later.';
+        btn.disabled = false;
+        btn.innerText = originalText;
+    });
+});
+</script>
 {% endblock %}
