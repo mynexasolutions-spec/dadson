@@ -1,5 +1,5 @@
 :root {
-    --crimson-dark: #6e048b;
+    --crimson-dark: #3e1b2f;
     --bg-main: #fbf7f9;
     /* Soft plum-white */
     --bg-cream: #f5ebf0;
@@ -7,21 +7,21 @@
     --bg-gold: #b88a44;
     /* Darker Gold to match logo */
     --bg-card: rgba(255, 255, 255, 0.95);
-    --bg-deep: #6e048b;
-    /* Deep purple */
-    --text-primary: #1d0026;
-    /* Very dark purple-black for high contrast readability */
-    --text-secondary: #4a025e;
-    /* Darker purple accent */
-    --text-soft: #8a7a8e;
-    /* Muted Purple-Grey */
+    --bg-deep: #3e1b2f;
+    /* Deep burgundy */
+    --text-primary: #3e1b2f;
+    /* Deep burgundy for elegant theme matching */
+    --text-secondary: #5e2b48;
+    /* Muted burgundy accent */
+    --text-soft: #8e7a84;
+    /* Muted Rose-Grey */
     --gold-primary: #b88a44;
     /* Darker Gold as primary */
     --gold-accent: #d4af37;
     /* Original gold as accent */
-    --gold-soft: #4a025e;
-    /* Purple Soft */
-    --border-light: rgba(110, 4, 139, 0.15);
+    --gold-soft: #5e2b48;
+    /* Burgundy Soft */
+    --border-light: rgba(94, 43, 72, 0.15);
     --shadow-soft: 0 16px 34px rgba(65, 44, 30, 0.08);
     --shadow-medium: 0 24px 60px rgba(55, 38, 26, 0.14);
     --radius-sm: 12px;
@@ -343,7 +343,7 @@ section:nth-of-type(even) {
     position: absolute;
     top: calc(100% + 1rem);
     left: -20px;
-    background: #520268; /* Slightly lighter purple for dropdown depth */
+    background: #4a2138; /* Slightly lighter plum for dropdown depth */
     border: 1px solid rgba(212, 175, 55, 0.3);
     border-radius: 22px;
     min-width: 210px;
@@ -461,7 +461,7 @@ section:nth-of-type(even) {
     inset: 0;
     background:
         radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.55), transparent 24%),
-        radial-gradient(circle at 85% 80%, rgba(110, 4, 139, 0.08), transparent 24%);
+        radial-gradient(circle at 85% 80%, rgba(94, 43, 72, 0.08), transparent 24%);
 }
 
 .hero-background-img {
@@ -477,7 +477,7 @@ section:nth-of-type(even) {
     position: absolute;
     inset: 0;
     background: 
-        linear-gradient(180deg, rgba(110, 4, 139, 0.5) 0%, transparent 40%, rgba(110, 4, 139, 0.8) 100%),
+        linear-gradient(180deg, rgba(62, 27, 47, 0.5) 0%, transparent 40%, rgba(62, 27, 47, 0.8) 100%),
         radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
     z-index: 1;
 }
@@ -863,7 +863,7 @@ section:nth-of-type(even) {
     max-width: 1200px;
     margin: 4rem auto;
     padding: 4rem 2rem 2rem;
-    background: linear-gradient(135deg, #6e048b 0%, #4a025e 100%);
+    background: linear-gradient(135deg, #3e1b2f 0%, #5e2b48 100%);
     border-radius: 40px;
     text-align: center;
     position: relative;
@@ -1326,7 +1326,7 @@ section:nth-of-type(even) {
     }
 
     .nav-item {
-        margin: 1.2rem 0 !important;
+        margin: 0.7rem 0 !important;
         width: 100%;
         text-align: center;
     }
@@ -1432,7 +1432,7 @@ section:nth-of-type(even) {
     }
 
     body {
-        padding-top: 120px !important;
+        padding-top: 75px !important;
     }
 
     .navbar {
@@ -1447,18 +1447,18 @@ section:nth-of-type(even) {
     }
 
     .logo-image {
-        width: 115px;
-        height: 115px;
+        width: auto;
+        height: 60px;
     }
 
-    .logo-text {
-        font-size: 1.35rem;
-        letter-spacing: 0.12em;
+    .logo-text-wrap {
+        margin-top: -8px;
     }
 
     .logo-tagline {
         font-size: 0.46rem;
-        margin-top: -26px;
+        margin-top: 2px;
+        margin-bottom: 4px;
     }
 
     .navbar-right {
@@ -1471,9 +1471,9 @@ section:nth-of-type(even) {
     }
 
     .hero {
-        margin-top: -120px !important;
+        margin-top: -75px !important;
         min-height: 540px !important;
-        padding-top: calc(120px + 4rem) !important;
+        padding-top: calc(75px + 4rem) !important;
         padding-bottom: 4rem;
     }
 
@@ -1609,19 +1609,24 @@ section:nth-of-type(even) {
 
 
     .nav-item {
-        margin: 1.5rem 0;
-        font-size: 1.2rem;
+        margin: 0.7rem 0 !important;
+        font-size: 1.15rem;
         color: #fff !important;
     }
 
     .logo-image {
-        width: 95px;
-        height: 95px;
+        width: auto;
+        height: 55px;
+    }
+
+    .logo-text-wrap {
+        margin-top: -6px;
     }
 
     .logo-tagline {
-        font-size: 0.44rem;
-        margin-top: -22px;
+        font-size: 0.42rem;
+        margin-top: 2px;
+        margin-bottom: 4px;
     }
 
     .navbar-right .icon-btn:not(.cart-btn):not([aria-label="Wishlist"]) {
@@ -1714,13 +1719,13 @@ section:nth-of-type(even) {
     }
 
     body {
-        padding-top: 100px !important;
+        padding-top: 70px !important;
     }
 
     .hero {
-        margin-top: -100px !important;
+        margin-top: -70px !important;
         min-height: 320px !important;
-        padding-top: calc(100px + 2.5rem) !important;
+        padding-top: calc(70px + 2.5rem) !important;
         padding-bottom: 2.5rem;
     }
 
@@ -1876,13 +1881,15 @@ section:nth-of-type(even) {
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
+        margin-top: -6px !important;
     }
 
     .logo-tagline {
         display: block !important;
         color: var(--bg-gold) !important;
-        font-size: 0.42rem;
-        margin-top: -20px;
+        font-size: 0.40rem;
+        margin-top: 2px !important;
+        margin-bottom: 2px !important;
         white-space: nowrap;
         text-align: center;
     }
@@ -2905,7 +2912,7 @@ section:nth-of-type(even) {
 
 /* ALTERNATING HOME PAGE SHADES & FULL-WIDTH SPOTLIGHT */
 .purple-section {
-    background: #6e048b !important;
+    background: #3e1b2f !important;
     color: #ffffff !important;
     padding: 6rem 0;
 }
@@ -2976,7 +2983,7 @@ section:nth-of-type(even) {
     max-width: none !important;
     margin: 0 auto !important;
     padding: 6rem 4rem !important;
-    background: linear-gradient(135deg, #6e048b 0%, #4a025e 100%) !important;
+    background: linear-gradient(135deg, #3e1b2f 0%, #5e2b48 100%) !important;
     border-radius: 0 !important;
     text-align: center;
     position: relative;
@@ -3016,7 +3023,7 @@ section:nth-of-type(even) {
     position: absolute;
     inset: 0;
     background: 
-        linear-gradient(180deg, rgba(110, 4, 139, 0.5) 0%, transparent 40%, rgba(110, 4, 139, 0.8) 100%),
+        linear-gradient(180deg, rgba(62, 27, 47, 0.5) 0%, transparent 40%, rgba(62, 27, 47, 0.8) 100%),
         radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
     z-index: 1;
 }
