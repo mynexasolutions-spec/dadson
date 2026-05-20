@@ -88,7 +88,7 @@ with app.app_context():
         'shipping_charges': '₹99',
         'free_shipping_above': '₹999',
         'payment_methods': 'COD, Razorpay, UPI',
-        'contact_email': 'support@dadson.com'
+        'contact_email': 'dadsonjewelry@gmail.com'
     }
     for key, value in default_configs.items():
         if not AppConfig.query.filter_by(key=key).first():
