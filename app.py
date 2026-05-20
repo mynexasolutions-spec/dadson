@@ -86,7 +86,7 @@ with app.app_context():
     # Seed default configs
     default_configs = {
         'shipping_charges': '₹99',
-        'free_shipping_above': '₹999',
+        'free_shipping_above': '₹1499',
         'payment_methods': 'COD, Razorpay, UPI',
         'contact_email': 'dadsonjewelry@gmail.com'
     }
