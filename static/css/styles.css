@@ -1204,8 +1204,8 @@ section:nth-of-type(even) {
 }
 
 .social-icon {
-    width: 40px;
-    height: 40px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: var(--gold-primary);
     border: 1px solid var(--gold-primary);
