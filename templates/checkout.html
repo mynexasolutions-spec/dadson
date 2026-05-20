@@ -11,13 +11,13 @@
 {% set city_val = '' %}
 {% set state_val = '' %}
 {% if user.city %}
-    {% if ',' in user.city %}
-        {% set parts = user.city.split(',') %}
-        {% set city_val = parts[0]|trim %}
-        {% set state_val = parts[1]|trim %}
-    {% else %}
-        {% set city_val = user.city %}
-    {% endif %}
+{% if ',' in user.city %}
+{% set parts = user.city.split(',') %}
+{% set city_val = parts[0]|trim %}
+{% set state_val = parts[1]|trim %}
+{% else %}
+{% set city_val = user.city %}
+{% endif %}
 {% endif %}
 
 <div class="checkout-page-container">
@@ -26,46 +26,47 @@
         <div class="checkout-left-sect">
             <div class="checkout-card-box">
                 <h2>Shipping & Delivery</h2>
-                <p class="subtitle-text">Please enter your shipping address where you'd like your handcrafted pieces delivered.</p>
-                
+                <p class="subtitle-text">Please enter your shipping address where you'd like your handcrafted pieces
+                    delivered.</p>
+
                 <form id="checkoutForm" onsubmit="processCheckout(event)">
                     <div class="form-row-double">
                         <div class="form-group-box">
                             <label for="shippingName">Full Name</label>
-                            <input type="text" id="shippingName" name="name" 
-                                   value="{{ user.username or '' }}" placeholder="Enter full name" required>
+                            <input type="text" id="shippingName" name="name" value="{{ user.username or '' }}"
+                                placeholder="Enter full name" required>
                         </div>
                         <div class="form-group-box">
                             <label for="shippingPhone">Phone Number</label>
-                            <input type="tel" id="shippingPhone" name="phone" 
-                                   value="{{ user.phone or '' }}" placeholder="Enter 10-digit mobile number" required>
+                            <input type="tel" id="shippingPhone" name="phone" value="{{ user.phone or '' }}"
+                                placeholder="Enter 10-digit mobile number" required>
                         </div>
                     </div>
-                    
+
                     <div class="form-group-box">
                         <label for="shippingAddress">Street Address</label>
-                        <textarea id="shippingAddress" name="address" rows="3" 
-                                  placeholder="House No, Building, Street, Area" required>{{ user.address or '' }}</textarea>
+                        <textarea id="shippingAddress" name="address" rows="3"
+                            placeholder="House No, Building, Street, Area" required>{{ user.address or '' }}</textarea>
                     </div>
-                    
+
                     <div class="form-row-triple">
                         <div class="form-group-box">
                             <label for="shippingCity">City</label>
-                            <input type="text" id="shippingCity" name="city" 
-                                   value="{{ city_val }}" placeholder="City" required>
+                            <input type="text" id="shippingCity" name="city" value="{{ city_val }}" placeholder="City"
+                                required>
                         </div>
                         <div class="form-group-box">
                             <label for="shippingState">State</label>
-                            <input type="text" id="shippingState" name="state" 
-                                   value="{{ state_val }}" placeholder="State" required>
+                            <input type="text" id="shippingState" name="state" value="{{ state_val }}"
+                                placeholder="State" required>
                         </div>
                         <div class="form-group-box">
                             <label for="shippingZipcode">Postal Code (PIN)</label>
-                            <input type="text" id="shippingZipcode" name="zipcode" 
-                                   value="{{ user.zipcode or '' }}" placeholder="6-digit PIN" required>
+                            <input type="text" id="shippingZipcode" name="zipcode" value="{{ user.zipcode or '' }}"
+                                placeholder="6-digit PIN" required>
                         </div>
                     </div>
-                    
+
                     <!-- PAYMENT METHOD SELECTION -->
                     <div class="payment-method-selector">
                         <label class="section-label">Select Payment Method</label>
@@ -93,15 +94,16 @@
                             {% endif %}
                         </div>
                     </div>
-                    
+
                     <button type="submit" class="btn-checkout-submit" id="payBtn">
                         <span class="btn-text" id="btnSubmitText">Proceed to Secure Payment</span>
-                        <span class="btn-spinner" style="display: none;"><i class="fas fa-spinner fa-spin"></i> Initializing Order...</span>
+                        <span class="btn-spinner" style="display: none;"><i class="fas fa-spinner fa-spin"></i>
+                            Initializing Order...</span>
                     </button>
                 </form>
             </div>
         </div>
-        
+
         <!-- RIGHT: ORDER SUMMARY -->
         <div class="checkout-right-sect">
             <div class="checkout-summary-box">
@@ -129,9 +131,9 @@
                     </div>
                     {% endfor %}
                 </div>
-                
+
                 <div class="summary-price-divider"></div>
-                
+
                 <div class="summary-row">
                     <span>Subtotal</span>
                     <span>{{ subtotal_str }}</span>
@@ -150,28 +152,36 @@
                     <span>Payment Method</span>
                     <span id="summaryPaymentMethod">Razorpay (UPI, Cards)</span>
                 </div>
-                
+
                 <div class="summary-price-divider"></div>
-                
+
                 <div class="summary-row total-row">
                     <span>Total Amount</span>
                     <span class="total-price-text" id="summaryTotalAmount">{{ total_str }}</span>
                 </div>
-                
+
                 <!-- Coupon Code Card Section -->
-                <div class="coupon-section" style="margin: 20px 0; padding: 15px; border: 1px solid rgba(142, 106, 52, 0.2); border-radius: 8px; background: rgba(142, 106, 52, 0.05);">
-                    <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #8e6a34; margin-bottom: 8px; letter-spacing: 0.5px;">PROMO CODE</label>
+                <div class="coupon-section"
+                    style="margin: 20px 0; padding: 15px; border: 1px solid rgba(142, 106, 52, 0.2); border-radius: 8px; background: rgba(142, 106, 52, 0.05);">
+                    <label
+                        style="display: block; font-size: 0.85rem; font-weight: 600; color: #8e6a34; margin-bottom: 8px; letter-spacing: 0.5px;">PROMO
+                        CODE</label>
                     <div class="coupon-input-group" style="display: flex; gap: 8px;">
-                        <input type="text" id="couponCodeInput" value="{{ coupon_code or '' }}" placeholder="Enter Coupon" style="flex: 1; padding: 8px 12px; border: 1px solid rgba(142, 106, 52, 0.3); border-radius: 4px; background: transparent; color: inherit; font-size: 0.9rem; text-transform: uppercase;" {% if coupon_code %}disabled{% endif %}>
+                        <input type="text" id="couponCodeInput" value="{{ coupon_code or '' }}"
+                            placeholder="Enter Coupon"
+                            style="flex: 1; padding: 8px 12px; border: 1px solid rgba(142, 106, 52, 0.3); border-radius: 4px; background: transparent; color: inherit; font-size: 0.9rem; text-transform: uppercase;"
+                            {% if coupon_code %}disabled{% endif %}>
                         {% if coupon_code %}
-                        <button id="removeCouponBtn" style="padding: 8px 16px; background: #c62828; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: background 0.2s;">Remove</button>
+                        <button id="removeCouponBtn"
+                            style="padding: 8px 16px; background: #c62828; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: background 0.2s;">Remove</button>
                         {% else %}
-                        <button id="applyCouponBtn" style="padding: 8px 16px; background: #8e6a34; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: background 0.2s;">Apply</button>
+                        <button id="applyCouponBtn"
+                            style="padding: 8px 16px; background: #8e6a34; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: background 0.2s;">Apply</button>
                         {% endif %}
                     </div>
                     <div id="couponMessage" style="font-size: 0.8rem; margin-top: 6px; display: none;"></div>
                 </div>
-                
+
                 <div class="checkout-trust-box">
                     <div class="trust-item-line">
                         <i class="fas fa-lock"></i>
@@ -197,7 +207,7 @@
         min-height: 85vh;
         color: #241914;
     }
-    
+
     .checkout-grid-row {
         display: grid;
         grid-template-columns: 1.2fr 0.8fr;
@@ -206,7 +216,7 @@
         margin: 0 auto;
         align-items: start;
     }
-    
+
     .checkout-card-box {
         background: #fff;
         border: 1px solid rgba(184, 138, 68, 0.12);
@@ -214,39 +224,39 @@
         padding: 3rem;
         box-shadow: 0 10px 30px rgba(184, 138, 68, 0.04);
     }
-    
+
     .checkout-card-box h2 {
         font-family: 'Playfair Display', serif;
         font-size: 2.2rem;
         margin-bottom: 0.5rem;
         color: #241914;
     }
-    
+
     .subtitle-text {
         color: #64748b;
         font-size: 0.95rem;
         margin-bottom: 2.5rem;
     }
-    
+
     .form-row-double {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 1.5rem;
     }
-    
+
     .form-row-triple {
         display: grid;
         grid-template-columns: 1.2fr 1fr 1fr;
         gap: 1.2rem;
     }
-    
+
     .form-group-box {
         margin-bottom: 1.8rem;
         display: flex;
         flex-direction: column;
         gap: 0.6rem;
     }
-    
+
     .form-group-box label {
         font-size: 0.8rem;
         font-weight: 700;
@@ -254,8 +264,8 @@
         letter-spacing: 1px;
         color: #241914;
     }
-    
-    .form-group-box input, 
+
+    .form-group-box input,
     .form-group-box textarea {
         background: #fdfaf6;
         border: 1.5px solid #e2e8f0;
@@ -266,21 +276,21 @@
         transition: all 0.3s ease;
         font-family: 'Inter', sans-serif;
     }
-    
-    .form-group-box input:focus, 
+
+    .form-group-box input:focus,
     .form-group-box textarea:focus {
         outline: none;
         border-color: var(--gold-primary);
         background: #fff;
         box-shadow: 0 0 0 4px rgba(184, 138, 68, 0.1);
     }
-    
+
     /* PAYMENT METHOD STYLING */
     .payment-method-selector {
         margin-top: 2rem;
         margin-bottom: 2rem;
     }
-    
+
     .payment-method-selector .section-label {
         font-size: 0.8rem;
         font-weight: 700;
@@ -290,13 +300,13 @@
         display: block;
         margin-bottom: 1rem;
     }
-    
+
     .payment-options-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 1.2rem;
     }
-    
+
     .payment-card {
         border: 1.5px solid #e2e8f0;
         border-radius: 16px;
@@ -310,18 +320,18 @@
         position: relative;
         user-select: none;
     }
-    
+
     .payment-card:hover {
         border-color: rgba(184, 138, 68, 0.4);
         transform: translateY(-2px);
     }
-    
+
     .payment-card.active {
         border-color: var(--gold-primary);
         background: #fffaf4;
         box-shadow: 0 4px 15px rgba(184, 138, 68, 0.08);
     }
-    
+
     .payment-card-header {
         display: flex;
         align-items: center;
@@ -330,28 +340,28 @@
         font-size: 0.95rem;
         color: #241914;
     }
-    
+
     .payment-card-header i {
         font-size: 1.1rem;
     }
-    
+
     .icon-gold {
         color: var(--gold-primary);
     }
-    
+
     .icon-dark {
         color: #64748b;
     }
-    
+
     .payment-card.active .icon-dark {
         color: var(--gold-primary);
     }
-    
+
     .payment-card-desc {
         font-size: 0.75rem;
         color: #64748b;
     }
-    
+
     .btn-checkout-submit {
         width: 100%;
         height: 60px;
@@ -369,20 +379,20 @@
         align-items: center;
         justify-content: center;
     }
-    
+
     .btn-checkout-submit:hover {
         background: linear-gradient(135deg, var(--gold-accent), var(--gold-primary));
         transform: translateY(-3px);
         box-shadow: 0 10px 24px rgba(184, 138, 68, 0.3);
     }
-    
+
     .btn-checkout-submit:disabled {
         background: #94a3b8;
         cursor: not-allowed;
         transform: none;
         box-shadow: none;
     }
-    
+
     .checkout-summary-box {
         background: #fff;
         border: 1px solid rgba(184, 138, 68, 0.12);
@@ -390,14 +400,14 @@
         padding: 2.5rem;
         box-shadow: 0 10px 30px rgba(184, 138, 68, 0.04);
     }
-    
+
     .checkout-summary-box h3 {
         font-family: 'Playfair Display', serif;
         font-size: 1.6rem;
         margin-bottom: 2rem;
         color: #241914;
     }
-    
+
     .summary-items-list {
         display: flex;
         flex-direction: column;
@@ -406,13 +416,13 @@
         overflow-y: auto;
         padding-right: 0.5rem;
     }
-    
+
     .summary-item-card {
         display: flex;
         align-items: center;
         gap: 1.2rem;
     }
-    
+
     .summary-item-img {
         position: relative;
         width: 64px;
@@ -423,13 +433,13 @@
         background: #fdfaf6;
         flex-shrink: 0;
     }
-    
+
     .summary-item-img img {
         width: 100%;
         height: 100%;
         object-fit: cover;
     }
-    
+
     .qty-badge {
         position: absolute;
         top: -6px;
@@ -446,35 +456,35 @@
         justify-content: center;
         border: 2px solid #fff;
     }
-    
+
     .summary-item-details {
         flex-grow: 1;
     }
-    
+
     .summary-item-details h4 {
         font-size: 0.95rem;
         font-weight: 600;
         color: #241914;
         margin-bottom: 0.3rem;
     }
-    
+
     .variant-meta {
         font-size: 0.75rem;
         color: #64748b;
     }
-    
+
     .summary-item-price {
         font-weight: 700;
         font-size: 0.95rem;
         color: #241914;
     }
-    
+
     .summary-price-divider {
         height: 1px;
         background: #f1f5f9;
         margin: 2rem 0;
     }
-    
+
     .summary-row {
         display: flex;
         justify-content: space-between;
@@ -482,24 +492,24 @@
         color: #64748b;
         margin-bottom: 1rem;
     }
-    
+
     .text-gold {
         color: var(--gold-primary);
         font-weight: 700;
     }
-    
+
     .total-row {
         color: #241914;
         font-weight: 800;
         margin-bottom: 0;
     }
-    
+
     .total-price-text {
         font-size: 1.45rem;
         font-weight: 800;
         color: #241914;
     }
-    
+
     .checkout-trust-box {
         margin-top: 2.5rem;
         padding-top: 2rem;
@@ -508,7 +518,7 @@
         flex-direction: column;
         gap: 1rem;
     }
-    
+
     .trust-item-line {
         display: flex;
         align-items: center;
@@ -517,62 +527,74 @@
         color: #64748b;
         font-weight: 500;
     }
-    
+
     .trust-item-line i {
         color: var(--gold-primary);
     }
-    
+
     @media (max-width: 992px) {
         .checkout-grid-row {
             grid-template-columns: 1fr;
             gap: 2.5rem;
         }
+
         .checkout-page-container {
             padding: 3rem 1.5rem;
         }
     }
-    
+
     @media (max-width: 600px) {
         .checkout-page-container {
             padding: 2rem 1rem;
             overflow-x: hidden;
         }
+
         .form-row-double {
             grid-template-columns: 1fr;
             gap: 0;
         }
+
         .form-row-triple {
             grid-template-columns: 1fr;
             gap: 0;
         }
+
         .payment-options-grid {
             grid-template-columns: 1fr;
             gap: 1rem;
         }
-        .checkout-card-box, 
+
+        .checkout-card-box,
         .checkout-summary-box {
             padding: 1.5rem 1rem;
             border-radius: 16px;
         }
+
         .checkout-card-box h2 {
             font-size: 1.6rem;
         }
+
         .subtitle-text {
             font-size: 0.85rem;
         }
+
         .total-price-text {
             font-size: 1.25rem;
         }
+
         .summary-item-card {
             gap: 0.8rem;
         }
+
         .summary-item-img {
             width: 50px;
             height: 50px;
         }
+
         .summary-items-list {
             padding-right: 0;
         }
+
         .btn-checkout-submit {
             height: 52px;
             font-size: 0.95rem;
@@ -581,237 +603,237 @@
 </style>
 
 <script>
-// Toggle Active Card highlight and update summary text
-document.querySelectorAll('.payment-card').forEach(card => {
-    card.addEventListener('click', function() {
-        document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('active'));
-        this.classList.add('active');
-        const radio = this.querySelector('input[type="radio"]');
-        radio.checked = true;
-        
-        // Update summary text
-        const summaryText = document.getElementById('summaryPaymentMethod');
-        const btnSubmitText = document.getElementById('btnSubmitText');
-        if (radio.value === 'cod') {
-            summaryText.innerText = "Cash on Delivery (COD)";
-            btnSubmitText.innerText = "Place COD Order";
-        } else {
-            summaryText.innerText = "Razorpay (UPI, Cards)";
-            btnSubmitText.innerText = "Proceed to Secure Payment";
-        }
-    });
-});
+    // Toggle Active Card highlight and update summary text
+    document.querySelectorAll('.payment-card').forEach(card => {
+        card.addEventListener('click', function () {
+            document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            const radio = this.querySelector('input[type="radio"]');
+            radio.checked = true;
 
-function processCheckout(event) {
-    event.preventDefault();
-    
-    const name = document.getElementById('shippingName').value.trim();
-    const phone = document.getElementById('shippingPhone').value.trim();
-    const address = document.getElementById('shippingAddress').value.trim();
-    const city = document.getElementById('shippingCity').value.trim();
-    const state = document.getElementById('shippingState').value.trim();
-    const zipcode = document.getElementById('shippingZipcode').value.trim();
-    const payment_method = document.querySelector('input[name="payment_method"]:checked').value;
-    
-    // Internet connection / Razorpay script check
-    if (payment_method === 'online' && typeof Razorpay === 'undefined') {
-        alert("Secure Payment Connection Issue:\n\nWe are unable to connect to our secure online payment partner (Razorpay). Please check your internet connection and try again, or choose Cash on Delivery (COD) to place your order immediately.");
-        return;
-    }
-    
-    const payBtn = document.getElementById('payBtn');
-    const btnTextText = document.getElementById('btnSubmitText');
-    const btnSpinner = payBtn.querySelector('.btn-spinner');
-    
-    // Set loading state
-    payBtn.disabled = true;
-    const oldBtnText = btnTextText.innerText;
-    btnTextText.style.display = 'none';
-    btnSpinner.style.display = 'inline';
-    
-    fetch('/checkout/create-order', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify({ name, phone, address, city, state, zipcode, payment_method })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            // Check if Payment Method was Cash on Delivery (COD)
-            if (data.cod) {
-                console.log("COD Order placed successfully!");
-                window.location.href = `/order-success/${data.order_number}`;
-                return;
-            }
-            
-            // Otherwise, trigger standard Razorpay Checkout
-            const options = {
-                "key": data.key_id,
-                "amount": data.amount,
-                "currency": data.currency,
-                "name": "DADSON Premium Jewellery",
-                "description": "Signature Handcrafted Order Selection",
-                "image": "{{ url_for('static', filename='images/logo.png') }}",
-                "order_id": data.razorpay_order_id,
-                "handler": function (response) {
-                    // Send signature and ids back to verify-payment endpoint
-                    fetch('/checkout/verify-payment', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            order_number: data.order_number,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_signature: response.razorpay_signature
-                        })
-                    })
-                    .then(res => res.json())
-                    .then(verifyData => {
-                        if (verifyData.success) {
-                            window.location.href = `/order-success/${data.order_number}`;
-                        } else {
-                            alert("Payment verification failed: " + (verifyData.message || "Please contact support."));
-                            resetButtonState();
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        alert("An error occurred during payment verification.");
-                        resetButtonState();
-                    });
-                },
-                "prefill": {
-                    "name": data.customer_name,
-                    "email": data.customer_email,
-                    "contact": data.customer_phone
-                },
-                "theme": {
-                    "color": "#6e048b" // Matches var(--crimson-dark) perfectly!
-                },
-                "modal": {
-                    "ondismiss": function() {
-                        resetButtonState();
-                    }
-                }
-            };
-            
-            // Check if it's a local mock order ID (for local testing/demo mode)
-            if (data.razorpay_order_id.startsWith('order_mock_')) {
-                console.log("Mock Payment Mode Active.");
-                if (confirm("Choose Simulated Payment Outcome:\n\nClick [OK] to simulate SUCCESSFUL Online Payment.\nClick [Cancel] to simulate FAILED/ABORTED Online Payment.")) {
-                    setTimeout(() => {
-                        fetch('/checkout/verify-payment', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                order_number: data.order_number,
-                                razorpay_payment_id: "pay_mock_" + Math.random().toString(36).substr(2, 9),
-                                razorpay_order_id: data.razorpay_order_id,
-                                razorpay_signature: "sig_mock_verified"
-                            })
-                        })
-                        .then(res => res.json())
-                        .then(verifyData => {
-                            if (verifyData.success) {
-                                window.location.href = `/order-success/${data.order_number}`;
-                            } else {
-                                alert("Mock payment verification failed.");
-                                resetButtonState();
-                            }
-                        });
-                    }, 1000);
-                } else {
-                    resetButtonState();
-                }
+            // Update summary text
+            const summaryText = document.getElementById('summaryPaymentMethod');
+            const btnSubmitText = document.getElementById('btnSubmitText');
+            if (radio.value === 'cod') {
+                summaryText.innerText = "Cash on Delivery (COD)";
+                btnSubmitText.innerText = "Place COD Order";
             } else {
-                const rzp = new Razorpay(options);
-                rzp.open();
+                summaryText.innerText = "Razorpay (UPI, Cards)";
+                btnSubmitText.innerText = "Proceed to Secure Payment";
             }
-        } else {
-            alert("Order creation failed: " + (data.message || "Please check inputs."));
-            resetButtonState();
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert("An error occurred while creating order.");
-        resetButtonState();
+        });
     });
-    
-    function resetButtonState() {
-        payBtn.disabled = false;
-        btnTextText.style.display = 'inline';
-        btnTextText.innerText = oldBtnText;
-        btnSpinner.style.display = 'none';
-    }
-}
 
-// Apply Coupon on Checkout
-const applyBtn = document.getElementById('applyCouponBtn');
-if (applyBtn) {
-    applyBtn.addEventListener('click', function() {
-        const codeInput = document.getElementById('couponCodeInput');
-        const code = codeInput.value.trim().toUpperCase();
-        const msgEl = document.getElementById('couponMessage');
-        
-        if (!code) {
-            msgEl.style.display = 'block';
-            msgEl.style.color = '#c62828';
-            msgEl.innerText = 'Please enter a coupon code.';
+    function processCheckout(event) {
+        event.preventDefault();
+
+        const name = document.getElementById('shippingName').value.trim();
+        const phone = document.getElementById('shippingPhone').value.trim();
+        const address = document.getElementById('shippingAddress').value.trim();
+        const city = document.getElementById('shippingCity').value.trim();
+        const state = document.getElementById('shippingState').value.trim();
+        const zipcode = document.getElementById('shippingZipcode').value.trim();
+        const payment_method = document.querySelector('input[name="payment_method"]:checked').value;
+
+        // Internet connection / Razorpay script check
+        if (payment_method === 'online' && typeof Razorpay === 'undefined') {
+            alert("Secure Payment Connection Issue:\n\nWe are unable to connect to our secure online payment partner (Razorpay). Please check your internet connection and try again, or choose Cash on Delivery (COD) to place your order immediately.");
             return;
         }
-        
-        const formData = new FormData();
-        formData.append('code', code);
-        
-        fetch('/apply-coupon', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            msgEl.style.display = 'block';
-            if (data.success) {
-                msgEl.style.color = '#2e7d32';
-                msgEl.innerText = data.message;
-                setTimeout(() => {
-                    window.location.reload();
-                }, 800);
-            } else {
-                msgEl.style.color = '#c62828';
-                msgEl.innerText = data.message;
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            msgEl.style.display = 'block';
-            msgEl.style.color = '#c62828';
-            msgEl.innerText = 'Something went wrong. Please try again.';
-        });
-    });
-}
 
-// Remove Coupon on Checkout
-const removeBtn = document.getElementById('removeCouponBtn');
-if (removeBtn) {
-    removeBtn.addEventListener('click', function() {
-        fetch('/remove-coupon', {
-            method: 'POST'
+        const payBtn = document.getElementById('payBtn');
+        const btnTextText = document.getElementById('btnSubmitText');
+        const btnSpinner = payBtn.querySelector('.btn-spinner');
+
+        // Set loading state
+        payBtn.disabled = true;
+        const oldBtnText = btnTextText.innerText;
+        btnTextText.style.display = 'none';
+        btnSpinner.style.display = 'inline';
+
+        fetch('/checkout/create-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ name, phone, address, city, state, zipcode, payment_method })
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                window.location.reload();
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Check if Payment Method was Cash on Delivery (COD)
+                    if (data.cod) {
+                        console.log("COD Order placed successfully!");
+                        window.location.href = `/order-success/${data.order_number}`;
+                        return;
+                    }
+
+                    // Otherwise, trigger standard Razorpay Checkout
+                    const options = {
+                        "key": data.key_id,
+                        "amount": data.amount,
+                        "currency": data.currency,
+                        "name": "DADSON Premium Jewellery",
+                        "description": "Signature Handcrafted Order Selection",
+                        "image": "{{ url_for('static', filename='images/logo.png') }}",
+                        "order_id": data.razorpay_order_id,
+                        "handler": function (response) {
+                            // Send signature and ids back to verify-payment endpoint
+                            fetch('/checkout/verify-payment', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    order_number: data.order_number,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_signature: response.razorpay_signature
+                                })
+                            })
+                                .then(res => res.json())
+                                .then(verifyData => {
+                                    if (verifyData.success) {
+                                        window.location.href = `/order-success/${data.order_number}`;
+                                    } else {
+                                        alert("Payment verification failed: " + (verifyData.message || "Please contact support."));
+                                        resetButtonState();
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error(err);
+                                    alert("An error occurred during payment verification.");
+                                    resetButtonState();
+                                });
+                        },
+                        "prefill": {
+                            "name": data.customer_name,
+                            "email": data.customer_email,
+                            "contact": data.customer_phone
+                        },
+                        "theme": {
+                            "color": "#41214b" // Matches var(--crimson-dark) perfectly!
+                        },
+                        "modal": {
+                            "ondismiss": function () {
+                                resetButtonState();
+                            }
+                        }
+                    };
+
+                    // Check if it's a local mock order ID (for local testing/demo mode)
+                    if (data.razorpay_order_id.startsWith('order_mock_')) {
+                        console.log("Mock Payment Mode Active.");
+                        if (confirm("Choose Simulated Payment Outcome:\n\nClick [OK] to simulate SUCCESSFUL Online Payment.\nClick [Cancel] to simulate FAILED/ABORTED Online Payment.")) {
+                            setTimeout(() => {
+                                fetch('/checkout/verify-payment', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        order_number: data.order_number,
+                                        razorpay_payment_id: "pay_mock_" + Math.random().toString(36).substr(2, 9),
+                                        razorpay_order_id: data.razorpay_order_id,
+                                        razorpay_signature: "sig_mock_verified"
+                                    })
+                                })
+                                    .then(res => res.json())
+                                    .then(verifyData => {
+                                        if (verifyData.success) {
+                                            window.location.href = `/order-success/${data.order_number}`;
+                                        } else {
+                                            alert("Mock payment verification failed.");
+                                            resetButtonState();
+                                        }
+                                    });
+                            }, 1000);
+                        } else {
+                            resetButtonState();
+                        }
+                    } else {
+                        const rzp = new Razorpay(options);
+                        rzp.open();
+                    }
+                } else {
+                    alert("Order creation failed: " + (data.message || "Please check inputs."));
+                    resetButtonState();
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("An error occurred while creating order.");
+                resetButtonState();
+            });
+
+        function resetButtonState() {
+            payBtn.disabled = false;
+            btnTextText.style.display = 'inline';
+            btnTextText.innerText = oldBtnText;
+            btnSpinner.style.display = 'none';
+        }
+    }
+
+    // Apply Coupon on Checkout
+    const applyBtn = document.getElementById('applyCouponBtn');
+    if (applyBtn) {
+        applyBtn.addEventListener('click', function () {
+            const codeInput = document.getElementById('couponCodeInput');
+            const code = codeInput.value.trim().toUpperCase();
+            const msgEl = document.getElementById('couponMessage');
+
+            if (!code) {
+                msgEl.style.display = 'block';
+                msgEl.style.color = '#c62828';
+                msgEl.innerText = 'Please enter a coupon code.';
+                return;
             }
+
+            const formData = new FormData();
+            formData.append('code', code);
+
+            fetch('/apply-coupon', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    msgEl.style.display = 'block';
+                    if (data.success) {
+                        msgEl.style.color = '#2e7d32';
+                        msgEl.innerText = data.message;
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 800);
+                    } else {
+                        msgEl.style.color = '#c62828';
+                        msgEl.innerText = data.message;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    msgEl.style.display = 'block';
+                    msgEl.style.color = '#c62828';
+                    msgEl.innerText = 'Something went wrong. Please try again.';
+                });
         });
-    });
-}
+    }
+
+    // Remove Coupon on Checkout
+    const removeBtn = document.getElementById('removeCouponBtn');
+    if (removeBtn) {
+        removeBtn.addEventListener('click', function () {
+            fetch('/remove-coupon', {
+                method: 'POST'
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    }
+                });
+        });
+    }
 </script>
 {% endblock %}

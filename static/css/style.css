@@ -7,18 +7,21 @@
 }
 
 :root {
-    --crimson: #6e048b; /* Deep Purple */
-    --crimson-dark: #4a025e;
-    --crimson-light: #8f06b5;
+    --crimson: #643373; /* Deep Purple */
+    --crimson-dark: #41214b;
+    --crimson-light: #964cac;
     --cream: #fbf7f9; /* Soft Plum-White */
     --warm-white: #ffffff; /* White */
     --sand: #f5ebf0; /* Light Plum-Sand */
     --sand-dark: #e5e7eb;
     --charcoal: #1f2937;
-    --text: #1f2937; /* Dark Slate */
+    --text: #1f2937;
+    /* Dark Slate */
     --muted: #6b7280;
-    --gold: #d4af37; /* Gold */
-    --gold-light: #fef08a; /* Light Gold */
+    --gold: #d4af37;
+    /* Gold */
+    --gold-light: #fef08a;
+    /* Light Gold */
 }
 
 html {
@@ -237,7 +240,8 @@ section {
     display: none;
 }
 
-.carousel-track, .na-carousel-track {
+.carousel-track,
+.na-carousel-track {
     display: flex;
     justify-content: flex-start !important;
     gap: 24px;
@@ -248,7 +252,8 @@ section {
     scroll-behavior: auto;
 }
 
-.carousel-track::-webkit-scrollbar, .na-carousel-track::-webkit-scrollbar {
+.carousel-track::-webkit-scrollbar,
+.na-carousel-track::-webkit-scrollbar {
     display: none;
 }
 
@@ -879,12 +884,17 @@ nav {
     border-radius: 8px;
     letter-spacing: 0.5px;
     text-transform: uppercase;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     z-index: 2;
 }
 
-.product-badge.new { background: #10b981; }
-.product-badge.trending { background: #f59e0b; }
+.product-badge.new {
+    background: #10b981;
+}
+
+.product-badge.trending {
+    background: #f59e0b;
+}
 
 .product-wishlist {
     position: absolute;
@@ -2680,6 +2690,7 @@ nav {
         height: 180px;
     }
 }
+
 /* Product Card Swatches - Luvtale Style */
 .card-swatches {
     display: flex;
@@ -2692,8 +2703,8 @@ nav {
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    border: 1px solid rgba(0,0,0,0.1);
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
     cursor: pointer;
     transition: transform 0.2s;
 }

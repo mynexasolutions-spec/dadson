@@ -8,15 +8,18 @@
 
 {% block content %}
 <div class="about-page">
-
     <section class="about-grid">
         <div class="about-text">
             <h2 class="section-title">The Soul of DADSON</h2>
-            <p>Founded with a deep appreciation for the artistry of gold and diamonds, DADSON is more than just a jewelry brand—it's a curator of memories.</p>
-            <p>Every piece in our collection is a labor of love, meticulously designed and crafted by master jewelers who have inherited their skills through generations. We blend traditional techniques with contemporary aesthetics to create jewelry that speaks to your unique style.</p>
+            <p>Founded with a deep appreciation for the artistry of gold and diamonds, DADSON is more than just a
+                jewelry brand—it's a curator of memories.</p>
+            <p>Every piece in our collection is a labor of love, meticulously designed and crafted by master jewelers
+                who have inherited their skills through generations. We blend traditional techniques with contemporary
+                aesthetics to create jewelry that speaks to your unique style.</p>
         </div>
         <div class="about-img">
-            <img src="https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?auto=format&fit=crop&w=800&q=80" alt="Jewelry Craftsmanship">
+            <img src="https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?auto=format&fit=crop&w=800&q=80"
+                alt="Jewelry Craftsmanship">
         </div>
     </section>
 
@@ -24,17 +27,20 @@
         <div class="value-card">
             <div class="value-icon">✦</div>
             <h3>Purity</h3>
-            <p>We use only the finest quality metals and ethically sourced stones, ensuring every piece meets our rigorous standards.</p>
+            <p>We use only the finest quality metals and ethically sourced stones, ensuring every piece meets our
+                rigorous standards.</p>
         </div>
         <div class="value-card">
             <div class="value-icon">✦</div>
             <h3>Artistry</h3>
-            <p>Our artisans spend hours perfecting every detail, from the intricate filigree to the precision of stone setting.</p>
+            <p>Our artisans spend hours perfecting every detail, from the intricate filigree to the precision of stone
+                setting.</p>
         </div>
         <div class="value-card">
             <div class="value-icon">✦</div>
             <h3>Legacy</h3>
-            <p>Our jewelry is designed to be cherished for a lifetime and passed down through generations as a symbol of love.</p>
+            <p>Our jewelry is designed to be cherished for a lifetime and passed down through generations as a symbol of
+                love.</p>
         </div>
     </section>
 
@@ -48,7 +54,10 @@
 </div>
 
 <style>
-    .about-page { background: var(--bg-main); }
+    .about-page {
+        background: var(--bg-main);
+    }
+
     .about-hero {
         position: relative;
         min-height: 65vh;
@@ -62,55 +71,164 @@
         padding: 4rem var(--content-gutter);
         overflow: hidden;
     }
+
     .about-hero::before {
         content: '';
         position: absolute;
         inset: 0;
-        background: linear-gradient(135deg, rgba(62, 27, 47, 0.86), rgba(36, 26, 20, 0.92));
+        background: linear-gradient(135deg, rgba(65, 33, 75, 0.86), rgba(36, 26, 20, 0.92));
         z-index: 1;
     }
-    .about-hero-content { 
+
+    .about-hero-content {
         position: relative;
         z-index: 2;
-        max-width: 860px; 
+        max-width: 860px;
         color: #fffaf4;
     }
-    .about-hero .header-tag { 
-        color: var(--gold-accent); 
-        text-transform: uppercase; 
-        letter-spacing: 0.2em; 
-        font-weight: 700; 
+
+    .about-hero .header-tag {
+        color: var(--gold-accent);
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        font-weight: 700;
         margin-bottom: 1.5rem;
         display: block;
         font-size: 0.9rem;
     }
-    .about-hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.5rem, 6vw, 4.2rem); margin-bottom: 1.5rem; color: inherit; line-height: 1.2; }
-    .about-hero p { font-size: clamp(1.1rem, 1.8vw, 1.25rem); opacity: 0.95; line-height: 1.7; max-width: 700px; margin: 0 auto; color: inherit; }
 
-    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; padding: 100px var(--content-gutter); align-items: center; max-width: var(--content-max); margin: 0 auto; }
-    .about-text h2 { margin-bottom: 1.5rem; font-size: clamp(2rem, 4vw, 2.8rem); }
-    .about-text p { color: var(--text-secondary); line-height: 1.8; margin-bottom: 1.5rem; font-size: 1.05rem; }
-    .about-img img { width: 100%; border-radius: 34px; box-shadow: var(--shadow-medium); }
+    .about-hero h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2.5rem, 6vw, 4.2rem);
+        margin-bottom: 1.5rem;
+        color: inherit;
+        line-height: 1.2;
+    }
 
-    .values-section { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; padding: 100px var(--content-gutter); background: var(--bg-gold); }
-    .value-card { text-align: center; padding: 3rem 2rem; background: #fff; border: 1px solid var(--border-light); border-radius: 34px; box-shadow: var(--shadow-soft); }
-    .value-icon { color: var(--gold-primary); font-size: 2.5rem; margin-bottom: 1.5rem; }
-    .value-card h3 { font-family: 'Playfair Display', serif; font-size: 1.6rem; margin-bottom: 1rem; }
-    .value-card p { color: var(--text-secondary); font-size: 1rem; line-height: 1.7; }
+    .about-hero p {
+        font-size: clamp(1.1rem, 1.8vw, 1.25rem);
+        opacity: 0.95;
+        line-height: 1.7;
+        max-width: 700px;
+        margin: 0 auto;
+        color: inherit;
+    }
 
-    .story-banner { padding: 120px var(--content-gutter); text-align: center; background: linear-gradient(rgba(243, 232, 220, 0.4), rgba(239, 227, 211, 0.2)); }
-    .story-banner-content { max-width: 800px; margin: 0 auto; }
-    .story-banner h2 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 1.5rem; }
-    .story-banner p { color: var(--text-secondary); margin-bottom: 3rem; font-size: clamp(1rem, 1.6vw, 1.2rem); line-height: 1.7; }
+    .about-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 80px;
+        padding: 100px var(--content-gutter);
+        align-items: center;
+        max-width: var(--content-max);
+        margin: 0 auto;
+    }
+
+    .about-text h2 {
+        margin-bottom: 1.5rem;
+        font-size: clamp(2rem, 4vw, 2.8rem);
+    }
+
+    .about-text p {
+        color: var(--text-secondary);
+        line-height: 1.8;
+        margin-bottom: 1.5rem;
+        font-size: 1.05rem;
+    }
+
+    .about-img img {
+        width: 100%;
+        border-radius: 34px;
+        box-shadow: var(--shadow-medium);
+    }
+
+    .values-section {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+        padding: 100px var(--content-gutter);
+        background: var(--bg-gold);
+    }
+
+    .value-card {
+        text-align: center;
+        padding: 3rem 2rem;
+        background: #fff;
+        border: 1px solid var(--border-light);
+        border-radius: 34px;
+        box-shadow: var(--shadow-soft);
+    }
+
+    .value-icon {
+        color: var(--gold-primary);
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .value-card h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.6rem;
+        margin-bottom: 1rem;
+    }
+
+    .value-card p {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        line-height: 1.7;
+    }
+
+    .story-banner {
+        padding: 120px var(--content-gutter);
+        text-align: center;
+        background: linear-gradient(rgba(243, 232, 220, 0.4), rgba(239, 227, 211, 0.2));
+    }
+
+    .story-banner-content {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .story-banner h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(2rem, 5vw, 3rem);
+        margin-bottom: 1.5rem;
+    }
+
+    .story-banner p {
+        color: var(--text-secondary);
+        margin-bottom: 3rem;
+        font-size: clamp(1rem, 1.6vw, 1.2rem);
+        line-height: 1.7;
+    }
 
     @media (max-width: 992px) {
-        .about-grid { grid-template-columns: 1fr; gap: 60px; text-align: center; }
-        .about-text h2 { text-align: center; }
-        .values-section { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+        .about-grid {
+            grid-template-columns: 1fr;
+            gap: 60px;
+            text-align: center;
+        }
+
+        .about-text h2 {
+            text-align: center;
+        }
+
+        .values-section {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
     }
+
     @media (max-width: 480px) {
-        .about-hero { min-height: 40vh; padding: 2.5rem 1rem; }
-        .about-grid, .values-section, .story-banner { padding-left: 20px; padding-right: 20px; }
+        .about-hero {
+            min-height: 40vh;
+            padding: 2.5rem 1rem;
+        }
+
+        .about-grid,
+        .values-section,
+        .story-banner {
+            padding-left: 20px;
+            padding-right: 20px;
+        }
     }
 </style>
 {% endblock %}
