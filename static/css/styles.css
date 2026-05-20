@@ -1633,7 +1633,7 @@ section:nth-of-type(even) {
         margin-bottom: 4px;
     }
 
-    .navbar-right .icon-btn:not(.cart-btn):not([aria-label="Wishlist"]) {
+    .navbar-right .icon-btn:not(.cart-btn):not([aria-label="Wishlist"]):not(.search-btn) {
         display: none;
     }
 

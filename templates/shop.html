@@ -86,7 +86,11 @@
         <!-- RIGHT PRODUCT GRID (3 CARDS WIDTH) -->
         <main class="shop-products">
             <div class="shop-products-header">
+                {% if search_query %}
+                <span>Search results for "{{ search_query }}" ({{ products|length }} found)</span>
+                {% else %}
                 <span>Showing {{ products|length }} products</span>
+                {% endif %}
             </div>
             <div class="shop-grid">
                 {% for prod in products %}

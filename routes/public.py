@@ -90,6 +90,7 @@ def subscribe():
 def shop():
     selected_categories = request.args.getlist('category')
     selected_subcategories = request.args.getlist('subcategory')
+    search_query = request.args.get('search', '').strip()
     page = request.args.get('page', 1, type=int)
     per_page = 12
 
@@ -100,11 +101,14 @@ def shop():
     if selected_subcategories:
         query = query.join(SubCategory, Product.sub_category_id == SubCategory.id).filter(SubCategory.name.in_(selected_subcategories))
         
+    if search_query:
+        query = query.filter(Product.name.ilike(f'%{search_query}%') | Product.description.ilike(f'%{search_query}%'))
+
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     products = pagination.items
     categories = Category.query.all()
     
-    return render_template('shop.html', products=products, pagination=pagination, active_categories=selected_categories, all_categories=categories, active_subcategories=selected_subcategories)
+    return render_template('shop.html', products=products, pagination=pagination, active_categories=selected_categories, all_categories=categories, active_subcategories=selected_subcategories, search_query=search_query)
 
 @public_bp.route('/product/<id>')
 def product_detail(id):

@@ -349,16 +349,15 @@ if ('IntersectionObserver' in window) {
 }
 
 // ==================== SEARCH FUNCTIONALITY ====================
-const searchBtn = document.querySelector('.search-btn');
-if (searchBtn) {
-    searchBtn.addEventListener('click', function() {
+document.querySelectorAll('.search-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
         const searchTerm = prompt('Search for jewelry...');
-        if (searchTerm) {
-            console.log('Searching for:', searchTerm);
-            alert(`Searching for "${searchTerm}"`);
+        if (searchTerm !== null && searchTerm.trim() !== '') {
+            window.location.href = `/shop?search=${encodeURIComponent(searchTerm.trim())}`;
         }
     });
-}
+});
 
 // ==================== TOUCH DEVICE DETECTION ====================
 const isTouchDevice = () => {
