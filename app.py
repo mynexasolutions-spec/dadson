@@ -77,10 +77,10 @@ with app.app_context():
             pass
 
     # Seed Admin
-    admin_email = os.getenv('ADMIN_EMAIL', 'admin@dadson.com')
+    admin_email = os.getenv('ADMIN_EMAIL')
     if not User.query.filter_by(email=admin_email).first():
         admin = User(email=admin_email, is_admin=True)
-        admin.set_password(os.getenv('ADMIN_PASSWORD', 'admin123'))
+        admin.set_password(os.getenv('ADMIN_PASSWORD'))
         db.session.add(admin)
 
     # Seed default configs
