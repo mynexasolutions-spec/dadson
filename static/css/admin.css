@@ -1,7 +1,7 @@
 :root {
-    --primary: #643373; /* Deep Purple */
-    --primary-light: #964cac; /* Lighter Purple */
-    --primary-dark: #41214b; /* Darker Purple */
+    --primary: #3e1b2f; /* Deep Crimson Purple */
+    --primary-light: #5e2b48; /* Lighter Crimson Purple */
+    --primary-dark: #240f1a; /* Darker Crimson Purple */
     --secondary: #b88a44; /* Darker Gold to match logo icon */
     --bg-main: #f3f4f6; /* Slightly darker off-white for better card contrast */
     --sidebar-bg: #ffffff; /* White */
@@ -13,7 +13,7 @@
     --success: #10b981;
     --warning: #b88a44;
     --error: #ef4444;
-    --info: #41214b;
+    --info: #240f1a;
     --sand: #f9fafb;
     --bg-recent: #ffffff;
     --bg-low-stock: #ffffff;

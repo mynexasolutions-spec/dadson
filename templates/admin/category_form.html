@@ -2,20 +2,31 @@
 
 {% block content %}
 <div class="page-header">
-    <h1>Add New Category</h1>
-    <p>Create a new category for your store collection.</p>
+    {% if category %}
+        <h1>Edit Category</h1>
+        <p>Modify the details of category: {{ category.name }}</p>
+    {% else %}
+        <h1>Add New Category</h1>
+        <p>Create a new category for your store collection.</p>
+    {% endif %}
 </div>
 
 <div class="section-card">
-    <form action="{{ url_for('admin.new_category') }}" method="POST" enctype="multipart/form-data" class="admin-form">
+    <form action="{% if category %}{{ url_for('admin.edit_category', id=category.id) }}{% else %}{{ url_for('admin.new_category') }}{% endif %}" method="POST" enctype="multipart/form-data" class="admin-form">
         <div class="form-grid">
             <div class="form-group">
                 <label>Category Name</label>
-                <input type="text" name="name" placeholder="e.g. Western Wear" required>
+                <input type="text" name="name" value="{{ category.name if category else '' }}" placeholder="e.g. Western Wear" required>
             </div>
             <div class="form-group">
                 <label>Category Image</label>
-                <input type="file" name="img" accept="image/*" required>
+                {% if category and category.img %}
+                <div style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 10px;">
+                    <img src="{{ category.img }}" alt="{{ category.name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <span style="font-size: 0.85rem; color: #64748b;">Current image</span>
+                </div>
+                {% endif %}
+                <input type="file" name="img" accept="image/*" {% if not category or not category.img %}required{% endif %}>
             </div>
         </div>
         <div class="form-actions">

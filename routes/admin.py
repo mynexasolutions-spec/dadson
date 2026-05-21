@@ -362,6 +362,12 @@ def edit_product(id):
 def delete_product(id):
     product = Product.query.get(id)
     if product:
+        # Check if the product has been ordered to prevent ForeignKeyViolation
+        order_items_count = OrderItem.query.filter_by(product_id=id).count()
+        if order_items_count > 0:
+            flash(f"Cannot delete '{product.name}' because it has been purchased in {order_items_count} past customer order(s). We recommend changing its stock status to 'Out of Stock' to hide or disable it instead.", 'error')
+            return redirect(url_for('admin.products'))
+
         # Delete main image
         delete_image(product.img)
         
@@ -374,9 +380,18 @@ def delete_product(id):
             if var.img_url:
                 delete_image(var.img_url)
                 
-        db.session.delete(product)
-        db.session.commit()
-        flash('Product deleted!', 'success')
+        # Delete any associated reviews
+        Review.query.filter_by(product_id=id).delete()
+        
+        try:
+            db.session.delete(product)
+            db.session.commit()
+            flash('Product deleted successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Error deleting product {id}: {e}")
+            flash('An error occurred while deleting the product. The transaction has been rolled back.', 'error')
+            
     return redirect(url_for('admin.products'))
 
 # --- CATEGORY ROUTES ---
@@ -398,6 +413,7 @@ def new_category():
         category = Category(name=name, img=img)
         db.session.add(category)
         db.session.commit()
+        current_app.invalidate_category_cache()
         flash('Category added successfully!', 'success')
         return redirect(url_for('admin.categories'))
     return render_template('admin/category_form.html')
@@ -409,11 +425,12 @@ def edit_category(id):
     if request.method == 'POST':
         category.name = request.form.get('name')
         img_file = request.files.get('img')
-        if img_file:
+        if img_file and img_file.filename:
             delete_image(category.img)
             category.img = save_image(img_file, 'categories')
             
         db.session.commit()
+        current_app.invalidate_category_cache()
         flash('Category updated successfully!', 'success')
         return redirect(url_for('admin.categories'))
     return render_template('admin/category_form.html', category=category)
@@ -426,6 +443,7 @@ def delete_category(id):
         delete_image(category.img)
         db.session.delete(category)
         db.session.commit()
+        current_app.invalidate_category_cache()
         flash('Category deleted!', 'success')
     return redirect(url_for('admin.categories'))
 
@@ -438,10 +456,12 @@ def new_subcategory():
         subcategory = SubCategory(name=name, category_id=category_id)
         db.session.add(subcategory)
         db.session.commit()
+        current_app.invalidate_category_cache()
         flash('SubCategory added successfully!', 'success')
         return redirect(url_for('admin.categories'))
     categories = Category.query.all()
-    return render_template('admin/subcategory_form.html', categories=categories)
+    selected_category_id = request.args.get('category_id', type=int)
+    return render_template('admin/subcategory_form.html', categories=categories, selected_category_id=selected_category_id)
 
 @admin_bp.route('/admin/subcategory/edit/<int:id>', methods=['GET', 'POST'])
 @admin_required
@@ -451,6 +471,7 @@ def edit_subcategory(id):
         subcategory.name = request.form.get('name')
         subcategory.category_id = request.form.get('category_id')
         db.session.commit()
+        current_app.invalidate_category_cache()
         flash('SubCategory updated successfully!', 'success')
         return redirect(url_for('admin.categories'))
     categories = Category.query.all()
@@ -463,6 +484,7 @@ def delete_subcategory(id):
     if subcategory:
         db.session.delete(subcategory)
         db.session.commit()
+        current_app.invalidate_category_cache()
         flash('SubCategory deleted!', 'success')
     return redirect(url_for('admin.categories'))
 

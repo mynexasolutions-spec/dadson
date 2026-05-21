@@ -2,25 +2,30 @@
 
 {% block content %}
 <div class="page-header">
-    <h1>Add New SubCategory</h1>
-    <p>Create a nested subcategory under an existing parent category.</p>
+    {% if subcategory %}
+        <h1>Edit SubCategory</h1>
+        <p>Modify the nested subcategory details.</p>
+    {% else %}
+        <h1>Add New SubCategory</h1>
+        <p>Create a nested subcategory under an existing parent category.</p>
+    {% endif %}
 </div>
 
 <div class="section-card">
-    <form action="{{ url_for('admin.new_subcategory') }}" method="POST" class="admin-form">
+    <form action="{% if subcategory %}{{ url_for('admin.edit_subcategory', id=subcategory.id) }}{% else %}{{ url_for('admin.new_subcategory') }}{% endif %}" method="POST" class="admin-form">
         <div class="form-grid">
             <div class="form-group">
                 <label>Parent Category</label>
                 <select name="category_id" required>
                     <option value="">Select Parent Category...</option>
                     {% for cat in categories %}
-                    <option value="{{ cat.id }}">{{ cat.name }}</option>
+                    <option value="{{ cat.id }}" {% if (subcategory and subcategory.category_id == cat.id) or (selected_category_id == cat.id) %}selected{% endif %}>{{ cat.name }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="form-group">
                 <label>SubCategory Name</label>
-                <input type="text" name="name" placeholder="e.g. Jeans, Sarees, etc." required>
+                <input type="text" name="name" value="{{ subcategory.name if subcategory else '' }}" placeholder="e.g. Jeans, Sarees, etc." required>
             </div>
         </div>
 
