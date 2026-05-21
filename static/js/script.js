@@ -349,14 +349,48 @@ if ('IntersectionObserver' in window) {
 }
 
 // ==================== SEARCH FUNCTIONALITY ====================
+const searchInline = document.getElementById('searchInline');
+const searchInlineInput = document.getElementById('searchInlineInput');
+const searchInlineCloseBtn = document.getElementById('searchInlineCloseBtn');
+
 document.querySelectorAll('.search-btn').forEach(btn => {
     btn.addEventListener('click', function(e) {
         e.preventDefault();
-        const searchTerm = prompt('Search for jewelry...');
-        if (searchTerm !== null && searchTerm.trim() !== '') {
-            window.location.href = `/shop?search=${encodeURIComponent(searchTerm.trim())}`;
+        if (searchInline) {
+            searchInline.classList.add('active');
+            if (searchInlineInput) {
+                searchInlineInput.value = ''; // Start afresh, clear previous search text
+                searchInlineInput.focus();
+            }
         }
     });
+});
+
+if (searchInlineCloseBtn) {
+    searchInlineCloseBtn.addEventListener('click', function() {
+        if (searchInline) {
+            searchInline.classList.remove('active');
+        }
+    });
+}
+
+// Close search inline with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && searchInline && searchInline.classList.contains('active')) {
+        searchInline.classList.remove('active');
+    }
+});
+
+// Close search inline when clicking outside
+document.addEventListener('click', function(e) {
+    if (searchInline && searchInline.classList.contains('active')) {
+        const navbarCenter = document.querySelector('.navbar-center');
+        const isClickInside = navbarCenter && navbarCenter.contains(e.target);
+        const isSearchBtnClick = e.target.closest('.search-btn');
+        if (!isClickInside && !isSearchBtnClick) {
+            searchInline.classList.remove('active');
+        }
+    }
 });
 
 // ==================== TOUCH DEVICE DETECTION ====================

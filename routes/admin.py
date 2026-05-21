@@ -112,6 +112,8 @@ def new_product():
         sub_category_id = request.form.get('sub_category_id') or None
         brand_id = request.form.get('brand_id') or None
         is_featured = True if request.form.get('is_featured') == 'on' else False
+        is_best_seller = True if request.form.get('is_best_seller') == 'on' else False
+        is_new_arrival = True if request.form.get('is_new_arrival') == 'on' else False
         
         category = Category.query.get(category_id)
         cat_name = category.name if category else 'Uncategorized'
@@ -142,6 +144,8 @@ def new_product():
             product_type=product_type,
             stock_status=stock_status,
             is_featured=is_featured,
+            is_best_seller=is_best_seller,
+            is_new_arrival=is_new_arrival,
             materials=request.form.get('materials'),
             care=request.form.get('care')
         )
@@ -237,6 +241,8 @@ def edit_product(id):
         product.product_type = request.form.get('product_type', 'simple')
         product.stock_status = request.form.get('stock_status', 'instock')
         product.is_featured = True if request.form.get('is_featured') == 'on' else False
+        product.is_best_seller = True if request.form.get('is_best_seller') == 'on' else False
+        product.is_new_arrival = True if request.form.get('is_new_arrival') == 'on' else False
         product.materials = request.form.get('materials')
         product.care = request.form.get('care')
         

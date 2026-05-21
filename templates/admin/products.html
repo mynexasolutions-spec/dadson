@@ -73,7 +73,25 @@
                     </td>
                     <td style="text-align: left; padding: 15px;">{{ product.cat_name }}</td>
                     <td style="text-align: left; padding: 15px;"><span class="price-text">{{ product.price }}</span></td>
-                    <td style="text-align: left; padding: 15px;"><span class="badge-tag">{{ product.badge or '-' }}</span></td>
+                    <td style="text-align: left; padding: 15px;">
+                        <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
+                            {% if product.badge %}
+                            <span class="badge-tag">{{ product.badge }}</span>
+                            {% endif %}
+                            {% if product.is_featured %}
+                            <span class="badge-tag" style="background: rgba(184, 138, 68, 0.12); color: #b88a44; border: 1.5px solid rgba(184, 138, 68, 0.25);">Featured</span>
+                            {% endif %}
+                            {% if product.is_best_seller %}
+                            <span class="badge-tag" style="background: rgba(62, 27, 47, 0.12); color: #3e1b2f; border: 1.5px solid rgba(62, 27, 47, 0.25);">Best Seller</span>
+                            {% endif %}
+                            {% if product.is_new_arrival %}
+                            <span class="badge-tag" style="background: rgba(16, 185, 129, 0.12); color: #10b981; border: 1.5px solid rgba(16, 185, 129, 0.25);">New Arrival</span>
+                            {% endif %}
+                            {% if not product.badge and not product.is_featured and not product.is_best_seller and not product.is_new_arrival %}
+                            <span style="color: #cbd5e1;">-</span>
+                            {% endif %}
+                        </div>
+                    </td>
                     <td style="text-align: left; padding: 15px;">
                         {% if product.product_type == 'simple' %}
                             <span style="color: #cbd5e1;">-</span>

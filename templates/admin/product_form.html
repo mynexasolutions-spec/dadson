@@ -623,14 +623,28 @@
                     </select>
                 </div>
 
-                <div class="form-group full-width" style="margin-top: 10px;">
+                <div class="form-group full-width" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
                     <label class="luvtale-input"
-                        style="display: flex; align-items: center; gap: 12px; cursor: pointer; background: var(--luvtale-cream); border: 1.5px dashed var(--luvtale-gold);">
+                        style="display: flex; align-items: center; gap: 12px; cursor: pointer; background: var(--luvtale-cream); border: 1.5px dashed var(--luvtale-gold); margin: 0;">
                         <input type="checkbox" name="is_featured" value="on" {{ 'checked' if product and
                             product.is_featured }}
                             style="width: 20px; height: 20px; accent-color: var(--luvtale-gold);">
                         <span style="font-weight: 800; text-transform: none; letter-spacing: 0;">Feature this product in
                             the Homepage Collection</span>
+                    </label>
+                    <label class="luvtale-input"
+                        style="display: flex; align-items: center; gap: 12px; cursor: pointer; background: var(--luvtale-cream); border: 1.5px dashed var(--luvtale-gold); margin: 0;">
+                        <input type="checkbox" name="is_best_seller" value="on" {{ 'checked' if product and
+                            product.is_best_seller }}
+                            style="width: 20px; height: 20px; accent-color: var(--luvtale-gold);">
+                        <span style="font-weight: 800; text-transform: none; letter-spacing: 0;">Mark as Best Seller</span>
+                    </label>
+                    <label class="luvtale-input"
+                        style="display: flex; align-items: center; gap: 12px; cursor: pointer; background: var(--luvtale-cream); border: 1.5px dashed var(--luvtale-gold); margin: 0;">
+                        <input type="checkbox" name="is_new_arrival" value="on" {{ 'checked' if product and
+                            product.is_new_arrival }}
+                            style="width: 20px; height: 20px; accent-color: var(--luvtale-gold);">
+                        <span style="font-weight: 800; text-transform: none; letter-spacing: 0;">Mark as New Arrival</span>
                     </label>
                 </div>
             </div>

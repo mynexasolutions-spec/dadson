@@ -63,6 +63,19 @@ app.register_blueprint(admin_bp)
 with app.app_context():
     db.create_all()
 
+    # Migration for new product fields
+    try:
+        db.session.execute(db.text('ALTER TABLE product ADD COLUMN is_best_seller BOOLEAN DEFAULT FALSE'))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
+    try:
+        db.session.execute(db.text('ALTER TABLE product ADD COLUMN is_new_arrival BOOLEAN DEFAULT FALSE'))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
     # Ensure upload directories exist
     upload_dirs = [
         app.config['UPLOAD_FOLDER'],

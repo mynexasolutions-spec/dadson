@@ -33,7 +33,7 @@
                     <h3>Categories</h3>
                     <div class="filter-options">
                         <label class="all-prod-label"><input type="checkbox" id="allProducts" {% if not
-                                active_categories and not active_subcategories %}checked{% endif %}>
+                                active_categories and not active_subcategories and not active_filters %}checked{% endif %}>
                             All Products</label>
                         {% for cat in all_categories %}
                         <div class="filter-category-item">
@@ -55,6 +55,20 @@
                             {% endif %}
                         </div>
                         {% endfor %}
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <h3>Collections</h3>
+                    <div class="filter-options">
+                        <label class="category-parent">
+                            <input type="checkbox" name="filter" value="new_arrivals" {% if 'new_arrivals' in active_filters %}checked{% endif %}>
+                            <span class="category-name">New Arrivals</span>
+                        </label>
+                        <label class="category-parent">
+                            <input type="checkbox" name="filter" value="best_sellers" {% if 'best_sellers' in active_filters %}checked{% endif %}>
+                            <span class="category-name">Best Sellers</span>
+                        </label>
                     </div>
                 </div>
 
@@ -101,7 +115,7 @@
             {% if pagination and pagination.pages > 1 %}
             <div class="pagination">
                 {% if pagination.has_prev %}
-                <a href="{{ url_for('public.shop', page=pagination.prev_num, category=active_categories, subcategory=active_subcategories) }}" class="page-link prev-page">
+                <a href="{{ url_for('public.shop', page=pagination.prev_num, category=active_categories, subcategory=active_subcategories, filter=active_filters, search=search_query) }}" class="page-link prev-page">
                     <i class="fas fa-chevron-left"></i> Prev
                 </a>
                 {% endif %}
@@ -111,7 +125,7 @@
                         {% if page_num == pagination.page %}
                         <span class="page-link active">{{ page_num }}</span>
                         {% else %}
-                        <a href="{{ url_for('public.shop', page=page_num, category=active_categories, subcategory=active_subcategories) }}" class="page-link">{{ page_num }}</a>
+                        <a href="{{ url_for('public.shop', page=page_num, category=active_categories, subcategory=active_subcategories, filter=active_filters, search=search_query) }}" class="page-link">{{ page_num }}</a>
                         {% endif %}
                     {% else %}
                     <span class="page-link dots">...</span>
@@ -119,7 +133,7 @@
                 {% endfor %}
 
                 {% if pagination.has_next %}
-                <a href="{{ url_for('public.shop', page=pagination.next_num, category=active_categories, subcategory=active_subcategories) }}" class="page-link next-page">
+                <a href="{{ url_for('public.shop', page=pagination.next_num, category=active_categories, subcategory=active_subcategories, filter=active_filters, search=search_query) }}" class="page-link next-page">
                     Next <i class="fas fa-chevron-right"></i>
                 </a>
                 {% endif %}
@@ -498,28 +512,18 @@
             sidebarOverlay.classList.remove('active');
             document.body.style.overflow = 'auto';
         }
-    };
-
-    filterBtn.addEventListener('click', () => toggleSidebar(true));
+    };    filterBtn.addEventListener('click', () => toggleSidebar(true));
     closeSidebar.addEventListener('click', () => toggleSidebar(false));
     sidebarOverlay.addEventListener('click', () => toggleSidebar(false));
+    
     const allProductsCheckbox = document.getElementById('allProducts');
     const categoryCheckboxes = document.querySelectorAll('input[name="category"]');
     const subcategoryCheckboxes = document.querySelectorAll('input[name="subcategory"]');
-
-    if (allProductsCheckbox) {
-        allProductsCheckbox.addEventListener('change', function () {
-            if (this.checked) {
-                categoryCheckboxes.forEach(cb => cb.checked = false);
-                subcategoryCheckboxes.forEach(cb => cb.checked = false);
-            }
-        });
-    }
+    const filterCheckboxes = document.querySelectorAll('input[name="filter"]');
 
     const uncheckAll = () => {
         if (allProductsCheckbox) allProductsCheckbox.checked = false;
         toggleSidebar(false);
-        // Auto submit form when checkbox changes
         document.getElementById('filterForm').submit();
     };
 
@@ -528,16 +532,22 @@
             if (this.checked) {
                 categoryCheckboxes.forEach(cb => cb.checked = false);
                 subcategoryCheckboxes.forEach(cb => cb.checked = false);
+                filterCheckboxes.forEach(cb => cb.checked = false);
                 toggleSidebar(false);
                 document.getElementById('filterForm').submit();
             }
         });
     }
+
     categoryCheckboxes.forEach(cb => {
         cb.addEventListener('change', uncheckAll);
     });
 
     subcategoryCheckboxes.forEach(cb => {
+        cb.addEventListener('change', uncheckAll);
+    });
+
+    filterCheckboxes.forEach(cb => {
         cb.addEventListener('change', uncheckAll);
     });
 </script>

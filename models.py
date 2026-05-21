@@ -59,6 +59,8 @@ class Product(db.Model):
     product_type = db.Column(db.String(20), default='simple') # 'simple' or 'variable'
     stock_status = db.Column(db.String(20), default='instock') # 'instock' or 'outofstock'
     is_featured = db.Column(db.Boolean, default=False)
+    is_best_seller = db.Column(db.Boolean, default=False)
+    is_new_arrival = db.Column(db.Boolean, default=False)
     materials = db.Column(db.Text)
     care = db.Column(db.Text)
     
