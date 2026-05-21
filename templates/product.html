@@ -339,12 +339,14 @@
         font-size: 1.8rem;
         font-weight: 800;
         color: #241914;
+        white-space: nowrap;
     }
 
     .price-was {
         font-size: 1.2rem;
         color: #7d6b61;
         text-decoration: line-through;
+        white-space: nowrap;
     }
 
     .save-badge {
@@ -596,6 +598,24 @@
         }
     }
 
+    @media (max-width: 480px) {
+        .price-now {
+            font-size: 1.45rem !important;
+        }
+        .price-was {
+            font-size: 1.05rem !important;
+        }
+        .product-price-box {
+            gap: 8px !important;
+            align-items: center !important;
+            flex-wrap: wrap !important;
+        }
+        .save-badge {
+            padding: 3px 8px !important;
+            font-size: 0.7rem !important;
+        }
+    }
+
     /* Product Specifications & Tabular Description Section */
     .product-specs-section {
         padding: 5rem 0;
@@ -702,6 +722,7 @@
         .specs-grid {
             grid-template-columns: 1fr;
             gap: 2.5rem;
+            padding: 0 1.5rem;
         }
         .product-specs-section {
             padding: 3rem 0;

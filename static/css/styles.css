@@ -2847,12 +2847,12 @@ section:nth-of-type(even) {
 
 @media (max-width: 768px) {
     .product-detail-page {
-        padding-top: 0;
+        padding-top: 2.5rem;
         padding-bottom: 120px;
     }
 
     .detail-container {
-        padding: 0 1.5rem;
+        padding: 1rem 1.5rem;
         gap: 0;
     }
 
@@ -2862,15 +2862,18 @@ section:nth-of-type(even) {
 
     .product-gallery {
         gap: 0;
+        margin-bottom: 0;
     }
 
     .gallery-thumbnails {
-        padding: 1rem;
-        background: #fff;
+        padding: 0.25rem 0;
+        background: transparent;
+        margin-bottom: -30px;
     }
 
     .product-info-sect {
-        padding: 2rem 1.5rem;
+        padding: 0 1.5rem 2rem 1.5rem;
+        margin-top: 0;
     }
 
     .product-info-sect h1 {
