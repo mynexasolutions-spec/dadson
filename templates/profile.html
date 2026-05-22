@@ -34,7 +34,6 @@
             <div class="profile-nav">
                 <button class="nav-btn active" onclick="showTab('orders')"><i class="fas fa-shopping-bag"></i> My Orders</button>
                 <button class="nav-btn" onclick="showTab('details')"><i class="fas fa-user-edit"></i> Account Details</button>
-                <button class="nav-btn" onclick="showTab('wishlist')"><i class="fas fa-heart"></i> Wishlist</button>
                 <a href="{{ url_for('auth.logout') }}" class="nav-btn logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </aside>
@@ -77,7 +76,10 @@
                                             <img src="{{ item.product.img }}" style="width: 54px; height: 54px; object-fit: cover; border-radius: 8px; border: 1px solid #f1f5f9; background: #fdfaf6;" alt="{{ item.product.name }}">
                                             <div style="flex-grow:1;">
                                                 <h5 style="font-size: 0.9rem; font-weight: 700; margin: 0 0 0.2rem 0; color: #241914;">{{ item.product.name }}</h5>
-                                                <span style="font-size: 0.78rem; color: #64748b;">Quantity: {{ item.quantity }} × {{ item.price_at_time }}</span>
+                                                {% if item.variation_label %}
+                                                <span style="font-size: 0.75rem; color: var(--gold-primary); font-weight: 600; display: block; margin-bottom: 0.15rem;">{{ item.variation_label }}</span>
+                                                {% endif %}
+                                                <span style="font-size: 0.78rem; color: #64748b;">Quantity: {{ item.quantity }} &times; {{ item.price_at_time }}</span>
                                             </div>
                                         </div>
                                         {% endfor %}
@@ -162,7 +164,7 @@
                                 <label>State</label>
                                 <input type="text" name="state" value="{{ state_val }}" placeholder="e.g. Maharashtra">
                             </div>
-                            <div class="form-group full-width">
+                            <div class="form-group">
                                 <label>Zipcode</label>
                                 <input type="text" name="zipcode" value="{{ user.zipcode or '' }}" placeholder="XXXXXX">
                             </div>
@@ -171,15 +173,6 @@
                     </form>
                 </div>
 
-                <!-- Wishlist Tab -->
-                <div id="wishlist" class="tab-content">
-                    <h2 class="section-title">My Wishlist</h2>
-                    <div class="empty-state">
-                        <i class="far fa-heart"></i>
-                        <p>Your wishlist is currently empty.</p>
-                        <a href="{{ url_for('public.shop') }}" class="btn-shop">Browse Products</a>
-                    </div>
-                </div>
             </div>
         </main>
     </div>
@@ -267,7 +260,7 @@
     .section-title {
         font-family: 'Playfair Display', serif;
         font-size: 2rem;
-        margin-bottom: 2.5rem;
+        margin-bottom: 1.5rem;
         color: #1a1a1a;
         position: relative;
         padding-bottom: 15px;
@@ -427,7 +420,7 @@
         gap: 1.5rem;
     }
     .form-group.full-width { grid-column: span 2; }
-    .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #444; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #444; font-size: 0.9rem; }
     .form-group input, .form-group textarea {
         width: 100%;
         padding: 12px 15px;
@@ -435,8 +428,10 @@
         border-radius: 10px;
         outline: none;
         font-family: inherit;
+        font-size: 0.95rem;
         background: #fcfcfc;
         transition: all 0.2s;
+        box-sizing: border-box;
     }
     .form-group input:focus, .form-group textarea:focus {
         border-color: var(--gold-primary);
@@ -466,15 +461,16 @@
     }
     .empty-state {
         text-align: center;
-        padding: 4rem 2rem;
+        padding: 2rem 2rem 1.5rem;
         background: #fff;
         border-radius: 20px;
         color: #888;
     }
-    .empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
+    .empty-state i { font-size: 2.5rem; margin-bottom: 0.5rem; opacity: 0.3; }
+    .empty-state p { margin-bottom: 0; }
     .btn-shop {
         display: inline-block;
-        margin-top: 1.5rem;
+        margin-top: 0.8rem;
         background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
         color: #fff;
         padding: 10px 25px;
@@ -515,6 +511,7 @@
         .details-form .form-grid {
             grid-template-columns: 1fr;
         }
+        .form-group.full-width { grid-column: span 1; }
         .order-card {
             padding: 1.2rem;
         }

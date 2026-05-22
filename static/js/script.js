@@ -14,6 +14,20 @@ document.addEventListener('click', function(e) {
             btn.textContent = 'Adding...';
             btn.disabled = true;
 
+            // Extract details for GA4
+            const card = btn.closest('.product-card');
+            let name = '';
+            let price = 0;
+            let category = '';
+            if (card) {
+                const nameEl = card.querySelector('.product-name');
+                const priceEl = card.querySelector('.product-price');
+                const catEl = card.querySelector('.product-category');
+                name = nameEl ? nameEl.textContent.trim() : '';
+                price = priceEl ? parseFloat(priceEl.textContent.replace(/[^0-9.]/g, '')) || 0 : 0;
+                category = catEl ? catEl.textContent.trim() : '';
+            }
+
             fetch(`/add-to-cart/${productId}`, {
                 method: 'POST',
                 headers: {
@@ -26,6 +40,21 @@ document.addEventListener('click', function(e) {
                     if (cartCountBadge) cartCountBadge.textContent = data.cart_count;
                     btn.textContent = '✓ Added';
                     btn.style.backgroundColor = '#10b981';
+                    
+                    // GA4 Track Add to Cart
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'add_to_cart', {
+                            currency: 'INR',
+                            value: price,
+                            items: [{
+                                item_id: productId,
+                                item_name: name,
+                                item_category: category,
+                                price: price,
+                                quantity: 1
+                            }]
+                        });
+                    }
                     
                     setTimeout(() => {
                         btn.textContent = originalText;
@@ -63,7 +92,22 @@ window.toggleWishlist = function(e, productId) {
     }
     
     const btn = e ? (e.currentTarget || e.target.closest('.product-wishlist') || e.target.closest('.btn-wish-circle-premium')) : null;
+    if (!btn) return;
     const img = btn.querySelector('img');
+    
+    // Extract details for GA4 if adding to wishlist
+    const card = btn.closest('.product-card');
+    let name = '';
+    let price = 0;
+    let category = '';
+    if (card) {
+        const nameEl = card.querySelector('.product-name');
+        const priceEl = card.querySelector('.product-price');
+        const catEl = card.querySelector('.product-category');
+        name = nameEl ? nameEl.textContent.trim() : '';
+        price = priceEl ? parseFloat(priceEl.textContent.replace(/[^0-9.]/g, '')) || 0 : 0;
+        category = catEl ? catEl.textContent.trim() : '';
+    }
     
     fetch(`/toggle-wishlist/${productId}`, {
         method: 'POST',
@@ -79,6 +123,21 @@ window.toggleWishlist = function(e, productId) {
             if (data.action === 'added') {
                 btn.classList.add('active');
                 if (img) img.src = 'https://api.iconify.design/ph:heart-fill.svg?color=%23b88a44';
+                
+                // GA4 Track Add to Wishlist
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'add_to_wishlist', {
+                        currency: 'INR',
+                        value: price,
+                        items: [{
+                            item_id: productId,
+                            item_name: name,
+                            item_category: category,
+                            price: price,
+                            quantity: 1
+                        }]
+                    });
+                }
             } else {
                 btn.classList.remove('active');
                 if (img) img.src = 'https://api.iconify.design/ph:heart-bold.svg?color=%23b88a44';
@@ -89,31 +148,39 @@ window.toggleWishlist = function(e, productId) {
 };
 
 // ==================== DROPDOWN MENU ====================
-document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
-    trigger.addEventListener('click', function(e) {
-        // If click is on a dropdown item link, let the navigation proceed!
-        if (e.target.closest('.dropdown-item') || e.target.closest('a')) {
-            return;
-        }
-        e.preventDefault();
-        this.classList.toggle('active');
-    });
+document.querySelectorAll(".dropdown-trigger").forEach((trigger) => {
+  trigger.addEventListener("click", function (e) {
+    // If click is on a dropdown item link, let the navigation proceed
+    if (e.target.closest(".dropdown-item")) {
+      return;
+    }
+    e.preventDefault();
+    this.classList.toggle("active");
+  });
 });
 
 // Close dropdown when clicking outside
-document.addEventListener('click', function(e) {
-    document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
-        if (!trigger.contains(e.target)) {
-            trigger.classList.remove('active');
-        }
-    });
-
-    if (navLinks && mobileMenuBtn && !navLinks.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
-        navLinks.classList.remove('show');
-        mobileMenuBtn.classList.remove('active');
-        document.body.classList.remove('menu-open');
+document.addEventListener("click", function (e) {
+  document.querySelectorAll(".dropdown-trigger").forEach((trigger) => {
+    if (!trigger.contains(e.target)) {
+      trigger.classList.remove("active");
     }
+  });
 });
+
+document.addEventListener(
+  "click",
+  function (e) {
+    if (navLinks && mobileMenuBtn && navLinks.classList.contains("show")) {
+      if (!navLinks.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+        navLinks.classList.remove("show");
+        mobileMenuBtn.classList.remove("active");
+        document.body.classList.remove("menu-open");
+      }
+    }
+  },
+  true,
+);
 
 // ==================== NEWSLETTER FORM ====================
 const newsletterForm = document.getElementById('newsletter-form');
@@ -208,13 +275,21 @@ const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
 const navLinks = document.querySelector('.nav-links');
 
 if (mobileMenuBtn) {
-    mobileMenuBtn.addEventListener('click', function() {
-        this.classList.toggle('active');
-        if (navLinks) {
-            navLinks.classList.toggle('show');
-            document.body.classList.toggle('menu-open', navLinks.classList.contains('show'));
-        }
-    });
+  mobileMenuBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    this.classList.toggle("active");
+    if (navLinks) {
+      if (!navLinks._movedToBody) {
+        document.body.appendChild(navLinks);
+        navLinks._movedToBody = true;
+      }
+      navLinks.classList.toggle("show");
+      document.body.classList.toggle(
+        "menu-open",
+        navLinks.classList.contains("show"),
+      );
+    }
+  });
 }
 
 // Close mobile menu when clicking on a link
@@ -268,18 +343,6 @@ style.textContent = `
         opacity: 1 !important;
         visibility: visible !important;
         transform: translateY(0) !important;
-    }
-    
-    .mobile-menu-btn.active span:nth-child(1) {
-        transform: rotate(45deg) translateY(12px);
-    }
-    
-    .mobile-menu-btn.active span:nth-child(2) {
-        opacity: 0;
-    }
-    
-    .mobile-menu-btn.active span:nth-child(3) {
-        transform: rotate(-45deg) translateY(-12px);
     }
 
     .wishlist-count, .cart-count {

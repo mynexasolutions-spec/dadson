@@ -1,0 +1,70 @@
+<footer class="footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-section footer-brand">
+                <a href="{{ url_for('public.home') }}" class="logo" aria-label="Go to homepage" style="margin-bottom: 1.5rem;">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="DADSON logo" class="logo-image">
+                    <span class="logo-text-wrap">
+                        <span class="logo-tagline">Get the door - it's DADSON</span>
+                    </span>
+                </a>
+            </div>
+
+            <div class="footer-section">
+                <h4>Shop</h4>
+                <ul>
+                    <li><a href="{{ url_for('public.shop', filter='new_arrivals') }}">New Arrivals</a></li>
+                    <li><a href="{{ url_for('public.shop', filter='best_sellers') }}">Best Sellers</a></li>
+                    <li><a href="{{ url_for('public.shop') }}">Collections</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Help & Support</h4>
+                <ul>
+                    <li><a href="{{ url_for('public.contact') }}">Contact Us</a></li>
+                    <li><a href="{{ url_for('public.faq') }}">FAQ</a></li>
+                    <li><a href="{{ url_for('public.shipping') }}">Shipping Info</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Policies</h4>
+                <ul>
+                    <li><a href="{{ url_for('public.privacy') }}">Privacy Policy</a></li>
+                    <li><a href="{{ url_for('public.terms') }}">Terms of Service</a></li>
+                    <li><a href="{{ url_for('public.refund') }}">Return & Exchange</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>About</h4>
+                <ul>
+                    <li><a href="{{ url_for('public.about') }}">About Us</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Follow Us</h4>
+                <div class="social-links">
+                    <a href="https://www.instagram.com/dadson_jewelry/" class="social-icon" aria-label="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="https://www.facebook.com/profile.php?id=61573360334035" class="social-icon" aria-label="Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="https://in.pinterest.com/dadsonjewelry/" class="social-icon" aria-label="Pinterest">
+                        <i class="fab fa-pinterest-p"></i>
+                    </a>
+                    <a href="https://www.youtube.com/@dadsonjewelry" class="social-icon" aria-label="Youtube">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2024 DADSON. All rights reserved. | Crafted with elegance</p>
+        </div>
+    </div>
+</footer>

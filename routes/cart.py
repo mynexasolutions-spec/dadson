@@ -223,7 +223,6 @@ def add_to_cart(id):
             # Check if base product is variable and needs selection
             product = Product.query.get(id)
             if product and product.product_type == 'variable':
-                from flask import url_for
                 target_url = url_for('public.product_detail', id=id)
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                     return jsonify({

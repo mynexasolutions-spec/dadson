@@ -271,3 +271,29 @@
     }
 </style>
 {% endblock %}
+
+{% block scripts %}
+{% if ga_measurement_id %}
+<script>
+    window.addEventListener('load', function() {
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'purchase', {
+                transaction_id: '{{ order.order_number }}',
+                value: parseFloat('{{ order.total_amount }}'.replace(/[^0-9.]/g, '')) || 0,
+                currency: 'INR',
+                items: [
+                    {% for item in order.items %}
+                    {
+                        item_id: '{{ ("var:" ~ item.variation_id|string) if item.variation_id else item.product_id }}',
+                        item_name: '{{ item.product.name | replace("'", "\\'") }}',
+                        price: parseFloat('{{ item.price_at_time }}'.replace(/[^0-9.]/g, '')) || 0,
+                        quantity: {{ item.quantity }}
+                    }{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                ]
+            });
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

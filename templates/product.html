@@ -4,39 +4,7 @@
 
 {% block title %}{{ product.seo_title if product.seo_title else product.name + ' | DADSON Premium Jewellery' }}{% endblock %}
 
-{% block head %}
-{% if product.seo_description %}
-<meta name="description" content="{{ product.seo_description }}">
-{% endif %}
-{% if product.meta_keywords %}
-<meta name="keywords" content="{{ product.meta_keywords }}">
-{% endif %}
-{% if product.focus_keyword %}
-<meta name="news_keywords" content="{{ product.focus_keyword }}">
-{% endif %}
-<meta property="og:title" content="{{ product.seo_title if product.seo_title else product.name }}">
-<meta property="og:description" content="{{ product.seo_description if product.seo_description else product.desc }}">
-<meta property="og:image" content="{{ product.img }}">
-<meta property="og:type" content="product">
-{% if ga_measurement_id %}
-<script>
-    window.addEventListener('load', function () {
-        if (typeof gtag === 'undefined') return;
-        gtag('event', 'view_item', {
-            currency: 'INR',
-            value: parseFloat('{{ product.price }}'.replace(/[^0-9.]/g, '')) || 0,
-            items: [{
-                item_id: '{{ product.id }}',
-                item_name: '{{ product.name | replace("'", "\\'") }}',
-                item_category: '{{ product.cat_name }}',
-                price: parseFloat('{{ product.price }}'.replace(/[^0-9.]/g, '')) || 0,
-                quantity: 1
-            }]
-        });
-    });
-</script>
-{% endif %}
-{% endblock %}
+{# Merged SEO and GA4 tags into head block below #}
 
 {% block page_hero %}{% endblock %}
 
@@ -307,6 +275,38 @@
 {% endblock %}
 
 {% block head %}
+{% if product.seo_description %}
+<meta name="description" content="{{ product.seo_description }}">
+{% endif %}
+{% if product.meta_keywords %}
+<meta name="keywords" content="{{ product.meta_keywords }}">
+{% endif %}
+{% if product.focus_keyword %}
+<meta name="news_keywords" content="{{ product.focus_keyword }}">
+{% endif %}
+<meta property="og:title" content="{{ product.seo_title if product.seo_title else product.name }}">
+<meta property="og:description" content="{{ product.seo_description if product.seo_description else product.desc }}">
+<meta property="og:image" content="{{ product.img }}">
+<meta property="og:type" content="product">
+{% if ga_measurement_id %}
+<script>
+    window.addEventListener('load', function () {
+        if (typeof gtag === 'undefined') return;
+        gtag('event', 'view_item', {
+            currency: 'INR',
+            value: parseFloat('{{ product.price }}'.replace(/[^0-9.]/g, '')) || 0,
+            items: [{
+                item_id: '{{ product.id }}',
+                item_name: '{{ product.name | replace("'", "\\'") }}',
+                item_category: '{{ product.cat_name }}',
+                price: parseFloat('{{ product.price }}'.replace(/[^0-9.]/g, '')) || 0,
+                quantity: 1
+            }]
+        });
+    });
+</script>
+{% endif %}
+
 <style>
     /* Premium Product Page Design */
     .product-info-sect {
@@ -542,7 +542,7 @@
 
     .btn-wish-circle-premium.active {
         background: #241914;
-        color: #fff;
+        color: #b88a44;
     }
 
     .product-info-accordions {
@@ -786,6 +786,10 @@
         {% endfor %}
     ];
 
+    // Base product details for resetting display
+    const baseProductPrice = "{{ product.price }}";
+    const baseProductOrigPrice = "{{ product.orig or '' }}";
+
     // Global wishlist items array for dynamic synchronization
     const wishlistItems = {{ session.get('wishlist', []) | tojson }};
 
@@ -917,6 +921,40 @@
         const addToCartBtn = document.getElementById('addToCartBtn');
 
         if (selectedCount < totalGroups) {
+            document.getElementById('displayPrice').innerText = baseProductPrice;
+
+            const origPriceEl = document.getElementById('displayOrig');
+            const discountTag = document.getElementById('displayBadge');
+
+            if (baseProductOrigPrice && baseProductOrigPrice !== 'None' && baseProductOrigPrice !== '') {
+                origPriceEl.innerText = baseProductOrigPrice;
+                origPriceEl.style.display = 'inline';
+
+                const pNow = parseFloat(baseProductPrice.replace(/[₹,]/g, ''));
+                const pWas = parseFloat(baseProductOrigPrice.replace(/[₹,]/g, ''));
+
+                if (pWas > pNow) {
+                    const pct = Math.round(((pWas - pNow) / pWas) * 100);
+                    discountTag.innerText = `${pct}% OFF`;
+                } else {
+                    discountTag.innerText = 'Special Offer';
+                }
+                discountTag.style.display = 'inline';
+            } else {
+                origPriceEl.style.display = 'none';
+                discountTag.style.display = 'none';
+            }
+
+            const stockSect = document.getElementById('displayStock');
+            const baseStock = "{{ product.stock_status }}";
+            if (baseStock === 'instock' || baseStock === 'in_stock') {
+                stockSect.className = 'stock-status-new instock';
+                stockSect.innerHTML = '<span class="stock-dot"></span> In Stock';
+            } else {
+                stockSect.className = 'stock-status-new outofstock';
+                stockSect.innerHTML = '<span class="stock-dot out"></span> Out of Stock';
+            }
+
             addToCartBtn.disabled = true;
             addToCartBtn.innerText = 'Add to Bag';
             updateWishlistIcon();
@@ -1031,14 +1069,23 @@
 
                     {% if ga_measurement_id %}
                     if (typeof gtag !== 'undefined') {
+                        let finalPrice = parseFloat('{{ product.price }}'.replace(/[^0-9.]/g, '')) || 0;
+                        let finalItemId = '{{ product.id }}';
+                        if (variationId) {
+                            const matchedVar = variations.find(v => v.id == variationId);
+                            if (matchedVar) {
+                                finalPrice = parseFloat(matchedVar.price.replace(/[^0-9.]/g, '')) || 0;
+                                finalItemId = 'var:' + variationId;
+                            }
+                        }
                         gtag('event', 'add_to_cart', {
                             currency: 'INR',
-                            value: parseFloat('{{ product.price }}'.replace(/[^0-9.]/g, '')) || 0,
+                            value: finalPrice,
                             items: [{
-                                item_id: '{{ product.id }}',
+                                item_id: finalItemId,
                                 item_name: '{{ product.name | replace("'", "\\'") }}',
                                 item_category: '{{ product.cat_name }}',
-                                price: parseFloat('{{ product.price }}'.replace(/[^0-9.]/g, '')) || 0,
+                                price: finalPrice,
                                 quantity: 1
                             }]
                         });
@@ -1091,6 +1138,29 @@
                 if (data.success) {
                     if (data.action === 'added') {
                         if (!wishlistItems.includes(idToToggle)) wishlistItems.push(idToToggle);
+                        
+                        // GA4 Track Add to Wishlist
+                        if (typeof gtag !== 'undefined') {
+                            let wishPrice = parseFloat('{{ product.price }}'.replace(/[^0-9.]/g, '')) || 0;
+                            if (idToToggle.startsWith('var:')) {
+                                const varId = idToToggle.split(':')[1];
+                                const match = variations.find(v => v.id == varId);
+                                if (match) {
+                                    wishPrice = parseFloat(match.price.replace(/[^0-9.]/g, '')) || 0;
+                                }
+                            }
+                            gtag('event', 'add_to_wishlist', {
+                                currency: 'INR',
+                                value: wishPrice,
+                                items: [{
+                                    item_id: idToToggle,
+                                    item_name: '{{ product.name | replace("'", "\\'") }}',
+                                    item_category: '{{ product.cat_name }}',
+                                    price: wishPrice,
+                                    quantity: 1
+                                }]
+                            });
+                        }
                     } else {
                         const idx = wishlistItems.indexOf(idToToggle);
                         if (idx > -1) wishlistItems.splice(idx, 1);
@@ -1132,10 +1202,6 @@
         let targetVar = null;
         if (initialVariationId) {
             targetVar = variations.find(v => v.id == initialVariationId);
-        }
-        if (!targetVar && variations.length > 0) {
-            // Find first in-stock variation or fall back to the absolute first one
-            targetVar = variations.find(v => v.stock === 'instock') || variations[0];
         }
 
         if (targetVar) {
