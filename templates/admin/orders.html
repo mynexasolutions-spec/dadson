@@ -304,7 +304,28 @@
         font-size: 0.78rem;
         color: #64748b;
     }
-    
+
+    .order-attr-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 5px 0 4px;
+    }
+
+    .order-attr-chip {
+        background: #fdfaf6;
+        border: 1px solid rgba(184, 138, 68, 0.25);
+        border-radius: 20px;
+        padding: 3px 10px;
+        font-size: 0.72rem;
+        color: #5a3e2b;
+    }
+
+    .order-attr-chip strong {
+        color: #b88a44;
+        font-weight: 700;
+    }
+
     @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
@@ -347,12 +368,19 @@ function openViewModal(orderId) {
             const list = document.getElementById('mItemsList');
             list.innerHTML = '';
             data.items.forEach(item => {
+                const attrsHtml = item.attributes && item.attributes.length
+                    ? item.attributes.map(a =>
+                        `<span class="order-attr-chip"><strong>${a.name}:</strong> ${a.value}</span>`
+                      ).join('')
+                    : '';
+
                 const row = document.createElement('div');
                 row.className = 'modal-item-row';
                 row.innerHTML = `
                     <img src="${item.img}" class="modal-item-img" alt="${item.name}">
                     <div class="modal-item-details">
                         <h5>${item.name}</h5>
+                        ${attrsHtml ? `<div class="order-attr-chips">${attrsHtml}</div>` : ''}
                         <span>Quantity: ${item.quantity} × ${item.price_at_time}</span>
                     </div>
                 `;

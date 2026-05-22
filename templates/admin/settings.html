@@ -71,6 +71,13 @@
                 <input type="email" name="contact_email" value="{{ configs.get('contact_email', '') }}" placeholder="support@nayeleithe.com">
             </div>
 
+            <h2 class="section-title" style="margin-top: 2rem;"><i class="fab fa-google" style="color: #4285f4;"></i> Google Analytics (GA4)</h2>
+            <p style="color: #71717a; font-size: 0.875rem; margin-bottom: 1rem;">Paste your GA4 Measurement ID to enable analytics tracking across the entire store. Find it in <strong>GA4 → Admin → Data Streams → your stream → Measurement ID</strong>.</p>
+            <div class="form-group">
+                <label>GA4 Measurement ID</label>
+                <input type="text" name="ga_measurement_id" value="{{ configs.get('ga_measurement_id', '') }}" placeholder="G-XXXXXXXXXX">
+            </div>
+
             <div class="form-actions" style="margin-top: 2rem;">
                 <button type="submit" class="btn btn-primary">Save Settings</button>
             </div>

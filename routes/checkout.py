@@ -231,14 +231,15 @@ def create_order():
             var = ProductVariation.query.get(var_id)
             if var:
                 price = safe_price(var.price)
-                order_items_data.append((product_id, quantity, var.price))
+                label_parts = [f"{opt.attribute_value.attribute.name}: {opt.attribute_value.value}" for opt in var.options]
+                order_items_data.append((product_id, quantity, var.price, var_id, ', '.join(label_parts)))
         else:
             base_id = product_id.split('_')[0]
             p = Product.query.get(base_id)
             if p:
                 price = safe_price(p.price)
-                order_items_data.append((product_id, quantity, p.price))
-                
+                order_items_data.append((product_id, quantity, p.price, None, None))
+
         subtotal += price * quantity
         
     if subtotal == 0:
@@ -292,19 +293,20 @@ def create_order():
     db.session.flush() # Populate order ID
     
     # Create OrderItems
-    for pid, qty, price_str in order_items_data:
-        # Base product ID for FK constraint
+    for pid, qty, price_str, var_id, var_label in order_items_data:
         base_pid = pid.split('_')[0]
         if pid.startswith('var:'):
-            var_id = int(pid.split(':')[1])
             var = ProductVariation.query.get(var_id)
-            base_pid = var.product_id
-            
+            if var:
+                base_pid = var.product_id
+
         item = OrderItem(
             order_id=order.id,
             product_id=base_pid,
             quantity=qty,
-            price_at_time=price_str
+            price_at_time=price_str,
+            variation_id=var_id,
+            variation_label=var_label,
         )
         db.session.add(item)
         

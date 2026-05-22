@@ -24,6 +24,16 @@
     <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></noscript>
 
+    {% if ga_measurement_id %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_measurement_id }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ ga_measurement_id }}');
+    </script>
+    {% endif %}
+
     {% block head %}{% endblock %}
 </head>
 
@@ -153,7 +163,7 @@
                     <h4>Help & Support</h4>
                     <ul>
                         <li><a href="{{ url_for('public.contact') }}">Contact Us</a></li>
-                        <li><a href="{{ url_for('public.contact') }}">FAQ</a></li>
+                        <li><a href="{{ url_for('public.faq') }}">FAQ</a></li>
                         <li><a href="{{ url_for('public.shipping') }}">Shipping Info</a></li>
                     </ul>
                 </div>

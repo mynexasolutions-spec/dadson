@@ -129,15 +129,15 @@ def new_product():
             new_id = f"{new_id}-{int(datetime.now().timestamp())}"
             
         product = Product(
-            id=new_id, 
-            name=name, 
+            id=new_id,
+            name=name,
             price=price,
             orig=orig,
             cat_name=cat_name,
             category_id=category_id,
             sub_category_id=sub_category_id,
             brand_id=brand_id,
-            badge=badge, 
+            badge=badge,
             img=img,
             size_chart=size_chart,
             desc=desc,
@@ -147,7 +147,12 @@ def new_product():
             is_best_seller=is_best_seller,
             is_new_arrival=is_new_arrival,
             materials=request.form.get('materials'),
-            care=request.form.get('care')
+            care=request.form.get('care'),
+            seo_title=request.form.get('seo_title') or None,
+            seo_description=request.form.get('seo_description') or None,
+            focus_keyword=request.form.get('focus_keyword') or None,
+            meta_keywords=request.form.get('meta_keywords') or None,
+            product_tags=request.form.get('product_tags') or None,
         )
         db.session.add(product)
         db.session.flush() # Get product ID for related models
@@ -245,7 +250,12 @@ def edit_product(id):
         product.is_new_arrival = True if request.form.get('is_new_arrival') == 'on' else False
         product.materials = request.form.get('materials')
         product.care = request.form.get('care')
-        
+        product.seo_title = request.form.get('seo_title') or None
+        product.seo_description = request.form.get('seo_description') or None
+        product.focus_keyword = request.form.get('focus_keyword') or None
+        product.meta_keywords = request.form.get('meta_keywords') or None
+        product.product_tags = request.form.get('product_tags') or None
+
         # Logging for debug
         print(f"DEBUG: Saving product {id}, Type: {product.product_type}, Stock: {product.stock_status}")
         
@@ -546,11 +556,46 @@ def get_order_details(order_id):
             
     items = []
     for item in order.items:
+        # Resolve the best image for this item
+        img = item.product.img
+        if item.variation and item.variation.img_url:
+            img = item.variation.img_url
+        elif item.variation:
+            from models import ProductImage
+            color_opt = next(
+                (opt for opt in item.variation.options
+                 if 'color' in opt.attribute_value.attribute.name.lower()),
+                None
+            )
+            if color_opt:
+                color_img = next(
+                    (pi.img_url for pi in item.product.images
+                     if pi.attribute_value_id == color_opt.attribute_value_id),
+                    None
+                )
+                if color_img:
+                    img = color_img
+
+        # Build full attribute list from the saved label or live variation options
+        attributes = []
+        if item.variation_label:
+            for part in item.variation_label.split(', '):
+                if ':' in part:
+                    k, v = part.split(':', 1)
+                    attributes.append({'name': k.strip(), 'value': v.strip()})
+        elif item.variation:
+            for opt in item.variation.options:
+                attributes.append({
+                    'name': opt.attribute_value.attribute.name,
+                    'value': opt.attribute_value.value
+                })
+
         items.append({
             'name': item.product.name,
-            'img': item.product.img,
+            'img': img,
             'quantity': item.quantity,
-            'price_at_time': item.price_at_time
+            'price_at_time': item.price_at_time,
+            'attributes': attributes,
         })
         
     return jsonify({
@@ -926,13 +971,14 @@ def delete_coupon(id):
 def settings():
     if request.method == 'POST':
         expected_keys = [
-            'shipping_charges', 
-            'free_shipping_above', 
+            'shipping_charges',
+            'free_shipping_above',
             'contact_email',
             'payment_method_cod',
             'payment_method_razorpay',
             'razorpay_key_id',
-            'razorpay_key_secret'
+            'razorpay_key_secret',
+            'ga_measurement_id',
         ]
         for key in expected_keys:
             value = request.form.get(key, '') # Omitted checkboxes default to empty string
@@ -953,6 +999,8 @@ def settings():
         else: db.session.add(AppConfig(key='payment_methods', value=legacy_pm))
         
         db.session.commit()
+        from app import invalidate_config_cache
+        invalidate_config_cache()
         flash('Settings updated!', 'success')
         return redirect(url_for('admin.settings'))
     configs = {c.key: c.value for c in AppConfig.query.all()}

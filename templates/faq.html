@@ -1,0 +1,582 @@
+{% extends "base.html" %}
+
+{% block title %}FAQ – Frequently Asked Questions | DADSON{% endblock %}
+
+{% block page_hero_tag %}Help & Support{% endblock %}
+{% block page_hero_title %}Frequently Asked Questions{% endblock %}
+{% block page_hero_subtitle %}Everything you need to know about DADSON jewelry, orders, shipping and more.{% endblock %}
+
+{% block content %}
+<div class="faq-page">
+
+    <!-- Category Nav -->
+    <div class="faq-cat-nav">
+        <button class="faq-cat-btn active" data-cat="all">All</button>
+        <button class="faq-cat-btn" data-cat="orders">Orders & Payment</button>
+        <button class="faq-cat-btn" data-cat="shipping">Shipping & Delivery</button>
+        <button class="faq-cat-btn" data-cat="returns">Returns & Refunds</button>
+        <button class="faq-cat-btn" data-cat="products">Products & Materials</button>
+        <button class="faq-cat-btn" data-cat="care">Jewelry Care</button>
+        <button class="faq-cat-btn" data-cat="support">Contact & Support</button>
+    </div>
+
+    <div class="faq-wrapper">
+
+        <!-- ── ORDERS & PAYMENT ── -->
+        <div class="faq-group" data-cat="orders">
+            <h2 class="faq-group-title"><i class="fas fa-shopping-bag"></i> Orders & Payment</h2>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>What payment methods do you accept?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>We accept all major payment methods including UPI, Debit/Credit Cards, Net Banking, and digital wallets via Razorpay. Cash on Delivery (COD) is also available on eligible orders.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>How do I place an order?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Browse our collection, select your preferred piece, choose your size or variant if applicable, and click <strong>Add to Bag</strong>. Head to your cart and proceed to checkout. You'll need to log in or create a free account to complete your purchase.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>Can I modify or cancel my order after placing it?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>You can cancel your order within <strong>12 hours</strong> of placing it by contacting us at <a href="mailto:dadsonjewelry@gmail.com">dadsonjewelry@gmail.com</a> or calling +91 8108807517. Once the order has been dispatched, cancellation is no longer possible.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>Is it safe to pay on your website?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Absolutely. All online payments are processed securely through Razorpay, a PCI-DSS compliant payment gateway. We do not store any card or bank details on our servers.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>Do you offer discount coupons?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Yes! We regularly share discount codes through our newsletter and social media. Subscribe to our newsletter at the bottom of the homepage to receive exclusive offers directly in your inbox.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>I paid but didn't receive an order confirmation. What should I do?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Please check your spam/junk folder first. If you still can't find it, contact us at <a href="mailto:dadsonjewelry@gmail.com">dadsonjewelry@gmail.com</a> with your registered email and payment details — we'll resolve it within 24 hours.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── SHIPPING & DELIVERY ── -->
+        <div class="faq-group" data-cat="shipping">
+            <h2 class="faq-group-title"><i class="fas fa-truck"></i> Shipping & Delivery</h2>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>Where do you deliver?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>We deliver across all states and territories in India. We also offer international courier shipping to selected countries. Stay tuned to our newsletter for updates on new delivery locations.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>How long does delivery take?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Orders are processed within <strong>1–3 business days</strong> after payment confirmation. Standard delivery then takes <strong>5–7 business days</strong>. Express delivery (where available) takes 2–4 business days.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>What are the shipping charges?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>We offer <strong>free standard shipping</strong> on all orders above <strong>₹1,499</strong>. A flat shipping fee of <strong>₹99</strong> applies to orders below this amount.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>How do I track my order?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Once your order is dispatched, you will receive a tracking link via email or WhatsApp. You can also reach out to us at <a href="mailto:dadsonjewelry@gmail.com">dadsonjewelry@gmail.com</a> or call +91 8108807517 and we'll provide a live update.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>What if my package is delayed or lost?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>If your order hasn't arrived within the estimated timeframe, please contact us immediately. We will investigate with our courier partner and ensure a resolution — either a replacement shipment or a full refund.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── RETURNS & REFUNDS ── -->
+        <div class="faq-group" data-cat="returns">
+            <h2 class="faq-group-title"><i class="fas fa-undo-alt"></i> Returns & Refunds</h2>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>What is your return policy?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>We offer a <strong>7-day return policy</strong> from the date of delivery. Items must be unworn, unwashed, and returned in their original packaging with all tags intact. Visit our <a href="{{ url_for('public.refund') }}">Return & Refund Policy</a> page for full details.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>How do I initiate a return or exchange?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Email us at <a href="mailto:dadsonjewelry@gmail.com">dadsonjewelry@gmail.com</a> with your order number and reason for return within 7 days of delivery. Our team will guide you through the process and share the return address.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>When will I receive my refund?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Once we receive and inspect your returned item, you'll be notified via email. Approved refunds are processed within <strong>5–7 business days</strong> to your original payment method.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>Which items are not eligible for return?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Items purchased on clearance sale and personalized/customised pieces are not eligible for return or refund unless they arrive damaged or defective.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>What if I received a damaged or wrong item?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>We sincerely apologise for the inconvenience. Please email us at <a href="mailto:dadsonjewelry@gmail.com">dadsonjewelry@gmail.com</a> with photos of the damaged or incorrect item within 48 hours of delivery. We will arrange a replacement or full refund at no extra cost to you.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── PRODUCTS & MATERIALS ── -->
+        <div class="faq-group" data-cat="products">
+            <h2 class="faq-group-title"><i class="fas fa-gem"></i> Products & Materials</h2>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>What materials are used in DADSON jewelry?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Our jewelry is crafted using high-quality, skin-friendly materials including premium anti-tarnish alloy, 18K gold-plated brass, and sterling silver bases. All pieces are hypoallergenic, lead-free, and nickel-free — safe for daily wear.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>Are DADSON pieces waterproof?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Our anti-tarnish pieces are designed to resist tarnishing and light moisture. However, we recommend avoiding prolonged exposure to water, sweat, swimming pools, and saltwater to maintain the finish and longevity of your jewelry.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>Is DADSON jewelry suitable for sensitive skin?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Yes. All our pieces are made with hypoallergenic, nickel-free, and lead-free materials, making them suitable for sensitive skin. If you have a known metal allergy, we recommend checking the product description for specific materials used.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>Do you offer custom or personalised jewelry?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>We currently don't offer personalisation on all products, but we do take special requests for certain pieces. Please contact us at <a href="mailto:dadsonjewelry@gmail.com">dadsonjewelry@gmail.com</a> or call +91 8108807517 to discuss your requirements.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>How do I choose the right size?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Each product page includes a size guide where applicable. For rings and bangles, you can refer to the size chart image on the product listing. If you're still unsure, reach out to us before ordering — we're happy to help you find the right fit.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── JEWELRY CARE ── -->
+        <div class="faq-group" data-cat="care">
+            <h2 class="faq-group-title"><i class="fas fa-sparkles" style="color: var(--gold);"></i><i class="fas fa-star"></i> Jewelry Care</h2>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>How do I care for my DADSON jewelry?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>To maintain the brilliance of your pieces:</p>
+                    <ul>
+                        <li>Avoid contact with water, perfumes, lotions, and hairspray.</li>
+                        <li>Remove jewelry before bathing, swimming, or exercising.</li>
+                        <li>Store each piece separately in the original DADSON box or a soft pouch to prevent scratching.</li>
+                        <li>Gently wipe with a soft, dry cloth after wearing.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>How should I store my jewelry?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Store your DADSON pieces in a cool, dry place away from direct sunlight. Use individual pouches or compartments to prevent pieces from tangling or scratching each other. Airtight zip-lock bags can also help slow down tarnishing.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>My jewelry has lost its shine. Can I restore it?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>For light dulling, gently buff the piece with a soft microfiber cloth. Avoid using chemical cleaners or abrasive materials. For significant tarnish, visit a local jeweller for professional polishing. Note that over-polishing can wear down the plating over time.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>How long will the plating last?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>With proper care, our anti-tarnish plating can last <strong>1–3 years</strong> with daily wear. The longevity depends on your skin type, lifestyle, and how well you follow care instructions. Avoiding moisture and chemicals significantly extends the life of your piece.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── CONTACT & SUPPORT ── -->
+        <div class="faq-group" data-cat="support">
+            <h2 class="faq-group-title"><i class="fas fa-headset"></i> Contact & Support</h2>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>How can I contact DADSON?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>You can reach us through multiple channels:</p>
+                    <ul>
+                        <li><strong>Email:</strong> <a href="mailto:dadsonjewelry@gmail.com">dadsonjewelry@gmail.com</a></li>
+                        <li><strong>Phone / WhatsApp:</strong> +91 8108807517</li>
+                        <li><strong>Hours:</strong> Monday – Sunday, 11 AM – 8 PM</li>
+                        <li><strong>Contact Form:</strong> <a href="{{ url_for('public.contact') }}">Visit our Contact page</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>How quickly will I get a response?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>We aim to respond to all queries within <strong>24 hours</strong>. For urgent matters, calling or WhatsApp messaging during business hours (11 AM – 8 PM, Mon–Sun) is the fastest way to reach us.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>Where are you located?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Our office is located at <strong>Bhayander West, Station Road, Mumbai – 401101</strong>. We are an online-first brand, so we recommend reaching out digitally for the quickest service.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    <span>Do you collaborate with influencers or brands?</span>
+                    <i class="fas fa-plus faq-icon"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Yes! We're always open to collaborations and gifting partnerships. Please email us at <a href="mailto:dadsonjewelry@gmail.com">dadsonjewelry@gmail.com</a> with your profile details and we'll get back to you.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Still need help CTA -->
+    <div class="faq-cta">
+        <div class="faq-cta-inner">
+            <i class="fas fa-comment-dots faq-cta-icon"></i>
+            <h3>Didn't find your answer?</h3>
+            <p>Our support team is available Mon–Sun, 11 AM – 8 PM to help you with anything.</p>
+            <a href="{{ url_for('public.contact') }}" class="btn btn-primary">Contact Us</a>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .faq-page {
+        background: var(--bg-main);
+        padding-bottom: 6rem;
+    }
+
+    /* Category nav */
+    .faq-cat-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        padding: 3rem var(--content-gutter) 1.5rem;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .faq-cat-btn {
+        background: #fff;
+        border: 1.5px solid #e8ddd4;
+        border-radius: 30px;
+        padding: 8px 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #7d6b61;
+        cursor: pointer;
+        transition: all 0.25s;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .faq-cat-btn:hover,
+    .faq-cat-btn.active {
+        background: var(--crimson, #5c1a2e);
+        border-color: var(--crimson, #5c1a2e);
+        color: #fff;
+    }
+
+    /* Wrapper */
+    .faq-wrapper {
+        max-width: 820px;
+        margin: 0 auto;
+        padding: 1rem var(--content-gutter) 0;
+    }
+
+    /* Group */
+    .faq-group {
+        margin-bottom: 3rem;
+    }
+
+    .faq-group-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #241914;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #f3ece6;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .faq-group-title i {
+        color: #b88a44;
+        font-size: 1rem;
+    }
+
+    /* Individual item */
+    .faq-item {
+        border-bottom: 1px solid #f3ece6;
+    }
+
+    .faq-question {
+        width: 100%;
+        background: none;
+        border: none;
+        padding: 1.1rem 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        cursor: pointer;
+        text-align: left;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.97rem;
+        font-weight: 600;
+        color: #241914;
+        transition: color 0.2s;
+    }
+
+    .faq-question:hover {
+        color: #b88a44;
+    }
+
+    .faq-icon {
+        flex-shrink: 0;
+        font-size: 0.75rem;
+        color: #b88a44;
+        transition: transform 0.3s;
+    }
+
+    .faq-item.open .faq-icon {
+        transform: rotate(45deg);
+    }
+
+    .faq-answer {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.35s ease, padding 0.25s;
+        padding: 0;
+    }
+
+    .faq-item.open .faq-answer {
+        max-height: 600px;
+        padding-bottom: 1.1rem;
+    }
+
+    .faq-answer p {
+        color: #5a4a42;
+        font-size: 0.93rem;
+        line-height: 1.75;
+        margin: 0 0 8px;
+    }
+
+    .faq-answer ul {
+        margin: 6px 0 0 0;
+        padding-left: 1.4rem;
+        color: #5a4a42;
+        font-size: 0.93rem;
+        line-height: 1.8;
+    }
+
+    .faq-answer a {
+        color: #b88a44;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    /* CTA */
+    .faq-cta {
+        max-width: 820px;
+        margin: 2rem auto 0;
+        padding: 0 var(--content-gutter);
+    }
+
+    .faq-cta-inner {
+        background: linear-gradient(135deg, #fdfaf6, #fff8ef);
+        border: 1.5px solid rgba(184, 138, 68, 0.2);
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        text-align: center;
+    }
+
+    .faq-cta-icon {
+        font-size: 2.2rem;
+        color: #b88a44;
+        margin-bottom: 1rem;
+    }
+
+    .faq-cta-inner h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.5rem;
+        color: #241914;
+        margin-bottom: 0.5rem;
+    }
+
+    .faq-cta-inner p {
+        color: #7d6b61;
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .faq-cat-nav {
+            padding: 2rem 1rem 1rem;
+        }
+        .faq-wrapper {
+            padding: 0 1rem;
+        }
+        .faq-cta {
+            padding: 0 1rem;
+        }
+        .faq-group-title {
+            font-size: 1.15rem;
+        }
+    }
+</style>
+
+<script>
+    // Accordion
+    document.querySelectorAll('.faq-question').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const item = btn.closest('.faq-item');
+            const isOpen = item.classList.contains('open');
+            document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+            if (!isOpen) item.classList.add('open');
+        });
+    });
+
+    // Category filter
+    document.querySelectorAll('.faq-cat-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.faq-cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const cat = btn.dataset.cat;
+            document.querySelectorAll('.faq-group').forEach(group => {
+                group.style.display = (cat === 'all' || group.dataset.cat === cat) ? '' : 'none';
+            });
+        });
+    });
+</script>
+{% endblock %}

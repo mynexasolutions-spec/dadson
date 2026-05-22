@@ -2,6 +2,7 @@ import os
 from flask import Flask, session
 from models import db, Category, User, AppConfig
 from dotenv import load_dotenv
+from flask_compress import Compress
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
@@ -17,6 +18,13 @@ from routes.admin import admin_bp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dadson-jewelry-secret-key')
+app.config['COMPRESS_REGISTER'] = True
+app.config['COMPRESS_MIMETYPES'] = [
+    'text/html', 'text/css', 'text/javascript',
+    'application/javascript', 'application/json',
+    'image/svg+xml',
+]
+Compress(app)
 app.jinja_env.add_extension('jinja2.ext.do')
 
 # Cache static files aggressively in production (1 year), disable in debug
@@ -76,6 +84,31 @@ with app.app_context():
     except Exception:
         db.session.rollback()
 
+    # Migration for OrderItem variation tracking
+    for col, col_type in [
+        ('variation_id', 'INTEGER'),
+        ('variation_label', 'VARCHAR(500)'),
+    ]:
+        try:
+            db.session.execute(db.text(f'ALTER TABLE order_item ADD COLUMN {col} {col_type}'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+    # Migration for SEO fields
+    for col, col_type in [
+        ('seo_title', 'VARCHAR(200)'),
+        ('seo_description', 'TEXT'),
+        ('focus_keyword', 'VARCHAR(200)'),
+        ('meta_keywords', 'TEXT'),
+        ('product_tags', 'TEXT'),
+    ]:
+        try:
+            db.session.execute(db.text(f'ALTER TABLE product ADD COLUMN {col} {col_type}'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
     # Ensure upload directories exist
     upload_dirs = [
         app.config['UPLOAD_FOLDER'],
@@ -111,21 +144,34 @@ with app.app_context():
     db.session.commit()
 
 # ---------------------------------------------------------------------------
-# Simple in-process category cache — avoids a DB round-trip on every page load
+# Simple in-process caches — avoid DB round-trips on every page load
 # ---------------------------------------------------------------------------
 _category_cache = {'data': None}
+_config_cache = {}
 
 def get_cached_categories():
     if _category_cache['data'] is None:
         _category_cache['data'] = Category.query.all()
     return _category_cache['data']
 
+def get_cached_config(key):
+    if key not in _config_cache:
+        cfg = AppConfig.query.filter_by(key=key).first()
+        _config_cache[key] = cfg.value if cfg and cfg.value else None
+    return _config_cache[key]
+
 def invalidate_category_cache():
-    """Call this whenever categories are created/edited/deleted."""
     _category_cache['data'] = None
 
-# Expose so admin routes can call app.invalidate_category_cache()
+def invalidate_config_cache(key=None):
+    if key:
+        _config_cache.pop(key, None)
+    else:
+        _config_cache.clear()
+
+# Expose so admin routes can call these
 app.invalidate_category_cache = invalidate_category_cache
+app.invalidate_config_cache = invalidate_config_cache
 
 
 # Context processor — runs on every request; keep it lean
@@ -161,12 +207,15 @@ def inject_globals():
                     "type": "stock"
                 })
 
+    ga_measurement_id = get_cached_config('ga_measurement_id')
+
     return dict(
         cart_count=count,
         all_categories=categories,
         current_user=user,
         wishlist_count=wishlist_count,
-        admin_notifications=admin_notifications
+        admin_notifications=admin_notifications,
+        ga_measurement_id=ga_measurement_id,
     )
 
 

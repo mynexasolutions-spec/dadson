@@ -42,11 +42,9 @@
         <div class="product-wishlist {% if in_wish %}active{% endif %}"
             onclick="toggleWishlist(event, '{{ wish_id }}')">
             {% if in_wish %}
-            <img src="https://api.iconify.design/ph:heart-fill.svg?color=%23b88a44" class="icon-img icon-wishlist"
-                alt="wishlist">
+            <svg class="icon-img icon-wishlist" viewBox="0 0 256 256" width="22" height="22" fill="#b88a44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M240 98c0 70-103.79 126.66-108.21 129a8 8 0 0 1-7.58 0C119.79 224.66 16 168 16 98a62 62 0 0 1 62-62c20.65 0 38.73 8.88 50 23.89C139.27 44.88 157.35 36 178 36a62 62 0 0 1 62 62"/></svg>
             {% else %}
-            <img src="https://api.iconify.design/ph:heart-bold.svg?color=%23b88a44" class="icon-img icon-wishlist"
-                alt="wishlist">
+            <svg class="icon-img icon-wishlist" viewBox="0 0 256 256" width="22" height="22" fill="none" stroke="#b88a44" stroke-width="16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M128 227c-4.24-2.39-104-59.48-104-129a60 60 0 0 1 104-40.8A60 60 0 0 1 232 98c0 69.52-99.76 126.61-104 129Z"/></svg>
             {% endif %}
         </div>
     </div>

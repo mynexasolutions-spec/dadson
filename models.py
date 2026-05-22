@@ -63,7 +63,12 @@ class Product(db.Model):
     is_new_arrival = db.Column(db.Boolean, default=False)
     materials = db.Column(db.Text)
     care = db.Column(db.Text)
-    
+    seo_title = db.Column(db.String(200))
+    seo_description = db.Column(db.Text)
+    focus_keyword = db.Column(db.String(200))
+    meta_keywords = db.Column(db.Text)
+    product_tags = db.Column(db.Text)
+
     variations = db.relationship('ProductVariation', backref='product', lazy=True, cascade="all, delete-orphan")
     attributes = db.relationship('ProductAttribute', backref='product', lazy=True, cascade="all, delete-orphan")
 
@@ -108,7 +113,10 @@ class OrderItem(db.Model):
     product_id = db.Column(db.String(50), db.ForeignKey('product.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     price_at_time = db.Column(db.String(20), nullable=False)
+    variation_id = db.Column(db.Integer, db.ForeignKey('product_variation.id', ondelete='SET NULL'), nullable=True)
+    variation_label = db.Column(db.String(500), nullable=True)
     product = db.relationship('Product')
+    variation = db.relationship('ProductVariation')
 
 class AppConfig(db.Model):
     id = db.Column(db.Integer, primary_key=True)

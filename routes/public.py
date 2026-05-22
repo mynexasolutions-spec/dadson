@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, abort, session, jsonify
 from models import db, Category, Product, SubCategory, Review, Subscriber
+from sqlalchemy.orm import joinedload
 
 public_bp = Blueprint('public', __name__)
 
@@ -7,10 +8,18 @@ public_bp = Blueprint('public', __name__)
 def home():
     categories = Category.query.all()
 
-    # Load only the products we actually need using targeted queries
-    # — avoids pulling every product and filtering in Python
+    # Deep eager load — one query with all joins, eliminates N+1 for
+    # variation options, attribute values, and gallery images
+    from models import ProductVariation, VariationOption, AttributeValue, Attribute, ProductImage
+    _var_opts = joinedload(Product.variations).joinedload(
+        ProductVariation.options).joinedload(
+        VariationOption.attribute_value).joinedload(
+        AttributeValue.attribute)
     all_products = Product.query.options(
-        db.joinedload(Product.variations)
+        _var_opts,
+        joinedload(Product.images),
+        joinedload(Product.category),
+        joinedload(Product.subcategory),
     ).all()
 
     # Expand products for display (showing each color variation)
@@ -194,7 +203,7 @@ def shop():
             strict_query = strict_query.filter(or_(*keyword_filters))
             
         # If strict query yields matches, use it. Otherwise fall back to a broader search
-        if strict_query.count() > 0:
+        if strict_query.first() is not None:
             query = strict_query
         else:
             # Fallback to broader OR search across the full raw search query
@@ -229,17 +238,36 @@ def shop():
 
 @public_bp.route('/product/<id>')
 def product_detail(id):
-    product = Product.query.get(id)
+    from models import ProductVariation, VariationOption, AttributeValue, Attribute, ProductImage, SelectedAttributeValue
+    _var_opts = joinedload(Product.variations).joinedload(
+        ProductVariation.options).joinedload(
+        VariationOption.attribute_value).joinedload(
+        AttributeValue.attribute)
+    product = Product.query.options(
+        _var_opts,
+        joinedload(Product.images),
+        joinedload(Product.category),
+        joinedload(Product.subcategory),
+        joinedload(Product.selected_values).joinedload(
+            SelectedAttributeValue.attribute_value).joinedload(
+            AttributeValue.attribute),
+    ).filter_by(id=id).first()
     if not product:
         abort(404)
-    
+
     variation_id = request.args.get('v')
     selected_variation = None
     if variation_id:
-        from models import ProductVariation
-        selected_variation = ProductVariation.query.get(variation_id)
-        
-    related = Product.query.filter(Product.cat_name == product.cat_name, Product.id != product.id).limit(5).all()
+        selected_variation = ProductVariation.query.options(
+            joinedload(ProductVariation.options).joinedload(
+                VariationOption.attribute_value).joinedload(
+                AttributeValue.attribute)
+        ).get(variation_id)
+
+    related = Product.query.options(
+        joinedload(Product.variations),
+        joinedload(Product.images),
+    ).filter(Product.cat_name == product.cat_name, Product.id != product.id).limit(5).all()
     return render_template('product.html', product=product, related=related, selected_variation=selected_variation)
 
 @public_bp.route('/blogs')
@@ -297,6 +325,10 @@ def shipping():
 @public_bp.route('/cancellation-refund')
 def refund():
     return render_template('refund.html')
+
+@public_bp.route('/faq')
+def faq():
+    return render_template('faq.html')
 
 @public_bp.route('/contact', methods=['GET', 'POST'])
 def contact():

@@ -2,7 +2,41 @@
 
 {% from "macros.html" import product_card %}
 
-{% block title %}{{ product.name }} | DADSON Premium Jewellery{% endblock %}
+{% block title %}{{ product.seo_title if product.seo_title else product.name + ' | DADSON Premium Jewellery' }}{% endblock %}
+
+{% block head %}
+{% if product.seo_description %}
+<meta name="description" content="{{ product.seo_description }}">
+{% endif %}
+{% if product.meta_keywords %}
+<meta name="keywords" content="{{ product.meta_keywords }}">
+{% endif %}
+{% if product.focus_keyword %}
+<meta name="news_keywords" content="{{ product.focus_keyword }}">
+{% endif %}
+<meta property="og:title" content="{{ product.seo_title if product.seo_title else product.name }}">
+<meta property="og:description" content="{{ product.seo_description if product.seo_description else product.desc }}">
+<meta property="og:image" content="{{ product.img }}">
+<meta property="og:type" content="product">
+{% if ga_measurement_id %}
+<script>
+    window.addEventListener('load', function () {
+        if (typeof gtag === 'undefined') return;
+        gtag('event', 'view_item', {
+            currency: 'INR',
+            value: parseFloat('{{ product.price }}'.replace(/[^0-9.]/g, '')) || 0,
+            items: [{
+                item_id: '{{ product.id }}',
+                item_name: '{{ product.name | replace("'", "\\'") }}',
+                item_category: '{{ product.cat_name }}',
+                price: parseFloat('{{ product.price }}'.replace(/[^0-9.]/g, '')) || 0,
+                quantity: 1
+            }]
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}
 
 {% block page_hero %}{% endblock %}
 
@@ -994,6 +1028,22 @@
                 if (data.success) {
                     const badge = document.getElementById('cartBadge');
                     if (badge) badge.innerText = data.cart_count;
+
+                    {% if ga_measurement_id %}
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'add_to_cart', {
+                            currency: 'INR',
+                            value: parseFloat('{{ product.price }}'.replace(/[^0-9.]/g, '')) || 0,
+                            items: [{
+                                item_id: '{{ product.id }}',
+                                item_name: '{{ product.name | replace("'", "\\'") }}',
+                                item_category: '{{ product.cat_name }}',
+                                price: parseFloat('{{ product.price }}'.replace(/[^0-9.]/g, '')) || 0,
+                                quantity: 1
+                            }]
+                        });
+                    }
+                    {% endif %}
 
                     btn.innerText = '✓ Added';
                     btn.classList.add('added');
