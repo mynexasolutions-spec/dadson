@@ -208,6 +208,7 @@ def inject_globals():
                 })
 
     ga_measurement_id = get_cached_config('ga_measurement_id')
+    facebook_pixel_id = get_cached_config('facebook_pixel_id')
 
     return dict(
         cart_count=count,
@@ -216,6 +217,7 @@ def inject_globals():
         wishlist_count=wishlist_count,
         admin_notifications=admin_notifications,
         ga_measurement_id=ga_measurement_id,
+        facebook_pixel_id=facebook_pixel_id,
     )
 
 

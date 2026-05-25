@@ -296,4 +296,17 @@
     });
 </script>
 {% endif %}
+{% if facebook_pixel_id %}
+<script>
+    window.addEventListener('load', function() {
+        if (typeof fbq === 'undefined') return;
+        fbq('track', 'Purchase', {
+            value: parseFloat('{{ order.total_amount }}'.replace(/[^0-9.]/g, '')) || 0,
+            currency: 'INR',
+            content_ids: [{% for item in order.items %}'{{ item.variation_id|string if item.variation_id else item.product_id }}'{% if not loop.last %},{% endif %}{% endfor %}],
+            content_type: 'product'
+        });
+    });
+</script>
+{% endif %}
 {% endblock %}

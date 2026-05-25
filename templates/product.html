@@ -306,6 +306,21 @@
     });
 </script>
 {% endif %}
+{% if facebook_pixel_id %}
+<script>
+    window.addEventListener('load', function () {
+        if (typeof fbq === 'undefined') return;
+        fbq('track', 'ViewContent', {
+            content_ids: ['{{ product.id }}'],
+            content_name: '{{ product.name | replace("'", "\\'") }}',
+            content_category: '{{ product.cat_name }}',
+            content_type: 'product',
+            value: parseFloat('{{ product.price }}'.replace(/[^0-9.]/g, '')) || 0,
+            currency: 'INR'
+        });
+    });
+</script>
+{% endif %}
 
 <style>
     /* Premium Product Page Design */
@@ -1091,6 +1106,26 @@
                         });
                     }
                     {% endif %}
+                    {% if facebook_pixel_id %}
+                    if (typeof fbq !== 'undefined') {
+                        let fbPrice = parseFloat('{{ product.price }}'.replace(/[^0-9.]/g, '')) || 0;
+                        let fbItemId = '{{ product.id }}';
+                        if (variationId) {
+                            const matchedVar = variations.find(v => v.id == variationId);
+                            if (matchedVar) {
+                                fbPrice = parseFloat(matchedVar.price.replace(/[^0-9.]/g, '')) || 0;
+                                fbItemId = String(matchedVar.id);
+                            }
+                        }
+                        fbq('track', 'AddToCart', {
+                            content_ids: [fbItemId],
+                            content_name: '{{ product.name | replace("'", "\\'") }}',
+                            content_type: 'product',
+                            value: fbPrice,
+                            currency: 'INR'
+                        });
+                    }
+                    {% endif %}
 
                     btn.innerText = '✓ Added';
                     btn.classList.add('added');
@@ -1161,6 +1196,27 @@
                                 }]
                             });
                         }
+                        {% if facebook_pixel_id %}
+                        if (typeof fbq !== 'undefined') {
+                            let fbWishPrice = parseFloat('{{ product.price }}'.replace(/[^0-9.]/g, '')) || 0;
+                            let fbWishId = '{{ product.id }}';
+                            if (idToToggle.startsWith('var:')) {
+                                const varId = idToToggle.split(':')[1];
+                                const match = variations.find(v => v.id == varId);
+                                if (match) {
+                                    fbWishPrice = parseFloat(match.price.replace(/[^0-9.]/g, '')) || 0;
+                                    fbWishId = varId;
+                                }
+                            }
+                            fbq('track', 'AddToWishlist', {
+                                content_ids: [fbWishId],
+                                content_name: '{{ product.name | replace("'", "\\'") }}',
+                                content_category: '{{ product.cat_name }}',
+                                value: fbWishPrice,
+                                currency: 'INR'
+                            });
+                        }
+                        {% endif %}
                     } else {
                         const idx = wishlistItems.indexOf(idToToggle);
                         if (idx > -1) wishlistItems.splice(idx, 1);

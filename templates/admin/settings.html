@@ -78,6 +78,13 @@
                 <input type="text" name="ga_measurement_id" value="{{ configs.get('ga_measurement_id', '') }}" placeholder="G-XXXXXXXXXX">
             </div>
 
+            <h2 class="section-title" style="margin-top: 2rem;"><i class="fab fa-facebook" style="color: #1877F2;"></i> Meta (Facebook) Pixel</h2>
+            <p style="color: #71717a; font-size: 0.875rem; margin-bottom: 1rem;">Paste your Pixel ID to enable conversion tracking for Facebook & Instagram Ads. Find it in <strong>Meta Business Suite → Events Manager → your Pixel → Pixel ID</strong>. Tracks: PageView, ViewContent, AddToCart, AddToWishlist, InitiateCheckout, Purchase.</p>
+            <div class="form-group">
+                <label>Meta Pixel ID</label>
+                <input type="text" name="facebook_pixel_id" value="{{ configs.get('facebook_pixel_id', '') }}" placeholder="XXXXXXXXXXXXXXXXXX">
+            </div>
+
             <div class="form-actions" style="margin-top: 2rem;">
                 <button type="submit" class="btn btn-primary">Save Settings</button>
             </div>

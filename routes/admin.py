@@ -979,6 +979,7 @@ def settings():
             'razorpay_key_id',
             'razorpay_key_secret',
             'ga_measurement_id',
+            'facebook_pixel_id',
         ]
         for key in expected_keys:
             value = request.form.get(key, '') # Omitted checkboxes default to empty string

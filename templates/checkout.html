@@ -862,4 +862,16 @@
         });
     }
 </script>
+{% if facebook_pixel_id %}
+<script>
+    window.addEventListener('load', function () {
+        if (typeof fbq === 'undefined') return;
+        fbq('track', 'InitiateCheckout', {
+            value: parseFloat('{{ subtotal_str }}'.replace(/[^0-9.]/g, '')) || 0,
+            currency: 'INR',
+            num_items: {{ cart_items|length }}
+        });
+    });
+</script>
+{% endif %}
 {% endblock %}
