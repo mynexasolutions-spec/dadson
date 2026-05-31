@@ -827,9 +827,9 @@ section:nth-of-type(even) {
 
 .brand-image {
     width: 100%;
-    min-height: 100px;
-    /* Reduced Brand Image height */
+    height: 480px;
     object-fit: cover;
+    object-position: center;
     border-radius: 30px;
     box-shadow: var(--shadow-medium);
 }
@@ -1530,7 +1530,8 @@ section:nth-of-type(even) {
     }
 
     .brand-image {
-        min-height: 320px;
+        height: 400px;
+        object-position: center;
     }
 
     .brand-content .section-title {
@@ -1805,10 +1806,14 @@ section:nth-of-type(even) {
         aspect-ratio: 1 / 1;
     }
 
-    .blog-image,
-    .brand-image {
+    .blog-image {
         height: 260px;
         min-height: 260px;
+    }
+
+    .brand-image {
+        height: 340px;
+        object-position: center;
     }
 
     .product-info h3,
@@ -1966,10 +1971,14 @@ section:nth-of-type(even) {
         aspect-ratio: 1 / 1;
     }
 
-    .blog-image,
-    .brand-image {
+    .blog-image {
         height: 230px;
         min-height: 230px;
+    }
+
+    .brand-image {
+        height: 300px;
+        object-position: center;
     }
 
     .feature-card {

@@ -22,7 +22,7 @@ def admin_required(f):
     return decorated_function
 
 def save_image(file, folder):
-    if not file:
+    if not file or not file.filename:
         return None
     # Upload to Cloudinary
     upload_result = cloudinary.uploader.upload(file, folder=f"dadson/{folder}")
@@ -125,8 +125,10 @@ def new_product():
         size_chart = save_image(size_chart_file, 'size_charts') if size_chart_file else None
         
         new_id = name.lower().replace(' ', '-')
+        new_id = re.sub(r'[^a-z0-9\-]', '', new_id)[:30].strip('-')
         if Product.query.get(new_id):
             new_id = f"{new_id}-{int(datetime.now().timestamp())}"
+        new_id = new_id[:50]
             
         product = Product(
             id=new_id,
