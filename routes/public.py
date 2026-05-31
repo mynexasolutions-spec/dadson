@@ -117,7 +117,18 @@ def shop():
         query = query.filter(Product.cat_name.in_(selected_categories))
     
     if selected_subcategories:
-        query = query.join(SubCategory, Product.sub_category_id == SubCategory.id).filter(SubCategory.name.in_(selected_subcategories))
+        from sqlalchemy import or_
+        sub_filters = []
+        for sub in selected_subcategories:
+            if sub.lower() == 'men':
+                sub_filters.append(SubCategory.name.ilike('men - %'))
+                sub_filters.append(SubCategory.name == 'men')
+            elif sub.lower() == 'women':
+                sub_filters.append(SubCategory.name.ilike('women - %'))
+                sub_filters.append(SubCategory.name == 'women')
+            else:
+                sub_filters.append(SubCategory.name == sub)
+        query = query.join(SubCategory, Product.sub_category_id == SubCategory.id).filter(or_(*sub_filters))
         
     if selected_filters:
         if 'best_sellers' in selected_filters:

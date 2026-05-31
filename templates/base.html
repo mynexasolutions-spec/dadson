@@ -15,7 +15,7 @@
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
 
     <!-- Critical CSS first -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=4.8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=6.0">
 
     <!-- Fonts: load async, display=swap prevents invisible text -->
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@300;400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
@@ -59,7 +59,33 @@
                         <span>Categories <i class="fas fa-chevron-down" style="font-size: 0.8em; margin-left: 4px;"></i></span>
                         <div class="dropdown-menu">
                             {% for cat in all_categories %}
+                            {% if cat.subcategories %}
+                            <div class="dropdown-item-with-submenu">
+                                <a href="{{ url_for('public.shop', category=cat.name) }}" class="dropdown-item">{{ cat.name }} <i class="fas fa-chevron-right" style="font-size: 0.7em; float: right; margin-top: 5px;"></i></a>
+                                <div class="submenu">
+                                    {% if cat.name == 'Watch' %}
+                                    <div class="submenu-section">
+                                        <span class="submenu-header">Men</span>
+                                        <a href="{{ url_for('public.shop', category='Watch', subcategory='Men - Gym watch') }}" class="submenu-item">Gym watch</a>
+                                        <a href="{{ url_for('public.shop', category='Watch', subcategory='Men - Office watch') }}" class="submenu-item">Office watch</a>
+                                        <a href="{{ url_for('public.shop', category='Watch', subcategory='Men - Luxury watch') }}" class="submenu-item">Luxury watch</a>
+                                    </div>
+                                    <div class="submenu-section">
+                                        <span class="submenu-header">Women</span>
+                                        <a href="{{ url_for('public.shop', category='Watch', subcategory='Women - Gym watch') }}" class="submenu-item">Gym watch</a>
+                                        <a href="{{ url_for('public.shop', category='Watch', subcategory='Women - Luxury Watch') }}" class="submenu-item">Luxury Watch</a>
+                                        <a href="{{ url_for('public.shop', category='Watch', subcategory='Women - Fashion watches') }}" class="submenu-item">Fashion watches</a>
+                                    </div>
+                                    {% else %}
+                                    {% for sub in cat.subcategories %}
+                                    <a href="{{ url_for('public.shop', category=cat.name, subcategory=sub.name) }}" class="submenu-item">{{ sub.name }}</a>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% else %}
                             <a href="{{ url_for('public.shop', category=cat.name) }}" class="dropdown-item">{{ cat.name }}</a>
+                            {% endif %}
                             {% endfor %}
                         </div>
                     </li>
@@ -141,7 +167,7 @@
 
     {% include 'footer.html' %}
 
-    <script src="{{ url_for('static', filename='js/script.js') }}?v=4.8" defer></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}?v=6.0" defer></script>
     {% block scripts %}{% endblock %}
 </body>
 
