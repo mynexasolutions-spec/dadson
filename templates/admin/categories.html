@@ -24,7 +24,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for cat in categories %}
+                {% for cat in categories if not cat.parent_id %}
                 <tr>
                     <td>
                         <div class="product-cell">
@@ -37,15 +37,25 @@
                     </td>
                     <td>
                         <div class="subcat-pills">
-                            {% for sub in cat.subcategories %}
-                            <div class="subcat-pill">
-                                {{ sub.name }}
-                                <form action="{{ url_for('admin.delete_subcategory', id=sub.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete subcategory?');">
-                                    <button type="submit" class="btn-sub-del">&times;</button>
-                                </form>
-                            </div>
-                            {% endfor %}
-                            <a href="{{ url_for('admin.new_subcategory') }}?category_id={{ cat.id }}" class="add-sub-link">+ Add</a>
+                            {% macro render_subcategories(sub_list) %}
+                                {% for sub in sub_list %}
+                                <div class="subcat-pill" title="{{ sub.get_full_path() }}">
+                                    {% if sub.parent and sub.parent.parent_id %}
+                                        <span style="opacity: 0.6; font-size: 0.85em; margin-right: 2px;">{{ sub.parent.name }} &gt;</span>
+                                    {% endif %}
+                                    {{ sub.name }}
+                                    <form action="{{ url_for('admin.delete_category', id=sub.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete subcategory?');">
+                                        <button type="submit" class="btn-sub-del">&times;</button>
+                                    </form>
+                                    <a href="{{ url_for('admin.edit_category', id=sub.id) }}" style="color: var(--primary); text-decoration: none; font-size: 0.75rem;"><i class="fas fa-edit"></i></a>
+                                </div>
+                                {% if sub.subcategories %}
+                                    {{ render_subcategories(sub.subcategories) }}
+                                {% endif %}
+                                {% endfor %}
+                            {% endmacro %}
+                            {{ render_subcategories(cat.subcategories) }}
+                            <a href="{{ url_for('admin.new_category') }}?parent_id={{ cat.id }}" class="add-sub-link">+ Add</a>
                         </div>
                     </td>
                     <td>

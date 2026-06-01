@@ -28,6 +28,16 @@
                 {% endif %}
                 <input type="file" name="img" accept="image/*" {% if not category or not category.img %}required{% endif %}>
             </div>
+            <div class="form-group" style="grid-column: span 2;">
+                <label style="margin-bottom: 0.8rem; display: block; font-weight: 600;">Category Hierarchy (Select Parent & Subcategories)</label>
+                <div id="chained-category-container" style="display: flex; flex-direction: column; gap: 0.8rem;">
+                    <!-- Dynamic selects will be rendered here -->
+                </div>
+                <input type="hidden" id="final_parent_id" name="parent_id" value="">
+                <p style="font-size: 0.8rem; color: #64748b; margin-top: 0.5rem; font-style: italic;">
+                    Selected Parent Category: <strong id="selected-parent-path-text">None (Root Category)</strong>
+                </p>
+            </div>
         </div>
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">Save Category</button>
@@ -73,4 +83,108 @@
         cursor: pointer;
     }
 </style>
+
+<script>
+    const categoriesData = [
+        {% for cat in categories %}
+        {
+            "id": {{ cat.id }},
+            "name": {{ cat.name|tojson }},
+            "parent_id": {{ cat.parent_id if cat.parent_id else 'null' }}
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    const initialParentId = {% if category and category.parent_id %}{{ category.parent_id }}{% elif selected_parent_id %}{{ selected_parent_id }}{% else %}null{% endif %};
+
+    // Trace path to root
+    function getPathToRoot(catId) {
+        if (!catId) return [];
+        const path = [];
+        let curr = categoriesData.find(c => c.id === catId);
+        while (curr) {
+            path.unshift(curr.id);
+            curr = categoriesData.find(c => c.id === curr.parent_id);
+        }
+        return path;
+    }
+
+    let currentPath = getPathToRoot(initialParentId);
+
+    const container = document.getElementById('chained-category-container');
+    const finalInput = document.getElementById('final_parent_id');
+    const pathText = document.getElementById('selected-parent-path-text');
+
+    function renderSelects() {
+        container.innerHTML = '';
+        let levelParentId = null;
+
+        // Render selects for each level in path, plus one extra for the next level if children exist
+        for (let i = 0; i <= currentPath.length; i++) {
+            const levelOptions = categoriesData.filter(c => c.parent_id === levelParentId);
+            if (levelOptions.length === 0) break;
+
+            const select = document.createElement('select');
+            select.style.cssText = "width: 100%; padding: 0.8rem; border: 1px solid #e2e8f0; border-radius: 10px; outline: none; background: #fff;";
+            
+            const defaultOpt = document.createElement('option');
+            defaultOpt.value = '';
+            defaultOpt.textContent = i === 0 ? '-- No Parent (Root Category) --' : '-- Select Subcategory --';
+            select.appendChild(defaultOpt);
+
+            levelOptions.forEach(opt => {
+                const o = document.createElement('option');
+                o.value = opt.id;
+                o.textContent = opt.name;
+                if (currentPath[i] === opt.id) {
+                    o.selected = true;
+                }
+                select.appendChild(o);
+            });
+
+            const currentLevel = i;
+            select.addEventListener('change', function() {
+                const val = this.value ? parseInt(this.value) : null;
+                if (val === null) {
+                    currentPath = currentPath.slice(0, currentLevel);
+                } else {
+                    currentPath = currentPath.slice(0, currentLevel);
+                    currentPath.push(val);
+                }
+                updateFinalValue();
+                renderSelects();
+            });
+
+            container.appendChild(select);
+
+            // Set parent for next level select loop
+            if (i < currentPath.length) {
+                levelParentId = currentPath[i];
+            } else {
+                break;
+            }
+        }
+    }
+
+    function updateFinalValue() {
+        if (currentPath.length > 0) {
+            const lastId = currentPath[currentPath.length - 1];
+            finalInput.value = lastId;
+            // Build full path text
+            const fullPath = [];
+            currentPath.forEach(id => {
+                const cat = categoriesData.find(c => c.id === id);
+                if (cat) fullPath.push(cat.name);
+            });
+            pathText.textContent = fullPath.join(' > ');
+        } else {
+            finalInput.value = '';
+            pathText.textContent = 'None (Root Category)';
+        }
+    }
+
+    // Initialize
+    updateFinalValue();
+    renderSelects();
+</script>
 {% endblock %}

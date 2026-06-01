@@ -43,32 +43,10 @@
                     <li class="nav-item dropdown-trigger">
                         <span>Categories <i class="fas fa-chevron-down" style="font-size: 0.8em; margin-left: 4px;"></i></span>
                         <div class="dropdown-menu">
-                            {% for cat in categories %}
-                            {% if cat.subcategories %}
-                            <div class="dropdown-item-with-submenu">
-                                <a href="{{ url_for('public.shop', category=cat.name) }}" class="dropdown-item">{{ cat.name }} <i class="fas fa-chevron-right" style="font-size: 0.7em; float: right; margin-top: 5px;"></i></a>
-                                <div class="submenu">
-                                    {% if cat.name == 'Watch' %}
-                                    <div class="submenu-section">
-                                        <span class="submenu-header">Men</span>
-                                        <a href="{{ url_for('public.shop', category='Watch', subcategory='Men - Gym watch') }}" class="submenu-item">Gym watch</a>
-                                        <a href="{{ url_for('public.shop', category='Watch', subcategory='Men - Office watch') }}" class="submenu-item">Office watch</a>
-                                        <a href="{{ url_for('public.shop', category='Watch', subcategory='Men - Luxury watch') }}" class="submenu-item">Luxury watch</a>
-                                    </div>
-                                    <div class="submenu-section">
-                                        <span class="submenu-header">Women</span>
-                                        <a href="{{ url_for('public.shop', category='Watch', subcategory='Women - Gym watch') }}" class="submenu-item">Gym watch</a>
-                                        <a href="{{ url_for('public.shop', category='Watch', subcategory='Women - Luxury Watch') }}" class="submenu-item">Luxury Watch</a>
-                                        <a href="{{ url_for('public.shop', category='Watch', subcategory='Women - Fashion watches') }}" class="submenu-item">Fashion watches</a>
-                                    </div>
-                                    {% else %}
-                                    {% for sub in cat.subcategories %}
-                                    <a href="{{ url_for('public.shop', category=cat.name, subcategory=sub.name) }}" class="submenu-item">{{ sub.name }}</a>
-                                    {% endfor %}
-                                    {% endif %}
-                                </div>
-                            </div>
-                            {% else %}
+                            {% set seen_parent_names = [] %}
+                            {% for cat in categories if not cat.parent_id %}
+                            {% if cat.name not in seen_parent_names %}
+                            {% set _ = seen_parent_names.append(cat.name) %}
                             <a href="{{ url_for('public.shop', category=cat.name) }}" class="dropdown-item">{{ cat.name }}</a>
                             {% endif %}
                             {% endfor %}
@@ -148,7 +126,10 @@
             <p class="section-intro">Browse the collections that define DADSON, from sculpted earrings and layered
                 necklaces to statement rings and gifting favourites.</p>
             <div class="category-grid">
-                {% for cat in categories %}
+                {% set seen_parent_names = [] %}
+                {% for cat in categories if not cat.parent_id %}
+                {% if cat.name not in seen_parent_names %}
+                {% set _ = seen_parent_names.append(cat.name) %}
                 <div class="category-card">
                     <img src="{{ cat.img }}" alt="{{ cat.name }} collection" loading="lazy">
                     <div class="category-overlay">
@@ -156,6 +137,7 @@
                         <a href="{{ url_for('public.shop', category=cat.name) }}" class="btn btn-outline">Explore</a>
                     </div>
                 </div>
+                {% endif %}
                 {% endfor %}
             </div>
         </div>

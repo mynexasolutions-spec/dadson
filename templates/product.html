@@ -48,7 +48,7 @@
         <!-- RIGHT: PRODUCT INFO -->
         <div class="product-info-sect">
             <div class="product-meta-top">
-                <span class="cat-tag">{{ product.category.name if product.category else product.cat_name }}</span>
+                <span class="cat-tag">{{ product.category.get_full_path() if product.category else product.cat_name }}</span>
                 <div id="displayStock"
                     class="stock-status-new {{ selected_variation.stock_status if selected_variation else product.stock_status }}">
                     {% if (selected_variation.stock_status if selected_variation else product.stock_status) == 'instock'
@@ -222,7 +222,7 @@
                 <tbody>
                     <tr>
                         <td>Collection</td>
-                        <td>{{ product.category.name if product.category else 'Exclusive Collection' }}</td>
+                        <td>{{ product.category.get_full_path() if product.category else 'Exclusive Collection' }}</td>
                     </tr>
                     <tr>
                         <td>Product ID</td>

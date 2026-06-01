@@ -35,8 +35,29 @@ class Category(db.Model):
     img = db.Column(db.String(255))
     bg = db.Column(db.String(20))
     count = db.Column(db.String(50))
+    parent_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
+    gender = db.Column(db.String(20), default='Both') # 'Men', 'Women', 'Both'
+
     products = db.relationship('Product', backref='category', lazy=True)
-    subcategories = db.relationship('SubCategory', backref='category', lazy=True, cascade="all, delete-orphan")
+    subcategories = db.relationship('Category', backref=db.backref('parent', remote_side='Category.id'), lazy=True, cascade="all, delete-orphan")
+    legacy_subcategories = db.relationship('SubCategory', backref='category', lazy=True, cascade="all, delete-orphan")
+
+    def get_full_path(self):
+        path = [self.name]
+        curr = self.parent
+        visited = {self.id}
+        while curr and curr.id not in visited:
+            path.append(curr.name)
+            visited.add(curr.id)
+            curr = curr.parent
+        return " > ".join(reversed(path))
+
+    def get_gender(self):
+        if self.gender:
+            return self.gender
+        if self.parent:
+            return self.parent.get_gender()
+        return 'Both'
 
     def __repr__(self):
         return f"<Category {self.name}>"
