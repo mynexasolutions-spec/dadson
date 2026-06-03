@@ -168,38 +168,7 @@ with app.app_context():
         db.session.rollback()
         print(f"Error during category migration: {e}")
 
-    # De-duplicate categories with the same name (case-insensitive) under the same parent
-    try:
-        from models import Category, Product
-        all_cats = Category.query.all()
-        # Group by parent_id and lowercased name
-        grouped = {}
-        for cat in all_cats:
-            key = (cat.parent_id, cat.name.strip().lower())
-            if key not in grouped:
-                grouped[key] = []
-            grouped[key].append(cat)
-            
-        for key, cats in grouped.items():
-            if len(cats) > 1:
-                # Keep the first one as primary
-                primary = cats[0]
-                # Merge gender to 'Both' if there are mixed genders
-                genders = {c.gender for c in cats if c.gender}
-                if len(genders) > 1 or 'Both' in genders:
-                    primary.gender = 'Both'
-                
-                for duplicate in cats[1:]:
-                    print(f"Merging duplicate category '{duplicate.name}' (ID: {duplicate.id}) into '{primary.name}' (ID: {primary.id})")
-                    # Update all products pointing to this duplicate category
-                    Product.query.filter_by(category_id=duplicate.id).update({Product.category_id: primary.id})
-                    # Delete the duplicate category
-                    db.session.delete(duplicate)
-                db.session.commit()
-        print("Category de-duplication completed.")
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error during category de-duplication: {e}")
+
 
     # Ensure upload directories exist
     upload_dirs = [

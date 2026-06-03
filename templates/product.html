@@ -90,7 +90,7 @@
 
             {# ATTR SELECTORS #}
             <div class="attr-selectors-wrap">
-                {% for p_attr in product.attributes %}
+                {% for p_attr in product.attributes if p_attr.attribute.slug != 'gender' and p_attr.attribute.name.lower() != 'gender' %}
                 <div class="attr-group-sect">
                     <div class="attr-group-header">
                         <span class="attr-label">{{ p_attr.attribute.name }}</span>
