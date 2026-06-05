@@ -11,11 +11,35 @@
 {% block content %}
 <div class="shop-page">
 
+    <div class="gender-filter-row">
+        <label for="gender-Men" class="gender-card {% if 'Men' in active_genders %}active{% endif %}">
+            <div class="gender-img-wrap">
+                <img src="https://images.unsplash.com/photo-1488161628813-04466f872be2?auto=format&fit=crop&w=150&h=150&q=80"
+                    alt="Men">
+            </div>
+            <span>Men</span>
+        </label>
+        <label for="gender-Women" class="gender-card {% if 'Women' in active_genders %}active{% endif %}">
+            <div class="gender-img-wrap">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&h=150&q=80"
+                    alt="Women">
+            </div>
+            <span>Women</span>
+        </label>
+        <label for="gender-Unisex" class="gender-card {% if 'Unisex' in active_genders %}active{% endif %}">
+            <div class="gender-img-wrap">
+                <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=150&h=150&q=80"
+                    alt="Unisex">
+            </div>
+            <span>Unisex</span>
+        </label>
+    </div>
+
     <div class="shop-container">
         <!-- MOBILE FILTER BUTTON -->
         <button class="mobile-filter-btn" id="filterBtn">
-            <img src="https://api.iconify.design/lucide:sliders-horizontal.svg?color=%23ffffff" style="width: 18px; height: 18px; display: inline-block;"
-                alt="filter">
+            <img src="https://api.iconify.design/lucide:sliders-horizontal.svg?color=%23ffffff"
+                style="width: 18px; height: 18px; display: inline-block;" alt="filter">
             Filters
         </button>
 
@@ -29,28 +53,34 @@
                 <button id="closeSidebar">&times;</button>
             </div>
             <form action="/shop" method="GET" id="filterForm">
-                <button type="submit" class="apply-filters-btn mobile-only-apply-btn" style="margin-bottom: 1.5rem;">Apply Filters</button>
-                <div class="filter-group">
+                <button type="submit" class="apply-filters-btn mobile-only-apply-btn"
+                    style="margin-bottom: 1.5rem;">Apply Filters</button>
+                <div class="filter-group" style="display: none;">
                     <h3>Gender</h3>
                     <div class="filter-options">
-                        <label class="all-prod-label"><input type="checkbox" id="allProducts" {% if not
-                                active_genders and not active_filters %}checked{% endif %}>
+                        <label class="all-prod-label"><input type="checkbox" id="allProducts" {% if not active_genders
+                                and not active_filters and not active_categories and not active_subcategories and not
+                                search_query %}checked{% endif %}>
                             All Products</label>
                         <div class="filter-category-item">
                             <label class="category-parent">
-                                <input type="checkbox" name="gender" value="Men" {% if 'Men' in active_genders %}checked{% endif %}>
+                                <input type="checkbox" name="gender" value="Men" id="gender-Men" {% if 'Men' in
+                                    active_genders %}checked{% endif %}>
                                 <span class="category-name">Men</span>
                             </label>
                             <label class="category-parent">
-                                <input type="checkbox" name="gender" value="Women" {% if 'Women' in active_genders %}checked{% endif %}>
+                                <input type="checkbox" name="gender" value="Women" id="gender-Women" {% if 'Women' in
+                                    active_genders %}checked{% endif %}>
                                 <span class="category-name">Women</span>
                             </label>
                             <label class="category-parent">
-                                <input type="checkbox" name="gender" value="Unisex" {% if 'Unisex' in active_genders %}checked{% endif %}>
+                                <input type="checkbox" name="gender" value="Unisex" id="gender-Unisex" {% if 'Unisex' in
+                                    active_genders %}checked{% endif %}>
                                 <span class="category-name">Unisex</span>
                             </label>
                         </div>
                     </div>
+                </div>
                 <div class="filter-group">
                     <h3>Categories</h3>
                     <div class="filter-options">
@@ -59,28 +89,51 @@
                         {% if cat.name not in seen_parent_names %}
                         {% set _ = seen_parent_names.append(cat.name) %}
                         <div class="filter-category-item" style="margin-bottom: 1rem;">
-                            <label class="category-parent" style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem; margin-bottom: 0.4rem; cursor: pointer;">
-                                <input type="checkbox" name="category" value="{{ cat.name }}" {% if cat.name in active_categories %}checked{% endif %} style="width: 16px; height: 16px; accent-color: var(--crimson);">
-                                <span class="category-name">{{ cat.name }}</span>
-                            </label>
+                            {% set has_active_sub = [false] %}
                             {% if cat.subcategories %}
-                            <div class="subcategory-group" style="display: flex; flex-direction: column; gap: 0.4rem; padding-left: 1.5rem; margin-top: 0.3rem; border-left: 1px solid rgba(0,0,0,0.1);">
-                                {% macro render_filter_subcategories(sub_list, padding_val=0) %}
-                                    {% set seen_sub_names = [] %}
-                                    {% for sub in sub_list %}
-                                    {% if sub.name not in seen_sub_names %}
-                                    {% set _ = seen_sub_names.append(sub.name) %}
-                                    <div style="padding-left: {{ padding_val }}rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                                        <label class="subcategory-item" style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; color: var(--text-soft); margin-bottom: 0px;">
-                                            <input type="checkbox" name="subcategory" value="{{ sub.name }}" {% if sub.name in active_subcategories %}checked{% endif %} style="width: 14px; height: 14px; accent-color: var(--crimson-light);">
-                                            <span class="subcategory-name">{{ sub.name }}</span>
-                                        </label>
-                                        {% if sub.subcategories %}
-                                            {{ render_filter_subcategories(sub.subcategories, 1.0) }}
-                                        {% endif %}
-                                    </div>
+                                {% for sub in cat.subcategories %}
+                                    {% if sub.name in active_subcategories %}
+                                        {% set _ = has_active_sub.append(true) %}
                                     {% endif %}
-                                    {% endfor %}
+                                {% endfor %}
+                            {% endif %}
+                            <div class="category-parent-wrap" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                                <label class="category-parent"
+                                    style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem; margin-bottom: 0.4rem; cursor: pointer; flex-grow: 1;">
+                                    <input type="checkbox" name="category" value="{{ cat.name }}" {% if cat.name in
+                                        active_categories %}checked{% endif %}
+                                        style="width: 16px; height: 16px; accent-color: var(--crimson);">
+                                    <span class="category-name">{{ cat.name }}</span>
+                                </label>
+                                {% if cat.subcategories %}
+                                <button type="button" class="subcategory-toggle-btn" style="background: none; border: none; cursor: pointer; padding: 4px 8px; color: var(--text-soft); transition: transform 0.2s; {% if true in has_active_sub %}transform: rotate(180deg);{% endif %}">
+                                    <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                            {% if cat.subcategories %}
+                            <div class="subcategory-group"
+                                style="{% if true in has_active_sub %}display: flex;{% else %}display: none;{% endif %} flex-direction: column; gap: 0.4rem; padding-left: 1.5rem; margin-top: 0.3rem; border-left: 1px solid rgba(0,0,0,0.1);">
+                                {% macro render_filter_subcategories(sub_list, padding_val=0) %}
+                                {% set seen_sub_names = [] %}
+                                {% for sub in sub_list %}
+                                {% if sub.name not in seen_sub_names %}
+                                {% set _ = seen_sub_names.append(sub.name) %}
+                                <div
+                                    style="padding-left: {{ padding_val }}rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                                    <label class="subcategory-item"
+                                        style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; color: var(--text-soft); margin-bottom: 0px;">
+                                        <input type="checkbox" name="subcategory" value="{{ sub.name }}" {% if sub.name
+                                            in active_subcategories %}checked{% endif %}
+                                            style="width: 14px; height: 14px; accent-color: var(--crimson-light);">
+                                        <span class="subcategory-name">{{ sub.name }}</span>
+                                    </label>
+                                    {% if sub.subcategories %}
+                                    {{ render_filter_subcategories(sub.subcategories, 1.0) }}
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                                {% endfor %}
                                 {% endmacro %}
                                 {{ render_filter_subcategories(cat.subcategories) }}
                             </div>
@@ -95,11 +148,13 @@
                     <h3>Collections</h3>
                     <div class="filter-options">
                         <label class="category-parent">
-                            <input type="checkbox" name="filter" value="new_arrivals" {% if 'new_arrivals' in active_filters %}checked{% endif %}>
+                            <input type="checkbox" name="filter" value="new_arrivals" {% if 'new_arrivals' in
+                                active_filters %}checked{% endif %}>
                             <span class="category-name">New Arrivals</span>
                         </label>
                         <label class="category-parent">
-                            <input type="checkbox" name="filter" value="best_sellers" {% if 'best_sellers' in active_filters %}checked{% endif %}>
+                            <input type="checkbox" name="filter" value="best_sellers" {% if 'best_sellers' in
+                                active_filters %}checked{% endif %}>
                             <span class="category-name">Best Sellers</span>
                         </label>
                     </div>
@@ -134,9 +189,11 @@
         <main class="shop-products">
             <div class="shop-products-header">
                 {% if search_query %}
-                <span>Search results for "{{ search_query }}" ({{ products|length }} found)</span>
+                <span>Search results for "{{ search_query }}" (Showing {{ products|length }} of {{ pagination.total if
+                    pagination else products|length }} products)</span>
                 {% else %}
-                <span>Showing {{ products|length }} products</span>
+                <span>Showing {{ products|length }} of {{ pagination.total if pagination else products|length }}
+                    products</span>
                 {% endif %}
             </div>
             <div class="shop-grid">
@@ -148,25 +205,28 @@
             {% if pagination and pagination.pages > 1 %}
             <div class="pagination">
                 {% if pagination.has_prev %}
-                <a href="{{ url_for('public.shop', page=pagination.prev_num, category=active_categories, subcategory=active_subcategories, filter=active_filters, search=search_query) }}" class="page-link prev-page">
+                <a href="{{ url_for('public.shop', page=pagination.prev_num, category=active_categories, subcategory=active_subcategories, filter=active_filters, search=search_query) }}"
+                    class="page-link prev-page">
                     <i class="fas fa-chevron-left"></i> Prev
                 </a>
                 {% endif %}
 
                 {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-                    {% if page_num %}
-                        {% if page_num == pagination.page %}
-                        <span class="page-link active">{{ page_num }}</span>
-                        {% else %}
-                        <a href="{{ url_for('public.shop', page=page_num, category=active_categories, subcategory=active_subcategories, filter=active_filters, search=search_query) }}" class="page-link">{{ page_num }}</a>
-                        {% endif %}
-                    {% else %}
-                    <span class="page-link dots">...</span>
-                    {% endif %}
+                {% if page_num %}
+                {% if page_num == pagination.page %}
+                <span class="page-link active">{{ page_num }}</span>
+                {% else %}
+                <a href="{{ url_for('public.shop', page=page_num, category=active_categories, subcategory=active_subcategories, filter=active_filters, search=search_query) }}"
+                    class="page-link">{{ page_num }}</a>
+                {% endif %}
+                {% else %}
+                <span class="page-link dots">...</span>
+                {% endif %}
                 {% endfor %}
 
                 {% if pagination.has_next %}
-                <a href="{{ url_for('public.shop', page=pagination.next_num, category=active_categories, subcategory=active_subcategories, filter=active_filters, search=search_query) }}" class="page-link next-page">
+                <a href="{{ url_for('public.shop', page=pagination.next_num, category=active_categories, subcategory=active_subcategories, filter=active_filters, search=search_query) }}"
+                    class="page-link next-page">
                     Next <i class="fas fa-chevron-right"></i>
                 </a>
                 {% endif %}
@@ -180,11 +240,13 @@
     .mobile-only-apply-btn {
         display: none;
     }
+
     @media (max-width: 768px) {
         .mobile-only-apply-btn {
             display: block !important;
         }
     }
+
     /* SHOP PAGE LAYOUT */
     .shop-banner {
         background: var(--bg-deep, #241a14);
@@ -535,6 +597,117 @@
             width: 85%;
         }
     }
+
+    .gender-filter-row {
+        display: flex;
+        justify-content: flex-start;
+        gap: 1.5rem;
+        margin: 0 auto 2rem;
+        max-width: var(--content-max, 1240px);
+        padding: 1.2rem 2.5rem;
+        background: #ffffff;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-light);
+        box-shadow: var(--shadow-soft);
+    }
+
+    .gender-card {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+        cursor: pointer;
+        padding: 0.5rem 1.5rem;
+        border-radius: 50px;
+        border: 1.5px solid var(--border-light);
+        background: #fbf7f9;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .gender-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--gold-primary);
+        background: #fff;
+    }
+
+    .gender-img-wrap {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    .gender-card.active {
+        border-color: var(--gold-primary);
+        background: #ffffff;
+        box-shadow: 0 6px 15px rgba(184, 138, 68, 0.12);
+    }
+
+    .gender-card.active .gender-img-wrap {
+        border-color: var(--gold-primary);
+        transform: scale(1.05);
+    }
+
+    .gender-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .gender-card span {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        transition: color 0.3s ease;
+    }
+
+    .gender-card.active span {
+        color: var(--gold-primary);
+    }
+
+    /* Premium hover effects for categories inside sidebar */
+    .category-parent {
+        transition: color 0.25s ease;
+    }
+
+    .category-parent:hover {
+        color: var(--gold-primary) !important;
+    }
+
+    .subcategory-item {
+        transition: color 0.25s ease;
+    }
+
+    .subcategory-item:hover {
+        color: var(--gold-primary) !important;
+    }
+
+    @media (max-width: 768px) {
+        .gender-filter-row {
+            gap: 0.5rem;
+            padding: 0.8rem 1rem;
+            flex-wrap: nowrap;
+            justify-content: center;
+            margin: 1.5rem auto 1rem;
+        }
+
+        .gender-card {
+            gap: 0.4rem;
+            padding: 0.3rem 0.6rem;
+        }
+
+        .gender-img-wrap {
+            width: 32px;
+            height: 32px;
+        }
+
+        .gender-card span {
+            font-size: 0.78rem;
+        }
+    }
 </style>
 
 <script>
@@ -553,10 +726,10 @@
             sidebarOverlay.classList.remove('active');
             document.body.style.overflow = 'auto';
         }
-    };    filterBtn.addEventListener('click', () => toggleSidebar(true));
+    }; filterBtn.addEventListener('click', () => toggleSidebar(true));
     closeSidebar.addEventListener('click', () => toggleSidebar(false));
     sidebarOverlay.addEventListener('click', () => toggleSidebar(false));
-    
+
     const allProductsCheckbox = document.getElementById('allProducts');
     const genderCheckboxes = document.querySelectorAll('input[name="gender"]');
     const filterCheckboxes = document.querySelectorAll('input[name="filter"]');
@@ -600,6 +773,24 @@
 
     subcategoryCheckboxes.forEach(cb => {
         cb.addEventListener('change', uncheckAll);
+    });
+
+    // Subcategories Dropdown Toggle Handler
+    document.querySelectorAll('.subcategory-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const parentWrap = btn.closest('.category-parent-wrap');
+            if (parentWrap) {
+                const group = parentWrap.nextElementSibling;
+                if (group && group.classList.contains('subcategory-group')) {
+                    const isHidden = group.style.display === 'none';
+                    group.style.display = isHidden ? 'flex' : 'none';
+                    btn.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+                }
+            }
+        });
     });
 </script>
 {% endblock %}
