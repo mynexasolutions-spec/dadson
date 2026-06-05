@@ -7,6 +7,8 @@ from werkzeug.utils import secure_filename
 from flask import current_app
 import cloudinary.uploader
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from sqlalchemy.orm import joinedload
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -27,6 +29,29 @@ def save_image(file, folder):
     # Upload to Cloudinary
     upload_result = cloudinary.uploader.upload(file, folder=f"dadson/{folder}")
     return upload_result.get('secure_url')
+
+def save_images_batch(tasks):
+    """Upload multiple images to Cloudinary concurrently.
+    tasks: list of (key, file, folder) tuples
+    returns: dict of {key: url or None}
+    """
+    if not tasks:
+        return {}
+
+    def _upload(key, file, folder):
+        try:
+            return key, save_image(file, folder)
+        except Exception as e:
+            print(f"Cloudinary upload failed for {key}: {e}")
+            return key, None
+
+    results = {}
+    with ThreadPoolExecutor(max_workers=min(6, len(tasks))) as executor:
+        futures = {executor.submit(_upload, key, f, folder): key for key, f, folder in tasks}
+        for future in as_completed(futures):
+            key, url = future.result()
+            results[key] = url
+    return results
 
 def delete_image(image_url):
     if not image_url or 'cloudinary' not in image_url:
@@ -89,7 +114,15 @@ def profile():
 @admin_bp.route('/admin/products')
 @admin_required
 def products():
-    all_products = Product.query.all()
+    all_products = (
+        Product.query
+        .options(
+            joinedload(Product.images),
+            joinedload(Product.attributes),
+            joinedload(Product.selected_values),
+        )
+        .all()
+    )
     categories = Category.query.all()
     return render_template('admin/products.html', products=all_products, categories=categories)
 
@@ -117,12 +150,30 @@ def new_product():
         
         category = Category.query.get(category_id)
         cat_name = category.name if category else 'Uncategorized'
-        
+
+        # Collect all files upfront so we can upload them in parallel
         img_file = request.files.get('img')
-        img = save_image(img_file, 'products') if img_file else None
-        
         size_chart_file = request.files.get('size_chart')
-        size_chart = save_image(size_chart_file, 'size_charts') if size_chart_file else None
+        gallery_files = request.files.getlist('gallery[]')
+        var_indices = request.form.getlist('var_idx[]')
+
+        _upload_tasks = []
+        if img_file and img_file.filename:
+            _upload_tasks.append(('main_img', img_file, 'products'))
+        if size_chart_file and size_chart_file.filename:
+            _upload_tasks.append(('size_chart', size_chart_file, 'size_charts'))
+        for _i, _gf in enumerate(gallery_files):
+            if _gf and _gf.filename:
+                _upload_tasks.append((f'gallery_{_i}', _gf, 'products/gallery'))
+        if product_type == 'variable':
+            for _idx in var_indices:
+                _vf = request.files.get(f'var_img_{_idx}')
+                if _vf and _vf.filename:
+                    _upload_tasks.append((f'var_{_idx}', _vf, 'products/variations'))
+        _image_urls = save_images_batch(_upload_tasks)
+
+        img = _image_urls.get('main_img')
+        size_chart = _image_urls.get('size_chart')
         
         new_id = name.lower().replace(' ', '-')
         new_id = re.sub(r'[^a-z0-9\-]', '', new_id)[:30].strip('-')
@@ -187,17 +238,15 @@ def new_product():
                     attribute_value_id=int(val_id)
                 ))
         
-        # Handle Gallery Images
-        gallery_files = request.files.getlist('gallery[]')
-        for g_file in gallery_files:
+        # Handle Gallery Images (URLs already uploaded in parallel above)
+        for _i, g_file in enumerate(gallery_files):
             if g_file and g_file.filename:
-                g_url = save_image(g_file, 'products/gallery')
+                g_url = _image_urls.get(f'gallery_{_i}')
                 if g_url:
                     db.session.add(ProductImage(product_id=product.id, img_url=g_url))
-        
+
         # Handle Variations
         if product_type == 'variable':
-            var_indices = request.form.getlist('var_idx[]')
             for idx in var_indices:
                 var_price_raw = request.form.getlist('var_price[]')[var_indices.index(idx)].replace('₹', '').replace(',', '').strip()
                 var_price = f"₹{int(var_price_raw):,}" if var_price_raw and var_price_raw.isdigit() else product.price
@@ -207,8 +256,7 @@ def new_product():
                 
                 var_stock = request.form.getlist('var_stock[]')[var_indices.index(idx)]
                 
-                var_img_file = request.files.get(f'var_img_{idx}')
-                var_img_url = save_image(var_img_file, 'products/variations') if var_img_file else None
+                var_img_url = _image_urls.get(f'var_{idx}')
                 
                 variation = ProductVariation(
                     product_id=product.id,
@@ -278,15 +326,36 @@ def edit_product(id):
             product.cat_name = category.name
         
         img_file = request.files.get('img')
-        if img_file and img_file.filename:
-            # Delete old image if exists
-            if product.img: delete_image(product.img)
-            product.img = save_image(img_file, 'products')
-            
         size_chart_file = request.files.get('size_chart')
+        gallery_files = request.files.getlist('gallery[]')
+        var_indices = request.form.getlist('var_idx[]')
+        _new_product_type = request.form.get('product_type', 'simple')
+
+        # Collect and upload all images in parallel
+        _upload_tasks = []
+        if img_file and img_file.filename:
+            _upload_tasks.append(('main_img', img_file, 'products'))
         if size_chart_file and size_chart_file.filename:
-            if product.size_chart: delete_image(product.size_chart)
-            product.size_chart = save_image(size_chart_file, 'size_charts')
+            _upload_tasks.append(('size_chart', size_chart_file, 'size_charts'))
+        for _i, _gf in enumerate(gallery_files):
+            if _gf and _gf.filename:
+                _upload_tasks.append((f'gallery_{_i}', _gf, 'products/gallery'))
+        if _new_product_type == 'variable':
+            for _idx in var_indices:
+                _vf = request.files.get(f'var_img_{_idx}')
+                if _vf and _vf.filename:
+                    _upload_tasks.append((f'var_{_idx}', _vf, 'products/variations'))
+        _image_urls = save_images_batch(_upload_tasks)
+
+        if img_file and img_file.filename:
+            if product.img:
+                delete_image(product.img)
+            product.img = _image_urls.get('main_img')
+
+        if size_chart_file and size_chart_file.filename:
+            if product.size_chart:
+                delete_image(product.size_chart)
+            product.size_chart = _image_urls.get('size_chart')
         
         # Handle Attributes & Values (Cleanup and Save)
         SelectedAttributeValue.query.filter_by(product_id=product.id).delete()
@@ -325,13 +394,13 @@ def edit_product(id):
                 delete_image(img_obj.img_url)
                 db.session.delete(img_obj)
         
-        gallery_files = request.files.getlist('gallery[]')
-        for g_file in gallery_files:
+        # Handle Gallery Images (URLs already uploaded in parallel above)
+        for _i, g_file in enumerate(gallery_files):
             if g_file and g_file.filename:
-                g_url = save_image(g_file, 'products/gallery')
+                g_url = _image_urls.get(f'gallery_{_i}')
                 if g_url:
                     db.session.add(ProductImage(product_id=product.id, img_url=g_url))
-        
+
         # Handle Variations
         if product.product_type == 'variable':
             # Clean up old variations
@@ -342,7 +411,6 @@ def edit_product(id):
                 db.session.delete(old_var)
             db.session.flush()
 
-            var_indices = request.form.getlist('var_idx[]')
             var_prices = request.form.getlist('var_price[]')
             var_origs = request.form.getlist('var_orig[]')
             var_stocks = request.form.getlist('var_stock[]')
@@ -355,17 +423,16 @@ def edit_product(id):
                     var_price = f"₹{int(float(raw_p)):,}" if raw_p else product.price
                 except (ValueError, TypeError):
                     var_price = product.price
-                
+
                 raw_o = var_origs[i].replace('₹', '').replace(',', '').strip() if i < len(var_origs) else ""
                 try:
                     var_orig = f"₹{int(float(raw_o)):,}" if raw_o else None
                 except (ValueError, TypeError):
                     var_orig = None
-                
+
                 var_stock = var_stocks[i] if i < len(var_stocks) else 'instock'
                 existing_img = var_existing_imgs[i] if i < len(var_existing_imgs) else ""
-                var_img_file = request.files.get(f'var_img_{idx}')
-                var_img_url = save_image(var_img_file, 'products/variations') if var_img_file else existing_img
+                var_img_url = _image_urls.get(f'var_{idx}') or existing_img
                 
                 variation = ProductVariation(
                     product_id=product.id,

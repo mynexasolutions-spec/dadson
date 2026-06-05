@@ -7,3 +7,4 @@ werkzeug
 Jinja2
 gunicorn
 flask-cors
+flask-compress

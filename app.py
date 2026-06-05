@@ -1,4 +1,5 @@
 import os
+import time
 from flask import Flask, session
 from models import db, Category, User, AppConfig
 from dotenv import load_dotenv
@@ -233,6 +234,8 @@ with app.app_context():
 # ---------------------------------------------------------------------------
 _category_cache = {'data': None}
 _config_cache = {}
+_admin_notif_cache = {'data': None, 'ts': 0}
+_ADMIN_NOTIF_TTL = 30  # seconds
 
 def get_cached_categories():
     if _category_cache['data'] is None:
@@ -244,6 +247,22 @@ def get_cached_config(key):
         cfg = AppConfig.query.filter_by(key=key).first()
         _config_cache[key] = cfg.value if cfg and cfg.value else None
     return _config_cache[key]
+
+def get_cached_admin_notifications():
+    now = time.time()
+    if _admin_notif_cache['data'] is not None and now - _admin_notif_cache['ts'] < _ADMIN_NOTIF_TTL:
+        return _admin_notif_cache['data']
+    from models import Order, Product
+    notifications = []
+    recent_orders = Order.query.order_by(Order.id.desc()).limit(3).all()
+    for o in recent_orders:
+        notifications.append({"text": f"New order #{o.order_number} received", "time": "Recently", "type": "order"})
+    low_stock = Product.query.filter(Product.stock_status == 'outofstock').limit(2).all()
+    for p in low_stock:
+        notifications.append({"text": f"Product '{p.name}' is out of stock", "time": "Alert", "type": "stock"})
+    _admin_notif_cache['data'] = notifications
+    _admin_notif_cache['ts'] = now
+    return notifications
 
 def invalidate_category_cache():
     _category_cache['data'] = None
@@ -276,21 +295,7 @@ def inject_globals():
     if 'user_id' in session:
         user = User.query.get(session['user_id'])
         if user and user.is_admin:
-            from models import Order, Product
-            recent_orders = Order.query.order_by(Order.id.desc()).limit(3).all()
-            for o in recent_orders:
-                admin_notifications.append({
-                    "text": f"New order #{o.order_number} received",
-                    "time": "Recently",
-                    "type": "order"
-                })
-            low_stock = Product.query.filter(Product.stock_status == 'outofstock').limit(2).all()
-            for p in low_stock:
-                admin_notifications.append({
-                    "text": f"Product '{p.name}' is out of stock",
-                    "time": "Alert",
-                    "type": "stock"
-                })
+            admin_notifications = get_cached_admin_notifications()
 
     ga_measurement_id = get_cached_config('ga_measurement_id')
     facebook_pixel_id = get_cached_config('facebook_pixel_id')
