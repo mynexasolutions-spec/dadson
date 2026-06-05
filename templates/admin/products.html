@@ -71,7 +71,7 @@
                             </div>
                         </div>
                     </td>
-                    <td style="text-align: left; padding: 15px;">{{ product.cat_name }}</td>
+                    <td style="text-align: left; padding: 15px;">{{ product.category.get_full_path() if product.category else (product.cat_name or 'Uncategorized') }}</td>
                     <td style="text-align: left; padding: 15px;"><span class="price-text">{{ product.price }}</span></td>
                     <td style="text-align: left; padding: 15px;">
                         <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">

@@ -295,7 +295,11 @@ if (mobileMenuBtn) {
 // Close mobile menu when clicking on a link
 if (navLinks) {
     navLinks.querySelectorAll('a').forEach(link => {
-        link.addEventListener('click', () => {
+        link.addEventListener('click', function(e) {
+            // Do NOT close mobile menu if clicking a parent submenu link on mobile/tablet viewports
+            if (window.innerWidth <= 1024 && this.closest('.dropdown-item-with-submenu') && this.nextElementSibling && this.nextElementSibling.classList.contains('submenu')) {
+                return;
+            }
             mobileMenuBtn.classList.remove('active');
             navLinks.classList.remove('show');
             document.body.classList.remove('menu-open');
@@ -504,6 +508,8 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.outline = 'none';
         });
     });
+
+    // Mobile submenu accordion toggling was removed to allow direct navigation to categories on mobile.
 });
 
 // ==================== ERROR HANDLING ====================

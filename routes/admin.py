@@ -22,7 +22,7 @@ def admin_required(f):
     return decorated_function
 
 def save_image(file, folder):
-    if not file:
+    if not file or not file.filename:
         return None
     # Upload to Cloudinary
     upload_result = cloudinary.uploader.upload(file, folder=f"dadson/{folder}")
@@ -125,8 +125,10 @@ def new_product():
         size_chart = save_image(size_chart_file, 'size_charts') if size_chart_file else None
         
         new_id = name.lower().replace(' ', '-')
+        new_id = re.sub(r'[^a-z0-9\-]', '', new_id)[:30].strip('-')
         if Product.query.get(new_id):
             new_id = f"{new_id}-{int(datetime.now().timestamp())}"
+        new_id = new_id[:50]
             
         product = Product(
             id=new_id,
@@ -157,14 +159,13 @@ def new_product():
         db.session.add(product)
         db.session.flush() # Get product ID for related models
         
-        # Handle Attributes & Values
+        # Handle Attributes & Values (Variations)
         SelectedAttributeValue.query.filter_by(product_id=product.id).delete()
         ProductAttribute.query.filter_by(product_id=product.id).delete()
         attr_ids = request.form.getlist('product_attributes[]')
         for a_id in attr_ids:
             if a_id:
                 db.session.add(ProductAttribute(product_id=product.id, attribute_id=a_id))
-                # Also save selected values for this attribute
                 val_ids = request.form.getlist(f'attr_val_{a_id}[]')
                 for v_id in val_ids:
                     if v_id:
@@ -173,6 +174,18 @@ def new_product():
                             attribute_id=a_id,
                             attribute_value_id=v_id
                         ))
+                        
+        # Handle Filter Attributes (Product Details radio selections)
+        filter_attributes = Attribute.query.filter_by(is_featured=True).all()
+        for attr in filter_attributes:
+            val_id = request.form.get(f'filter_attr_{attr.id}')
+            if val_id and val_id != 'none' and val_id.isdigit():
+                db.session.add(ProductAttribute(product_id=product.id, attribute_id=attr.id))
+                db.session.add(SelectedAttributeValue(
+                    product_id=product.id,
+                    attribute_id=attr.id,
+                    attribute_value_id=int(val_id)
+                ))
         
         # Handle Gallery Images
         gallery_files = request.files.getlist('gallery[]')
@@ -217,10 +230,11 @@ def new_product():
         return redirect(url_for('admin.products'))
     
     categories = Category.query.all()
-    subcategories = SubCategory.query.all()
+    subcategories = []
     attributes = Attribute.query.all()
     brands = Brand.query.all()
-    return render_template('admin/product_form.html', categories=categories, subcategories=subcategories, attributes=attributes, brands=brands)
+    filter_attributes = Attribute.query.filter_by(is_featured=True).all()
+    return render_template('admin/product_form.html', categories=categories, subcategories=subcategories, attributes=attributes, brands=brands, filter_attributes=filter_attributes)
 
 @admin_bp.route('/admin/product/edit/<id>', methods=['GET', 'POST'])
 @admin_required
@@ -282,7 +296,6 @@ def edit_product(id):
         for a_id in attr_ids:
             if a_id:
                 db.session.add(ProductAttribute(product_id=product.id, attribute_id=a_id))
-                # Save selected values for this attribute
                 val_ids = request.form.getlist(f'attr_val_{a_id}[]')
                 for v_id in val_ids:
                     if v_id:
@@ -291,6 +304,18 @@ def edit_product(id):
                             attribute_id=a_id,
                             attribute_value_id=v_id
                         ))
+                
+        # Handle Filter Attributes (Product Details radio selections)
+        filter_attributes = Attribute.query.filter_by(is_featured=True).all()
+        for attr in filter_attributes:
+            val_id = request.form.get(f'filter_attr_{attr.id}')
+            if val_id and val_id != 'none' and val_id.isdigit():
+                db.session.add(ProductAttribute(product_id=product.id, attribute_id=attr.id))
+                db.session.add(SelectedAttributeValue(
+                    product_id=product.id,
+                    attribute_id=attr.id,
+                    attribute_value_id=int(val_id)
+                ))
                 
         # Handle Gallery Images
         remove_gallery_ids = request.form.getlist('remove_gallery[]')
@@ -368,10 +393,12 @@ def edit_product(id):
         return redirect(url_for('admin.products'))
         
     categories = Category.query.all()
-    subcategories = SubCategory.query.all()
+    subcategories = []
     attributes = Attribute.query.all()
     brands = Brand.query.all()
-    return render_template('admin/product_form.html', categories=categories, subcategories=subcategories, attributes=attributes, brands=brands, product=product)
+    filter_attributes = Attribute.query.filter_by(is_featured=True).all()
+    selected_val_ids = [sv.attribute_value_id for sv in product.selected_values]
+    return render_template('admin/product_form.html', categories=categories, subcategories=subcategories, attributes=attributes, brands=brands, product=product, filter_attributes=filter_attributes, selected_val_ids=selected_val_ids)
 
 @admin_bp.route('/admin/product/delete/<id>', methods=['POST'])
 @admin_required
@@ -426,13 +453,19 @@ def new_category():
         img_file = request.files.get('img')
         img = save_image(img_file, 'categories') if img_file else None
         
-        category = Category(name=name, img=img)
+        parent_id = request.form.get('parent_id')
+        parent_id = int(parent_id) if parent_id and parent_id.isdigit() else None
+        gender = request.form.get('gender', 'Both')
+
+        category = Category(name=name, img=img, parent_id=parent_id, gender=gender)
         db.session.add(category)
         db.session.commit()
         current_app.invalidate_category_cache()
         flash('Category added successfully!', 'success')
         return redirect(url_for('admin.categories'))
-    return render_template('admin/category_form.html')
+    categories = Category.query.all()
+    selected_parent_id = request.args.get('parent_id', type=int)
+    return render_template('admin/category_form.html', categories=categories, selected_parent_id=selected_parent_id)
 
 @admin_bp.route('/admin/category/edit/<int:id>', methods=['GET', 'POST'])
 @admin_required
@@ -445,11 +478,27 @@ def edit_category(id):
             delete_image(category.img)
             category.img = save_image(img_file, 'categories')
             
+        parent_id = request.form.get('parent_id')
+        category.parent_id = int(parent_id) if parent_id and parent_id.isdigit() else None
+        category.gender = request.form.get('gender', 'Both')
+
         db.session.commit()
         current_app.invalidate_category_cache()
         flash('Category updated successfully!', 'success')
         return redirect(url_for('admin.categories'))
-    return render_template('admin/category_form.html', category=category)
+        
+    def get_descendants(cat):
+        descendants = []
+        for sub in cat.subcategories:
+            descendants.append(sub)
+            descendants.extend(get_descendants(sub))
+        return descendants
+        
+    descendant_ids = {sub.id for sub in get_descendants(category)}
+    descendant_ids.add(category.id)
+    potential_parents = Category.query.filter(~Category.id.in_(descendant_ids)).all()
+
+    return render_template('admin/category_form.html', category=category, categories=potential_parents)
 
 @admin_bp.route('/admin/category/delete/<int:id>', methods=['POST'])
 @admin_required

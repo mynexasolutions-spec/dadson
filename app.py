@@ -109,6 +109,67 @@ with app.app_context():
         except Exception:
             db.session.rollback()
 
+    # Migration for Category recursive hierarchy and gender attributes
+    for col, col_type in [
+        ('parent_id', 'INTEGER'),
+        ('gender', 'VARCHAR(20)'),
+    ]:
+        try:
+            db.session.execute(db.text(f'ALTER TABLE category ADD COLUMN {col} {col_type}'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+    # Migrate SubCategory entries to Category entries
+    try:
+        from models import SubCategory, Product
+        subcategories = SubCategory.query.all()
+        if subcategories:
+            print(f"Migrating {len(subcategories)} SubCategory records to Category...")
+            sub_to_cat_map = {}
+            for sub in subcategories:
+                gender = 'Both'
+                name = sub.name
+                if sub.name.lower().startswith('men - '):
+                    gender = 'Men'
+                    name = sub.name[6:]
+                elif sub.name.lower().startswith('women - '):
+                    gender = 'Women'
+                    name = sub.name[8:]
+                elif sub.name.lower() == 'men':
+                    gender = 'Men'
+                elif sub.name.lower() == 'women':
+                    gender = 'Women'
+
+                existing_cat = Category.query.filter_by(name=name, parent_id=sub.category_id, gender=gender).first()
+                if not existing_cat:
+                    existing_cat = Category(
+                        name=name,
+                        parent_id=sub.category_id,
+                        gender=gender,
+                        img=sub.category.img if sub.category else None
+                    )
+                    db.session.add(existing_cat)
+                    db.session.flush()
+                sub_to_cat_map[sub.id] = existing_cat.id
+
+            products = Product.query.filter(Product.sub_category_id.isnot(None)).all()
+            for prod in products:
+                if prod.sub_category_id in sub_to_cat_map:
+                    prod.category_id = sub_to_cat_map[prod.sub_category_id]
+                    p_cat = Category.query.get(prod.category_id)
+                    prod.cat_name = p_cat.name if p_cat else 'Uncategorized'
+            db.session.commit()
+
+            db.session.query(SubCategory).delete()
+            db.session.commit()
+            print("SubCategory migration completed.")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error during category migration: {e}")
+
+
+
     # Ensure upload directories exist
     upload_dirs = [
         app.config['UPLOAD_FOLDER'],
@@ -142,6 +203,30 @@ with app.app_context():
             db.session.add(config)
 
     db.session.commit()
+
+    # Seed Gender attribute and its values
+    try:
+        from models import Attribute, AttributeValue
+        # Remove legacy separate Men and Women attributes if they exist
+        Attribute.query.filter(Attribute.name.in_(['Men', 'Women'])).delete()
+        db.session.commit()
+        
+        # Check if Gender attribute exists
+        gender_attr = Attribute.query.filter_by(slug='gender').first()
+        if not gender_attr:
+            gender_attr = Attribute(name='Gender', slug='gender', type='select', is_featured=True)
+            db.session.add(gender_attr)
+            db.session.commit()
+            
+        # Ensure values exist: Men, Women, Unisex
+        for val_name in ['Men', 'Women', 'Unisex']:
+            val_exists = AttributeValue.query.filter_by(attribute_id=gender_attr.id, value=val_name).first()
+            if not val_exists:
+                db.session.add(AttributeValue(attribute_id=gender_attr.id, value=val_name))
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error seeding Gender attribute: {e}")
 
 # ---------------------------------------------------------------------------
 # Simple in-process caches — avoid DB round-trips on every page load

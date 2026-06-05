@@ -12,9 +12,10 @@
     <link rel="dns-prefetch" href="https://checkout.razorpay.com">
 
     <title>{% block title %}DADSON | Premium Jewellery{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
 
     <!-- Critical CSS first -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=4.8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=6.0">
 
     <!-- Fonts: load async, display=swap prevents invisible text -->
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@300;400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
@@ -71,8 +72,12 @@
                     <li class="nav-item dropdown-trigger">
                         <span>Categories <i class="fas fa-chevron-down" style="font-size: 0.8em; margin-left: 4px;"></i></span>
                         <div class="dropdown-menu">
-                            {% for cat in all_categories %}
+                            {% set seen_parent_names = [] %}
+                            {% for cat in all_categories if not cat.parent_id %}
+                            {% if cat.name not in seen_parent_names %}
+                            {% set _ = seen_parent_names.append(cat.name) %}
                             <a href="{{ url_for('public.shop', category=cat.name) }}" class="dropdown-item">{{ cat.name }}</a>
+                            {% endif %}
                             {% endfor %}
                         </div>
                     </li>
@@ -154,7 +159,7 @@
 
     {% include 'footer.html' %}
 
-    <script src="{{ url_for('static', filename='js/script.js') }}?v=4.8" defer></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}?v=6.0" defer></script>
     {% block scripts %}{% endblock %}
 </body>
 

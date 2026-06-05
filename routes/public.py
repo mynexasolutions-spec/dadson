@@ -105,19 +105,39 @@ def subscribe():
 
 @public_bp.route('/shop')
 def shop():
-    selected_categories = request.args.getlist('category')
-    selected_subcategories = request.args.getlist('subcategory')
+    selected_genders = request.args.getlist('gender')
     selected_filters = request.args.getlist('filter')
+    selected_categories = [c for c in request.args.getlist('category') if c]
+    selected_subcategories = [s for s in request.args.getlist('subcategory') if s]
     search_query = request.args.get('search', '').strip()
     page = request.args.get('page', 1, type=int)
     per_page = 12
 
     query = Product.query
-    if selected_categories:
-        query = query.filter(Product.cat_name.in_(selected_categories))
-    
-    if selected_subcategories:
-        query = query.join(SubCategory, Product.sub_category_id == SubCategory.id).filter(SubCategory.name.in_(selected_subcategories))
+    if selected_categories or selected_subcategories:
+        target_cat_ids = set()
+        if selected_categories:
+            parent_cats = Category.query.filter(Category.name.in_(selected_categories), Category.parent_id.is_(None)).all()
+            for p_cat in parent_cats:
+                target_cat_ids.add(p_cat.id)
+                for sub in p_cat.subcategories:
+                    target_cat_ids.add(sub.id)
+        if selected_subcategories:
+            sub_cats = Category.query.filter(Category.name.in_(selected_subcategories), Category.parent_id.isnot(None)).all()
+            for s_cat in sub_cats:
+                target_cat_ids.add(s_cat.id)
+        if target_cat_ids:
+            query = query.filter(Product.category_id.in_(list(target_cat_ids)))
+
+    if selected_genders:
+        from models import SelectedAttributeValue, AttributeValue, Attribute
+        gender_product_ids = db.session.query(SelectedAttributeValue.product_id)\
+            .join(AttributeValue, SelectedAttributeValue.attribute_value_id == AttributeValue.id)\
+            .join(Attribute, SelectedAttributeValue.attribute_id == Attribute.id)\
+            .filter(Attribute.slug == 'gender', AttributeValue.value.in_(selected_genders))\
+            .all()
+        product_ids = [r[0] for r in gender_product_ids]
+        query = query.filter(Product.id.in_(product_ids))
         
     if selected_filters:
         if 'best_sellers' in selected_filters:
@@ -234,7 +254,7 @@ def shop():
     products = pagination.items
     categories = Category.query.all()
     
-    return render_template('shop.html', products=products, pagination=pagination, active_categories=selected_categories, all_categories=categories, active_subcategories=selected_subcategories, search_query=search_query, active_filters=selected_filters)
+    return render_template('shop.html', products=products, pagination=pagination, active_genders=selected_genders, search_query=search_query, active_filters=selected_filters, all_categories=categories, active_categories=selected_categories, active_subcategories=selected_subcategories)
 
 @public_bp.route('/product/<id>')
 def product_detail(id):

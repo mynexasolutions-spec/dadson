@@ -29,31 +29,64 @@
                 <button id="closeSidebar">&times;</button>
             </div>
             <form action="/shop" method="GET" id="filterForm">
+                <button type="submit" class="apply-filters-btn mobile-only-apply-btn" style="margin-bottom: 1.5rem;">Apply Filters</button>
+                <div class="filter-group">
+                    <h3>Gender</h3>
+                    <div class="filter-options">
+                        <label class="all-prod-label"><input type="checkbox" id="allProducts" {% if not
+                                active_genders and not active_filters %}checked{% endif %}>
+                            All Products</label>
+                        <div class="filter-category-item">
+                            <label class="category-parent">
+                                <input type="checkbox" name="gender" value="Men" {% if 'Men' in active_genders %}checked{% endif %}>
+                                <span class="category-name">Men</span>
+                            </label>
+                            <label class="category-parent">
+                                <input type="checkbox" name="gender" value="Women" {% if 'Women' in active_genders %}checked{% endif %}>
+                                <span class="category-name">Women</span>
+                            </label>
+                            <label class="category-parent">
+                                <input type="checkbox" name="gender" value="Unisex" {% if 'Unisex' in active_genders %}checked{% endif %}>
+                                <span class="category-name">Unisex</span>
+                            </label>
+                        </div>
+                    </div>
                 <div class="filter-group">
                     <h3>Categories</h3>
                     <div class="filter-options">
-                        <label class="all-prod-label"><input type="checkbox" id="allProducts" {% if not
-                                active_categories and not active_subcategories and not active_filters %}checked{% endif %}>
-                            All Products</label>
-                        {% for cat in all_categories %}
-                        <div class="filter-category-item">
-                            <label class="category-parent">
-                                <input type="checkbox" name="category" value="{{ cat.name }}" {% if cat.name in
-                                    active_categories %}checked{% endif %}>
+                        {% set seen_parent_names = [] %}
+                        {% for cat in all_categories if not cat.parent_id %}
+                        {% if cat.name not in seen_parent_names %}
+                        {% set _ = seen_parent_names.append(cat.name) %}
+                        <div class="filter-category-item" style="margin-bottom: 1rem;">
+                            <label class="category-parent" style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem; margin-bottom: 0.4rem; cursor: pointer;">
+                                <input type="checkbox" name="category" value="{{ cat.name }}" {% if cat.name in active_categories %}checked{% endif %} style="width: 16px; height: 16px; accent-color: var(--crimson);">
                                 <span class="category-name">{{ cat.name }}</span>
                             </label>
                             {% if cat.subcategories %}
-                            <div class="subcategory-group">
-                                {% for sub in cat.subcategories %}
-                                <label class="subcategory-item">
-                                    <input type="checkbox" name="subcategory" value="{{ sub.name }}" {% if sub.name in
-                                        active_subcategories %}checked{% endif %}>
-                                    <span class="subcategory-name">{{ sub.name }}</span>
-                                </label>
-                                {% endfor %}
+                            <div class="subcategory-group" style="display: flex; flex-direction: column; gap: 0.4rem; padding-left: 1.5rem; margin-top: 0.3rem; border-left: 1px solid rgba(0,0,0,0.1);">
+                                {% macro render_filter_subcategories(sub_list, padding_val=0) %}
+                                    {% set seen_sub_names = [] %}
+                                    {% for sub in sub_list %}
+                                    {% if sub.name not in seen_sub_names %}
+                                    {% set _ = seen_sub_names.append(sub.name) %}
+                                    <div style="padding-left: {{ padding_val }}rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                                        <label class="subcategory-item" style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; color: var(--text-soft); margin-bottom: 0px;">
+                                            <input type="checkbox" name="subcategory" value="{{ sub.name }}" {% if sub.name in active_subcategories %}checked{% endif %} style="width: 14px; height: 14px; accent-color: var(--crimson-light);">
+                                            <span class="subcategory-name">{{ sub.name }}</span>
+                                        </label>
+                                        {% if sub.subcategories %}
+                                            {{ render_filter_subcategories(sub.subcategories, 1.0) }}
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                {% endmacro %}
+                                {{ render_filter_subcategories(cat.subcategories) }}
                             </div>
                             {% endif %}
                         </div>
+                        {% endif %}
                         {% endfor %}
                     </div>
                 </div>
@@ -144,6 +177,14 @@
 </div>
 
 <style>
+    .mobile-only-apply-btn {
+        display: none;
+    }
+    @media (max-width: 768px) {
+        .mobile-only-apply-btn {
+            display: block !important;
+        }
+    }
     /* SHOP PAGE LAYOUT */
     .shop-banner {
         background: var(--bg-deep, #241a14);
@@ -517,37 +558,47 @@
     sidebarOverlay.addEventListener('click', () => toggleSidebar(false));
     
     const allProductsCheckbox = document.getElementById('allProducts');
+    const genderCheckboxes = document.querySelectorAll('input[name="gender"]');
+    const filterCheckboxes = document.querySelectorAll('input[name="filter"]');
     const categoryCheckboxes = document.querySelectorAll('input[name="category"]');
     const subcategoryCheckboxes = document.querySelectorAll('input[name="subcategory"]');
-    const filterCheckboxes = document.querySelectorAll('input[name="filter"]');
 
     const uncheckAll = () => {
         if (allProductsCheckbox) allProductsCheckbox.checked = false;
-        toggleSidebar(false);
-        document.getElementById('filterForm').submit();
+        if (window.innerWidth > 768) {
+            toggleSidebar(false);
+            document.getElementById('filterForm').submit();
+        }
     };
 
     if (allProductsCheckbox) {
         allProductsCheckbox.addEventListener('change', function () {
             if (this.checked) {
+                genderCheckboxes.forEach(cb => cb.checked = false);
+                filterCheckboxes.forEach(cb => cb.checked = false);
                 categoryCheckboxes.forEach(cb => cb.checked = false);
                 subcategoryCheckboxes.forEach(cb => cb.checked = false);
-                filterCheckboxes.forEach(cb => cb.checked = false);
-                toggleSidebar(false);
-                document.getElementById('filterForm').submit();
+                if (window.innerWidth > 768) {
+                    toggleSidebar(false);
+                    document.getElementById('filterForm').submit();
+                }
             }
         });
     }
+
+    genderCheckboxes.forEach(cb => {
+        cb.addEventListener('change', uncheckAll);
+    });
+
+    filterCheckboxes.forEach(cb => {
+        cb.addEventListener('change', uncheckAll);
+    });
 
     categoryCheckboxes.forEach(cb => {
         cb.addEventListener('change', uncheckAll);
     });
 
     subcategoryCheckboxes.forEach(cb => {
-        cb.addEventListener('change', uncheckAll);
-    });
-
-    filterCheckboxes.forEach(cb => {
         cb.addEventListener('change', uncheckAll);
     });
 </script>
