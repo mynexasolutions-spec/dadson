@@ -798,16 +798,16 @@
                             </label>
                             {% endfor %}
                             
-                            {% set has_any_selection = False %}
+                            {% set ns = namespace(has_any_selection=false) %}
                             {% if selected_val_ids %}
                                 {% for val in attr.values %}
                                     {% if val.id in selected_val_ids %}
-                                        {% set has_any_selection = True %}
+                                        {% set ns.has_any_selection = true %}
                                     {% endif %}
                                 {% endfor %}
                             {% endif %}
                             <label class="attr-val-checkbox" style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; background: #f8fafc; padding: 10px 18px; border-radius: 14px; border: 2px solid #f1f5f9; font-size: 0.9rem; font-weight: 600; color: #64748b;">
-                                <input type="radio" name="filter_attr_{{ attr.id }}" value="none" {% if not has_any_selection %}checked{% endif %} style="accent-color: var(--luvtale-gold); width: 16px; height: 16px; cursor: pointer;">
+                                <input type="radio" name="filter_attr_{{ attr.id }}" value="none" {% if not ns.has_any_selection %}checked{% endif %} style="accent-color: var(--luvtale-gold); width: 16px; height: 16px; cursor: pointer;">
                                 <span>None</span>
                             </label>
                         </div>

@@ -34,20 +34,38 @@ def save_images_batch(tasks):
     """Upload multiple images to Cloudinary concurrently.
     tasks: list of (key, file, folder) tuples
     returns: dict of {key: url or None}
+
+    File bytes are read in the main thread before spawning workers to avoid
+    any FileStorage stream thread-safety concerns.
     """
     if not tasks:
         return {}
 
-    def _upload(key, file, folder):
+    # Read all file contents in the main thread first
+    preloaded = []
+    for key, f, folder in tasks:
         try:
-            return key, save_image(file, folder)
+            f.stream.seek(0)
+            data = f.stream.read()
+        except Exception as e:
+            print(f"Failed to read file for {key}: {e}")
+            data = None
+        preloaded.append((key, data, folder))
+
+    def _upload(key, data, folder):
+        if not data:
+            return key, None
+        try:
+            result = cloudinary.uploader.upload(data, folder=f"dadson/{folder}")
+            return key, result.get('secure_url')
         except Exception as e:
             print(f"Cloudinary upload failed for {key}: {e}")
             return key, None
 
     results = {}
-    with ThreadPoolExecutor(max_workers=min(6, len(tasks))) as executor:
-        futures = {executor.submit(_upload, key, f, folder): key for key, f, folder in tasks}
+    with ThreadPoolExecutor(max_workers=min(6, len(preloaded))) as executor:
+        futures = {executor.submit(_upload, key, data, folder): key
+                   for key, data, folder in preloaded}
         for future in as_completed(futures):
             key, url = future.result()
             results[key] = url
