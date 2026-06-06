@@ -527,8 +527,29 @@ def delete_product(id):
 @admin_bp.route('/admin/categories')
 @admin_required
 def categories():
+    from models import Product
+    from sqlalchemy import func
     all_categories = Category.query.all()
-    return render_template('admin/categories.html', categories=all_categories)
+
+    # One query: direct product count per category_id
+    raw = db.session.query(
+        Product.category_id, func.count(Product.id)
+    ).group_by(Product.category_id).all()
+    direct_counts = {cat_id: cnt for cat_id, cnt in raw if cat_id is not None}
+
+    # Build children map for recursive totalling
+    children_map = {}
+    for c in all_categories:
+        children_map.setdefault(c.parent_id, []).append(c.id)
+
+    def _total(cat_id):
+        t = direct_counts.get(cat_id, 0)
+        for child_id in children_map.get(cat_id, []):
+            t += _total(child_id)
+        return t
+
+    product_counts = {c.id: _total(c.id) for c in all_categories}
+    return render_template('admin/categories.html', categories=all_categories, product_counts=product_counts)
 
 @admin_bp.route('/admin/category/new', methods=['GET', 'POST'])
 @admin_required

@@ -30,7 +30,7 @@
                             <img src="{{ cat.img }}" alt="{{ cat.name }}">
                             <div class="product-info">
                                 <strong>{{ cat.name }}</strong>
-                                <span>{{ cat.products|length }} products</span>
+                                <span>{{ product_counts[cat.id] }} products</span>
                             </div>
                         </div>
                     </td>
@@ -58,7 +58,7 @@
                         </div>
                     </td>
                     <td>
-                        <span class="status-badge info">{{ cat.products|length }} Items</span>
+                        <span class="status-badge info">{{ product_counts[cat.id] }} Items</span>
                     </td>
                     <td>
                         <div class="action-btns">
