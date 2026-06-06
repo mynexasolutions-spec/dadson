@@ -11,38 +11,62 @@
 {% block content %}
 <div class="shop-page">
 
-    <div class="gender-filter-row">
-        <label for="gender-Men" class="gender-card {% if 'Men' in active_genders %}active{% endif %}">
-            <div class="gender-img-wrap">
-                <img src="https://images.unsplash.com/photo-1488161628813-04466f872be2?auto=format&fit=crop&w=150&h=150&q=80"
-                    alt="Men">
+    {# Priority order for top-level category pills — Women first, then Men, Unisex, then any admin-added categories #}
+    {% set _priority = ['Women', 'Men', 'Unisex'] %}
+    {% set _top_cats = [] %}
+    {% for _n in _priority %}
+      {% for _c in all_categories if not _c.parent_id and _c.name == _n %}
+        {% do _top_cats.append(_c) %}
+      {% endfor %}
+    {% endfor %}
+    {% for _c in all_categories if not _c.parent_id and _c.name not in _priority %}
+      {% do _top_cats.append(_c) %}
+    {% endfor %}
+
+    <!-- Unified category navigation bar — fully dynamic from DB -->
+    <div class="cat-nav">
+        <!-- Hidden checkboxes for each top-level category (linked to the pills below) -->
+        <div style="display:none;">
+            {% for cat in _top_cats %}
+            <input type="checkbox" name="category" value="{{ cat.name }}"
+                id="cat-{{ cat.name | replace(' ', '-') }}"
+                form="filterForm"
+                {% if cat.name in active_categories %}checked{% endif %}>
+            {% endfor %}
+        </div>
+        <!-- Top row: scrollable category pills + filter icon (mobile only, right-anchored) -->
+        <div class="cat-nav-top">
+            <div class="cat-nav-pills">
+                {% for cat in _top_cats %}
+                <label for="cat-{{ cat.name | replace(' ', '-') }}"
+                       class="gndr-pill {% if cat.name in active_categories %}active{% endif %}">
+                    {% if cat.img %}
+                    <img class="gndr-pill-img" src="{{ cat.img }}" alt="{{ cat.name }}" loading="lazy">
+                    {% else %}
+                    <span class="gndr-pill-avatar">{{ cat.name[0] | upper }}</span>
+                    {% endif %}
+                    <span>{{ cat.name }}</span>
+                </label>
+                {% endfor %}
             </div>
-            <span>Men</span>
-        </label>
-        <label for="gender-Women" class="gender-card {% if 'Women' in active_genders %}active{% endif %}">
-            <div class="gender-img-wrap">
-                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&h=150&q=80"
-                    alt="Women">
-            </div>
-            <span>Women</span>
-        </label>
-        <label for="gender-Unisex" class="gender-card {% if 'Unisex' in active_genders %}active{% endif %}">
-            <div class="gender-img-wrap">
-                <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=150&h=150&q=80"
-                    alt="Unisex">
-            </div>
-            <span>Unisex</span>
-        </label>
+            <!-- Filter icon — mobile only, always visible at right edge while pills scroll -->
+            <button class="cat-nav-filter-btn" id="filterBtn" type="button" aria-label="Open filters">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
+                    <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
+                    <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+                    <line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/>
+                    <line x1="17" y1="16" x2="23" y2="16"/>
+                </svg>
+            </button>
+        </div>
+        <!-- Drilldown tags — revealed by JS when a pill is selected -->
+        <div id="categoryDrilldown" style="display:none;">
+            <div id="drilldownInner"></div>
+        </div>
     </div>
 
     <div class="shop-container">
-        <!-- MOBILE FILTER BUTTON -->
-        <button class="mobile-filter-btn" id="filterBtn">
-            <img src="https://api.iconify.design/lucide:sliders-horizontal.svg?color=%23ffffff"
-                style="width: 18px; height: 18px; display: inline-block;" alt="filter">
-            Filters
-        </button>
-
         <!-- OVERLAY -->
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -52,84 +76,73 @@
                 <h3>Filters</h3>
                 <button id="closeSidebar">&times;</button>
             </div>
-            <form action="/shop" method="GET" id="filterForm">
+            <form action="/shop" method="GET" id="filterForm" onsubmit="return false;">
                 <button type="submit" class="apply-filters-btn mobile-only-apply-btn"
                     style="margin-bottom: 1.5rem;">Apply Filters</button>
-                <div class="filter-group" style="display: none;">
-                    <h3>Gender</h3>
-                    <div class="filter-options">
-                        <label class="all-prod-label"><input type="checkbox" id="allProducts" {% if not active_genders
-                                and not active_filters and not active_categories and not active_subcategories and not
-                                search_query %}checked{% endif %}>
-                            All Products</label>
-                        <div class="filter-category-item">
-                            <label class="category-parent">
-                                <input type="checkbox" name="gender" value="Men" id="gender-Men" {% if 'Men' in
-                                    active_genders %}checked{% endif %}>
-                                <span class="category-name">Men</span>
-                            </label>
-                            <label class="category-parent">
-                                <input type="checkbox" name="gender" value="Women" id="gender-Women" {% if 'Women' in
-                                    active_genders %}checked{% endif %}>
-                                <span class="category-name">Women</span>
-                            </label>
-                            <label class="category-parent">
-                                <input type="checkbox" name="gender" value="Unisex" id="gender-Unisex" {% if 'Unisex' in
-                                    active_genders %}checked{% endif %}>
-                                <span class="category-name">Unisex</span>
-                            </label>
-                        </div>
-                    </div>
+                <div class="filter-group">
+                    <label class="all-prod-label"><input type="checkbox" id="allProducts" {% if not active_filters and not active_categories and not active_subcategories and not search_query %}checked{% endif %}>
+                        All Products</label>
                 </div>
                 <div class="filter-group">
                     <h3>Categories</h3>
                     <div class="filter-options">
+                        {# Build ordered list: Women → Men → Unisex → others #}
+                        {% set _gender_order = ['Women', 'Men', 'Unisex'] %}
+                        {% set _ordered_cats = [] %}
+                        {% for _g in _gender_order %}
+                          {% for _c in all_categories if not _c.parent_id and _c.name == _g %}
+                            {% do _ordered_cats.append(_c) %}
+                          {% endfor %}
+                        {% endfor %}
+                        {% for _c in all_categories if not _c.parent_id and _c.name not in _gender_order %}
+                          {% do _ordered_cats.append(_c) %}
+                        {% endfor %}
                         {% set seen_parent_names = [] %}
-                        {% for cat in all_categories if not cat.parent_id %}
+                        {% for cat in _ordered_cats %}
                         {% if cat.name not in seen_parent_names %}
                         {% set _ = seen_parent_names.append(cat.name) %}
                         <div class="filter-category-item" style="margin-bottom: 1rem;">
-                            {% set has_active_sub = [false] %}
-                            {% if cat.subcategories %}
-                                {% for sub in cat.subcategories %}
-                                    {% if sub.name in active_subcategories %}
-                                        {% set _ = has_active_sub.append(true) %}
-                                    {% endif %}
-                                {% endfor %}
-                            {% endif %}
                             <div class="category-parent-wrap" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                                 <label class="category-parent"
                                     style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem; margin-bottom: 0.4rem; cursor: pointer; flex-grow: 1;">
-                                    <input type="checkbox" name="category" value="{{ cat.name }}" {% if cat.name in
-                                        active_categories %}checked{% endif %}
-                                        style="width: 16px; height: 16px; accent-color: var(--crimson);">
+                                    <input type="checkbox" name="category" value="{{ cat.name }}"
+                                        {% if cat.name in active_categories %}checked{% endif %}
+                                        class="sidebar-gender-cb"
+                                        style="width: 16px; height: 16px; accent-color: var(--crimson); flex-shrink: 0; cursor: pointer;">
                                     <span class="category-name">{{ cat.name }}</span>
                                 </label>
                                 {% if cat.subcategories %}
-                                <button type="button" class="subcategory-toggle-btn" style="background: none; border: none; cursor: pointer; padding: 4px 8px; color: var(--text-soft); transition: transform 0.2s; {% if true in has_active_sub %}transform: rotate(180deg);{% endif %}">
-                                    <i class="fas fa-chevron-down" style="font-size: 0.8rem;"></i>
+                                <button type="button" class="subcategory-toggle-btn" style="background: none; border: 1px solid rgba(0,0,0,0.12); border-radius: 6px; cursor: pointer; padding: 3px 7px; color: var(--text-soft); transition: transform 0.2s, border-color 0.2s;">
+                                    <i class="fas fa-chevron-down" style="font-size: 0.75rem;"></i>
                                 </button>
                                 {% endif %}
                             </div>
                             {% if cat.subcategories %}
                             <div class="subcategory-group"
-                                style="{% if true in has_active_sub %}display: flex;{% else %}display: none;{% endif %} flex-direction: column; gap: 0.4rem; padding-left: 1.5rem; margin-top: 0.3rem; border-left: 1px solid rgba(0,0,0,0.1);">
-                                {% macro render_filter_subcategories(sub_list, padding_val=0) %}
+                                style="display: none; flex-direction: column; gap: 0.4rem; padding-left: 1.5rem; margin-top: 0.3rem; border-left: 1px solid rgba(0,0,0,0.1);">
+                                {% macro render_filter_subcategories(sub_list) %}
                                 {% set seen_sub_names = [] %}
                                 {% for sub in sub_list %}
                                 {% if sub.name not in seen_sub_names %}
                                 {% set _ = seen_sub_names.append(sub.name) %}
-                                <div
-                                    style="padding-left: {{ padding_val }}rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                                    <label class="subcategory-item"
-                                        style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; color: var(--text-soft); margin-bottom: 0px;">
-                                        <input type="checkbox" name="subcategory" value="{{ sub.name }}" {% if sub.name
-                                            in active_subcategories %}checked{% endif %}
-                                            style="width: 14px; height: 14px; accent-color: var(--crimson-light);">
-                                        <span class="subcategory-name">{{ sub.name }}</span>
-                                    </label>
+                                <div>
+                                    <div class="subcategory-item-row">
+                                        <label class="subcategory-item">
+                                            <input type="checkbox" name="subcategory" value="{{ sub.name }}"
+                                                {% if sub.name in active_subcategories %}checked{% endif %}
+                                                style="width: 16px; height: 16px; accent-color: var(--crimson); flex-shrink: 0; cursor: pointer;">
+                                            <span class="subcategory-name">{{ sub.name }}</span>
+                                        </label>
+                                        {% if sub.subcategories %}
+                                        <button type="button" class="subcategory-toggle-btn" style="background: none; border: 1px solid rgba(0,0,0,0.12); border-radius: 6px; cursor: pointer; padding: 3px 7px; color: var(--text-soft); transition: transform 0.2s, border-color 0.2s; flex-shrink: 0; line-height: 1;">
+                                            <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
                                     {% if sub.subcategories %}
-                                    {{ render_filter_subcategories(sub.subcategories, 1.0) }}
+                                    <div class="subcategory-group" style="display: none; flex-direction: column; gap: 0.3rem; padding-left: 1.2rem; margin-top: 0.25rem; border-left: 1px solid rgba(0,0,0,0.08);">
+                                        {{ render_filter_subcategories(sub.subcategories) }}
+                                    </div>
                                     {% endif %}
                                 </div>
                                 {% endif %}
@@ -187,51 +200,9 @@
 
         <!-- RIGHT PRODUCT GRID (3 CARDS WIDTH) -->
         <main class="shop-products">
-            <div class="shop-products-header">
-                {% if search_query %}
-                <span>Search results for "{{ search_query }}" (Showing {{ products|length }} of {{ pagination.total if
-                    pagination else products|length }} products)</span>
-                {% else %}
-                <span>Showing {{ products|length }} of {{ pagination.total if pagination else products|length }}
-                    products</span>
-                {% endif %}
+            <div id="shop-results" class="shop-results-inner">
+                {% include 'partials/shop_products.html' %}
             </div>
-            <div class="shop-grid">
-                {% for prod in products %}
-                {{ product_card(prod) }}
-                {% endfor %}
-            </div>
-
-            {% if pagination and pagination.pages > 1 %}
-            <div class="pagination">
-                {% if pagination.has_prev %}
-                <a href="{{ url_for('public.shop', page=pagination.prev_num, category=active_categories, subcategory=active_subcategories, filter=active_filters, search=search_query) }}"
-                    class="page-link prev-page">
-                    <i class="fas fa-chevron-left"></i> Prev
-                </a>
-                {% endif %}
-
-                {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-                {% if page_num %}
-                {% if page_num == pagination.page %}
-                <span class="page-link active">{{ page_num }}</span>
-                {% else %}
-                <a href="{{ url_for('public.shop', page=page_num, category=active_categories, subcategory=active_subcategories, filter=active_filters, search=search_query) }}"
-                    class="page-link">{{ page_num }}</a>
-                {% endif %}
-                {% else %}
-                <span class="page-link dots">...</span>
-                {% endif %}
-                {% endfor %}
-
-                {% if pagination.has_next %}
-                <a href="{{ url_for('public.shop', page=pagination.next_num, category=active_categories, subcategory=active_subcategories, filter=active_filters, search=search_query) }}"
-                    class="page-link next-page">
-                    Next <i class="fas fa-chevron-right"></i>
-                </a>
-                {% endif %}
-            </div>
-            {% endif %}
         </main>
     </div>
 </div>
@@ -239,6 +210,10 @@
 <style>
     .mobile-only-apply-btn {
         display: none;
+    }
+
+    #shop-results {
+        transition: opacity 0.2s ease;
     }
 
     @media (max-width: 768px) {
@@ -436,11 +411,14 @@
         cursor: pointer;
     }
 
-    .category-parent input[type="checkbox"] {
+    /* All filter checkboxes — uniform 16 × 16 px */
+    .category-parent input[type="checkbox"],
+    .subcategory-item  input[type="checkbox"] {
         accent-color: var(--crimson);
-        width: 18px;
-        height: 18px;
+        width: 16px !important;
+        height: 16px !important;
         cursor: pointer;
+        flex-shrink: 0;
     }
 
     .subcategory-group {
@@ -466,10 +444,12 @@
         color: var(--crimson);
     }
 
-    .subcategory-item input[type="checkbox"] {
-        accent-color: var(--crimson-light);
-        width: 14px;
-        height: 14px;
+    /* subcategory-item-row: label + optional toggle btn, mirrors category-parent-wrap */
+    .subcategory-item-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
     }
 
     .subcategory-name {
@@ -598,74 +578,119 @@
         }
     }
 
-    .gender-filter-row {
-        display: flex;
-        justify-content: flex-start;
-        gap: 1.5rem;
-        margin: 0 auto 2rem;
+    /* ── Unified category nav card ── */
+    .cat-nav {
         max-width: var(--content-max, 1240px);
-        padding: 1.2rem 2.5rem;
+        margin: 0 auto 1.5rem;
         background: #ffffff;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--border-light);
+        border-radius: var(--radius-md, 12px);
+        border: 1px solid var(--border-light, #eee);
         box-shadow: var(--shadow-soft);
-    }
-
-    .gender-card {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 1rem;
-        cursor: pointer;
-        padding: 0.5rem 1.5rem;
-        border-radius: 50px;
-        border: 1.5px solid var(--border-light);
-        background: #fbf7f9;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .gender-card:hover {
-        transform: translateY(-2px);
-        border-color: var(--gold-primary);
-        background: #fff;
-    }
-
-    .gender-img-wrap {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
         overflow: hidden;
+    }
+
+    .cat-nav-top {
+        display: flex;
+        align-items: center;
+        padding: 0.65rem 1.5rem;
+        gap: 0.75rem;
+    }
+
+    /* Scrollable pill strip inside cat-nav-top */
+    .cat-nav-pills {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        flex-wrap: wrap;
+        flex: 1;
+        min-width: 0;
+    }
+
+    /* Filter icon — desktop: hidden; mobile: anchored right of pill strip */
+    .cat-nav-filter-btn {
+        display: none;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-deep, #241a14);
+        color: #fff;
+        border: none;
+        border-radius: 9px;
+        padding: 9px 12px;
+        cursor: pointer;
+        transition: opacity 0.18s;
+    }
+    .cat-nav-filter-btn:hover { opacity: 0.85; }
+
+    /* Fallback avatar when a category has no image */
+    .gndr-pill-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--gold-primary, #b88a44), var(--gold-accent, #d2b276));
+        color: #fff;
+        font-weight: 700;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
         border: 2px solid transparent;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        transition: border-color 0.22s ease;
+    }
+    .gndr-pill.active .gndr-pill-avatar { border-color: var(--gold-primary, #b88a44); }
+
+    .gndr-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.28rem 0.85rem 0.28rem 0.28rem;
+        border: 1.5px solid rgba(0,0,0,0.1);
+        border-radius: 50px;
+        cursor: pointer;
+        background: #f7f2ee;
+        transition: all 0.22s ease;
+        user-select: none;
     }
 
-    .gender-card.active {
-        border-color: var(--gold-primary);
-        background: #ffffff;
-        box-shadow: 0 6px 15px rgba(184, 138, 68, 0.12);
+    .gndr-pill:hover {
+        border-color: var(--gold-primary, #b88a44);
+        background: #fff;
+        transform: translateY(-1px);
     }
 
-    .gender-card.active .gender-img-wrap {
-        border-color: var(--gold-primary);
-        transform: scale(1.05);
-    }
-
-    .gender-card img {
-        width: 100%;
-        height: 100%;
+    .gndr-pill-img {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
         object-fit: cover;
+        border: 2px solid transparent;
+        transition: border-color 0.22s ease;
+        display: block;
+        flex-shrink: 0;
     }
 
-    .gender-card span {
-        font-size: 0.95rem;
+    .gndr-pill span {
+        font-size: 0.875rem;
         font-weight: 600;
-        color: var(--text-primary);
-        transition: color 0.3s ease;
+        color: var(--text-primary, #241914);
+        transition: color 0.22s ease;
     }
 
-    .gender-card.active span {
-        color: var(--gold-primary);
+    .gndr-pill.active {
+        border-color: var(--gold-primary, #b88a44);
+        background: #fffbf4;
+        box-shadow: 0 3px 10px rgba(184,138,68,0.13);
+    }
+
+    .gndr-pill.active .gndr-pill-img { border-color: var(--gold-primary, #b88a44); }
+    .gndr-pill.active span            { color: var(--gold-primary, #b88a44); }
+
+    /* Drilldown panel lives inside the cat-nav */
+    #categoryDrilldown {
+        border-top: 1px solid rgba(0,0,0,0.06);
+        padding: 0.55rem 1.5rem 0.65rem;
+        background: #fdfaf7;
     }
 
     /* Premium hover effects for categories inside sidebar */
@@ -685,112 +710,400 @@
         color: var(--gold-primary) !important;
     }
 
+    /* ── Category Drilldown (inside cat-nav) ── */
+    @keyframes fadein { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+    #categoryDrilldown { animation: fadein 0.2s ease; }
+
+    .drilldown-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .drilldown-level-2 {
+        margin-top: 0.6rem;
+        padding-top: 0.6rem;
+        border-top: 1px dashed rgba(0,0,0,0.07);
+    }
+
+    .drilldown-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 0.32rem 0.9rem;
+        border: 1.5px solid rgba(0,0,0,0.1);
+        border-radius: 20px;
+        background: #f7f2ee;
+        color: var(--text-primary, #241914);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: inherit;
+        line-height: 1.4;
+        white-space: nowrap;
+    }
+
+    .drilldown-tag:hover {
+        border-color: var(--gold-primary, #b88a44);
+        color: var(--gold-primary, #b88a44);
+        background: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(184,138,68,0.1);
+    }
+
+    .drilldown-tag.active {
+        border-color: var(--gold-primary, #b88a44);
+        background: var(--gold-primary, #b88a44);
+        color: #fff;
+        box-shadow: 0 3px 10px rgba(184,138,68,0.25);
+    }
+
+    .drilldown-tag-icon { font-size: 0.68em; opacity: 0.65; }
+    .drilldown-tag.active .drilldown-tag-icon { opacity: 1; color: #fff; }
+
     @media (max-width: 768px) {
-        .gender-filter-row {
-            gap: 0.5rem;
-            padding: 0.8rem 1rem;
+        #categoryDrilldown { padding: 0.45rem 0.85rem 0.55rem; }
+        .drilldown-tag { font-size: 0.8rem; padding: 0.25rem 0.65rem; }
+    }
+
+    @media (max-width: 768px) {
+        .cat-nav { margin: 0 auto 1rem; border-radius: 10px; }
+        .cat-nav-top { padding: 0.45rem 0.75rem; gap: 0.5rem; }
+        /* Pills scroll horizontally; filter icon stays anchored at right */
+        .cat-nav-pills {
             flex-wrap: nowrap;
-            justify-content: center;
-            margin: 1.5rem auto 1rem;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
         }
-
-        .gender-card {
-            gap: 0.4rem;
-            padding: 0.3rem 0.6rem;
-        }
-
-        .gender-img-wrap {
-            width: 32px;
-            height: 32px;
-        }
-
-        .gender-card span {
-            font-size: 0.78rem;
-        }
+        .cat-nav-pills::-webkit-scrollbar { display: none; }
+        .cat-nav-filter-btn { display: flex; }
+        .mobile-filter-btn  { display: none !important; }
+        .gndr-pill { padding: 0.22rem 0.65rem 0.22rem 0.22rem; gap: 0.35rem; flex-shrink: 0; }
+        .gndr-pill-img { width: 30px; height: 30px; }
+        .gndr-pill-avatar { width: 30px; height: 30px; font-size: 0.85rem; }
+        .gndr-pill span { font-size: 0.78rem; }
     }
 </style>
 
+{% endblock %}
+
+{% block scripts %}
 <script>
-    const filterBtn = document.getElementById('filterBtn');
-    const closeSidebar = document.getElementById('closeSidebar');
-    const shopSidebar = document.getElementById('shopSidebar');
-    const sidebarOverlay = document.getElementById('sidebarOverlay');
+(function () {
+    /* ═══════════════════════════════════════════
+       CATEGORY DRILLDOWN — horizontal tag nav
+       ═══════════════════════════════════════════ */
+    var catTree = {{ category_tree_json | safe }};
+    /* Derived from catTree — automatically picks up any top-level category added via admin */
+    var GENDERS = catTree.map(function (n) { return n.name; });
+    function pillId(name) { return 'cat-' + name.replace(/\s+/g, '-'); }
 
-    const toggleSidebar = (show) => {
-        if (show) {
-            shopSidebar.classList.add('active');
-            sidebarOverlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        } else {
-            shopSidebar.classList.remove('active');
-            sidebarOverlay.classList.remove('active');
-            document.body.style.overflow = 'auto';
+    /* State — always derived from checkboxes, never set independently */
+    var currentParentName = null;
+    var currentSubNames   = new Set();
+
+    function findNode(name, nodes) {
+        for (var i = 0; i < nodes.length; i++) {
+            if (nodes[i].name === name) return nodes[i];
+            if (nodes[i].children.length) {
+                var f = findNode(name, nodes[i].children);
+                if (f) return f;
+            }
         }
-    }; filterBtn.addEventListener('click', () => toggleSidebar(true));
-    closeSidebar.addEventListener('click', () => toggleSidebar(false));
-    sidebarOverlay.addEventListener('click', () => toggleSidebar(false));
+        return null;
+    }
 
-    const allProductsCheckbox = document.getElementById('allProducts');
-    const genderCheckboxes = document.querySelectorAll('input[name="gender"]');
-    const filterCheckboxes = document.querySelectorAll('input[name="filter"]');
-    const categoryCheckboxes = document.querySelectorAll('input[name="category"]');
-    const subcategoryCheckboxes = document.querySelectorAll('input[name="subcategory"]');
+    /* Derive currentParentName + currentSubNames from the actual checkbox DOM state.
+       This is the single source of truth — called after any checkbox change. */
+    function syncStateFromCheckboxes() {
+        currentParentName = null;
+        GENDERS.forEach(function (n) {
+            var pill = document.getElementById(pillId(n));
+            if (pill && pill.checked) currentParentName = n;
+        });
+        currentSubNames = new Set();
+        document.querySelectorAll('input[name="subcategory"]:checked').forEach(function (cb) {
+            currentSubNames.add(cb.value);
+        });
+    }
 
-    const uncheckAll = () => {
-        if (allProductsCheckbox) allProductsCheckbox.checked = false;
-        if (window.innerWidth > 768) {
-            toggleSidebar(false);
-            document.getElementById('filterForm').submit();
-        }
-    };
+    /* On page load — checkboxes are already rendered correctly by the server */
+    function initState() {
+        syncStateFromCheckboxes();
+        updateGenderCardActive();
+    }
 
-    if (allProductsCheckbox) {
-        allProductsCheckbox.addEventListener('change', function () {
-            if (this.checked) {
-                genderCheckboxes.forEach(cb => cb.checked = false);
-                filterCheckboxes.forEach(cb => cb.checked = false);
-                categoryCheckboxes.forEach(cb => cb.checked = false);
-                subcategoryCheckboxes.forEach(cb => cb.checked = false);
-                if (window.innerWidth > 768) {
-                    toggleSidebar(false);
-                    document.getElementById('filterForm').submit();
-                }
+    /* Reflect gender pill checked state on the pill label elements */
+    function updateGenderCardActive() {
+        GENDERS.forEach(function (name) {
+            var cb  = document.getElementById(pillId(name));
+            var lbl = document.querySelector('label[for="' + pillId(name) + '"]');
+            if (lbl) lbl.classList.toggle('active', !!(cb && cb.checked));
+        });
+    }
+
+    function renderDrilldown() {
+        var bar   = document.getElementById('categoryDrilldown');
+        var inner = document.getElementById('drilldownInner');
+        if (!currentParentName) { bar.style.display = 'none'; return; }
+        var parentNode = findNode(currentParentName, catTree);
+        if (!parentNode || !parentNode.children.length) { bar.style.display = 'none'; return; }
+        bar.style.display = '';
+        inner.innerHTML   = '';
+        inner.appendChild(makeTagRow(parentNode.children, currentSubNames));
+        /* Level 2 — children of the first selected sub that has children */
+        var shownL2 = false;
+        currentSubNames.forEach(function (subName) {
+            if (shownL2) return;
+            var subNode = findNode(subName, parentNode.children);
+            if (subNode && subNode.children.length) {
+                var l2 = makeTagRow(subNode.children, currentSubNames);
+                l2.classList.add('drilldown-level-2');
+                inner.appendChild(l2);
+                shownL2 = true;
             }
         });
     }
 
-    genderCheckboxes.forEach(cb => {
-        cb.addEventListener('change', uncheckAll);
-    });
-
-    filterCheckboxes.forEach(cb => {
-        cb.addEventListener('change', uncheckAll);
-    });
-
-    categoryCheckboxes.forEach(cb => {
-        cb.addEventListener('change', uncheckAll);
-    });
-
-    subcategoryCheckboxes.forEach(cb => {
-        cb.addEventListener('change', uncheckAll);
-    });
-
-    // Subcategories Dropdown Toggle Handler
-    document.querySelectorAll('.subcategory-toggle-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const parentWrap = btn.closest('.category-parent-wrap');
-            if (parentWrap) {
-                const group = parentWrap.nextElementSibling;
-                if (group && group.classList.contains('subcategory-group')) {
-                    const isHidden = group.style.display === 'none';
-                    group.style.display = isHidden ? 'flex' : 'none';
-                    btn.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
-                }
+    function makeTagRow(cats, activeNames) {
+        var row = document.createElement('div');
+        row.className = 'drilldown-row';
+        cats.forEach(function (cat) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'drilldown-tag' +
+                (activeNames.has(cat.name) ? ' active'  : '') +
+                (cat.children.length       ? ' has-sub' : '');
+            var sp = document.createElement('span');
+            sp.textContent = cat.name;
+            btn.appendChild(sp);
+            if (cat.children.length) {
+                var ic = document.createElement('i');
+                ic.className = 'fas fa-angle-right drilldown-tag-icon';
+                btn.appendChild(ic);
             }
+            btn.addEventListener('click', function (e) { e.stopPropagation(); onDrillTagClick(cat); });
+            row.appendChild(btn);
+        });
+        return row;
+    }
+
+    /* Drilldown tag click — toggle the sub, sync sidebar, re-render, filter */
+    function onDrillTagClick(cat) {
+        if (currentSubNames.has(cat.name)) currentSubNames.delete(cat.name);
+        else                               currentSubNames.add(cat.name);
+        syncSubCheckboxes();
+        renderDrilldown();
+        applyFilters();
+    }
+
+    /* Write drilldown Set state into sidebar subcategory checkboxes */
+    function syncSubCheckboxes() {
+        document.querySelectorAll('input[name="subcategory"]').forEach(function (cb) {
+            cb.checked = currentSubNames.has(cb.value);
+        });
+    }
+
+    /* When a gender is selected ensure the pill and sidebar checkbox both match */
+    function setGender(name, checked) {
+        if (checked) {
+            /* Enforce single selection — clear all other top-level pills and sidebar checkboxes */
+            GENDERS.forEach(function (n) {
+                var pill = document.getElementById(pillId(n));
+                if (pill) pill.checked = (n === name);
+                document.querySelectorAll('input.sidebar-gender-cb[value="' + n + '"]').forEach(function (c) {
+                    c.checked = (n === name);
+                });
+            });
+            document.querySelectorAll('input[name="subcategory"]').forEach(function (c) { c.checked = false; });
+        } else {
+            var pill = document.getElementById(pillId(name));
+            if (pill) pill.checked = false;
+            document.querySelectorAll('input.sidebar-gender-cb[value="' + name + '"]').forEach(function (c) { c.checked = false; });
+        }
+    }
+
+    /* ═══════════════════════════════════════════
+       SIDEBAR TOGGLE
+       ═══════════════════════════════════════════ */
+    var filterBtn      = document.getElementById('filterBtn');
+    var closeSidebar   = document.getElementById('closeSidebar');
+    var shopSidebar    = document.getElementById('shopSidebar');
+    var sidebarOverlay = document.getElementById('sidebarOverlay');
+
+    function toggleSidebar(show) {
+        shopSidebar.classList.toggle('active', show);
+        sidebarOverlay.classList.toggle('active', show);
+        document.body.style.overflow = show ? 'hidden' : '';
+    }
+    filterBtn.addEventListener('click',      function () { toggleSidebar(true);  });
+    closeSidebar.addEventListener('click',   function () { toggleSidebar(false); });
+    sidebarOverlay.addEventListener('click', function () { toggleSidebar(false); });
+
+    /* ═══════════════════════════════════════════
+       URL BUILDER
+       ═══════════════════════════════════════════ */
+    function buildUrl() {
+        var p = new URLSearchParams();
+        /* Category (gender) — from checkboxes, deduplicated */
+        var addedCats = new Set();
+        document.querySelectorAll('input[name="category"]:checked').forEach(function (cb) {
+            if (!addedCats.has(cb.value)) { addedCats.add(cb.value); p.append('category', cb.value); }
+        });
+        /* Subcategory — read from currentSubNames, NOT DOM checkboxes.
+           Drilldown selections update currentSubNames directly; sidebar checkbox DOM
+           may not exist when the accordion group was never rendered (cache/detach issue).
+           This makes the drilldown the authoritative source and avoids the filter falling
+           back silently to the parent-category-only path. */
+        currentSubNames.forEach(function (name) { p.append('subcategory', name); });
+        document.querySelectorAll('input[name="filter"]:checked').forEach(function (cb) { p.append('filter', cb.value); });
+        var sq = document.querySelector('input[name="search"]');
+        if (sq && sq.value.trim()) p.set('search', sq.value.trim());
+        return '/shop' + (p.toString() ? '?' + p.toString() : '');
+    }
+
+    /* ═══════════════════════════════════════════
+       AJAX — swap #shop-results without page reload
+       ═══════════════════════════════════════════ */
+    var shopResults = document.getElementById('shop-results');
+    var busy = false;
+
+    function applyFilters(targetUrl) {
+        if (busy) return;
+        busy = true;
+        var url = targetUrl || buildUrl();
+        history.pushState(null, '', url);
+        if (window.PageProgress) window.PageProgress.start();
+        shopResults.style.opacity       = '0.35';
+        shopResults.style.pointerEvents = 'none';
+        fetch(url)
+            .then(function (r)    { return r.text(); })
+            .then(function (html) {
+                var doc   = new DOMParser().parseFromString(html, 'text/html');
+                var fresh = doc.getElementById('shop-results');
+                if (fresh) {
+                    shopResults.innerHTML = fresh.innerHTML;
+                    shopResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            })
+            .catch(function (err) { console.error('Filter fetch error:', err); })
+            .finally(function () {
+                shopResults.style.opacity       = '1';
+                shopResults.style.pointerEvents = 'auto';
+                if (window.PageProgress) window.PageProgress.finish();
+                busy = false;
+            });
+    }
+
+    shopResults.addEventListener('click', function (e) {
+        var link = e.target.closest('a.page-link');
+        if (link && !link.classList.contains('active')) {
+            e.preventDefault();
+            applyFilters(link.href);
+        }
+    });
+
+    /* ═══════════════════════════════════════════
+       FILTER CHANGE HANDLERS — bidirectional sync
+       ═══════════════════════════════════════════ */
+    var allCb = document.getElementById('allProducts');
+
+    function onFilterChange(changedCb) {
+        if (allCb) allCb.checked = false;
+
+        /* Auto-expand the accordion for a checked parent; collapse on uncheck.
+           Works for all hierarchy levels — pill checkboxes are hidden (no matching row),
+           so closest() returns null and the accordion logic is safely skipped. */
+        var parentRow = changedCb && changedCb.closest('.category-parent-wrap, .subcategory-item-row');
+        if (parentRow) toggleAccordionGroup(parentRow, changedCb.checked);
+
+        var isGenderPill    = changedCb && GENDERS.some(function (n) { return changedCb.id === pillId(n); });
+        var isSidebarGender = changedCb && changedCb.classList.contains('sidebar-gender-cb');
+
+        if (isGenderPill || isSidebarGender) {
+            /* Both pill and sidebar gender controls go through setGender() for full sync */
+            setGender(changedCb.value, changedCb.checked);
+        }
+        /* Subcategory changes from sidebar automatically update currentSubNames
+           after syncStateFromCheckboxes() below — no extra work needed */
+
+        /* Re-derive state from all checkboxes — single source of truth */
+        syncStateFromCheckboxes();
+        updateGenderCardActive();
+        renderDrilldown();
+
+        if (window.innerWidth > 768) toggleSidebar(false);
+        applyFilters();
+    }
+
+    if (allCb) {
+        allCb.addEventListener('change', function () {
+            if (!this.checked) return;
+            document.querySelectorAll('input[name="filter"],input[name="category"],input[name="subcategory"]')
+                .forEach(function (cb) { cb.checked = false; });
+            syncStateFromCheckboxes();
+            updateGenderCardActive();
+            renderDrilldown();
+            if (window.innerWidth > 768) toggleSidebar(false);
+            applyFilters();
+        });
+    }
+
+    ['filter', 'category', 'subcategory'].forEach(function (name) {
+        document.querySelectorAll('input[name="' + name + '"]').forEach(function (cb) {
+            cb.addEventListener('change', function () { onFilterChange(cb); });
         });
     });
+
+    document.getElementById('filterForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        toggleSidebar(false);
+        applyFilters();
+    }, true);
+
+    /* ═══════════════════════════════════════════
+       SIDEBAR ACCORDION — shared by all levels
+       btn sits inside .category-parent-wrap (level 1) or .subcategory-item-row (level 2+)
+       .subcategory-group is always the nextElementSibling of that row div
+       ═══════════════════════════════════════════ */
+    function toggleAccordionGroup(row, forceOpen) {
+        var group = row && row.nextElementSibling;
+        if (!group || !group.classList.contains('subcategory-group')) return;
+        var open = (forceOpen !== undefined) ? forceOpen : (group.style.display === 'none');
+        group.style.display = open ? 'flex' : 'none';
+        var btn = row.querySelector('.subcategory-toggle-btn');
+        if (btn) btn.style.transform = open ? 'rotate(180deg)' : '';
+    }
+
+    document.querySelectorAll('.subcategory-toggle-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleAccordionGroup(btn.parentElement); /* toggle current state */
+        });
+    });
+
+    /* On page load: expand any accordion that already contains a checked input (from URL params).
+       Uses querySelectorAll on the group itself so nested checked inputs bubble up correctly. */
+    function expandAccordionForChecked() {
+        document.querySelectorAll('.subcategory-group').forEach(function (group) {
+            if (group.querySelector('input:checked')) {
+                group.style.display = 'flex';
+                var row = group.previousElementSibling;
+                var btn = row && row.querySelector('.subcategory-toggle-btn');
+                if (btn) btn.style.transform = 'rotate(180deg)';
+            }
+        });
+    }
+
+    /* ── Init on first load ── */
+    initState();
+    expandAccordionForChecked();
+    renderDrilldown();
+})();
 </script>
 {% endblock %}

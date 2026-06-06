@@ -1,3 +1,4 @@
+import json
 from flask import Blueprint, render_template, request, abort, session, jsonify
 from models import db, Category, Product, SubCategory, Review, Subscriber
 from sqlalchemy.orm import joinedload
@@ -105,7 +106,6 @@ def subscribe():
 
 @public_bp.route('/shop')
 def shop():
-    selected_genders = request.args.getlist('gender')
     selected_filters = request.args.getlist('filter')
     selected_categories = [c for c in request.args.getlist('category') if c]
     selected_subcategories = [s for s in request.args.getlist('subcategory') if s]
@@ -114,31 +114,46 @@ def shop():
     per_page = 12
 
     query = Product.query
-    if selected_categories or selected_subcategories:
+    if selected_subcategories or selected_categories:
+        # Build parent_id → [child_ids] map in one flat query (no lazy-loading)
+        _all_rows = db.session.query(Category.id, Category.parent_id).all()
+        _children_map = {}
+        for _cid, _pid in _all_rows:
+            _children_map.setdefault(_pid, []).append(_cid)
+
+        def _all_descendants(cat_id):
+            """Return the set of ALL descendant IDs (iterative BFS, no recursion limit)."""
+            result, stack = set(), list(_children_map.get(cat_id, []))
+            while stack:
+                cid = stack.pop()
+                result.add(cid)
+                stack.extend(_children_map.get(cid, []))
+            return result
+
+        # Merge category + subcategory params — both resolve to Category rows.
+        # Keeping them separate caused parents to override more-specific children.
+        _all_names = list(set(selected_subcategories + selected_categories))
+        _sel_cats  = Category.query.filter(Category.name.in_(_all_names)).all()
+        _sel_ids   = {c.id for c in _sel_cats}
+
+        # Intersection rule: skip any selected category that has a selected descendant
+        # (the descendant is more specific and takes precedence).  Only "leaf"
+        # selections — those with no selected descendant — drive the final filter.
+        #
+        #   [Watch]            → leaf=[Watch]      → Watch + all Watch children
+        #   [Watch, Gym watch] → leaf=[Gym watch]  → Gym watch only
+        #   [Men, Watch]       → leaf=[Watch]      → Watch + its children (Men is an ancestor)
+        #   [Office w, Gym w]  → leaf=[both]       → Office watch ∪ Gym watch
         target_cat_ids = set()
-        if selected_categories:
-            parent_cats = Category.query.filter(Category.name.in_(selected_categories), Category.parent_id.is_(None)).all()
-            for p_cat in parent_cats:
-                target_cat_ids.add(p_cat.id)
-                for sub in p_cat.subcategories:
-                    target_cat_ids.add(sub.id)
-        if selected_subcategories:
-            sub_cats = Category.query.filter(Category.name.in_(selected_subcategories), Category.parent_id.isnot(None)).all()
-            for s_cat in sub_cats:
-                target_cat_ids.add(s_cat.id)
+        for cat in _sel_cats:
+            desc = _all_descendants(cat.id)
+            if not (desc & _sel_ids):        # no selected descendant → this is the leaf
+                target_cat_ids.add(cat.id)
+                target_cat_ids |= desc       # include the leaf's own subtree
+
         if target_cat_ids:
             query = query.filter(Product.category_id.in_(list(target_cat_ids)))
 
-    if selected_genders:
-        from models import SelectedAttributeValue, AttributeValue, Attribute
-        gender_product_ids = db.session.query(SelectedAttributeValue.product_id)\
-            .join(AttributeValue, SelectedAttributeValue.attribute_value_id == AttributeValue.id)\
-            .join(Attribute, SelectedAttributeValue.attribute_id == Attribute.id)\
-            .filter(Attribute.slug == 'gender', AttributeValue.value.in_(selected_genders))\
-            .all()
-        product_ids = [r[0] for r in gender_product_ids]
-        query = query.filter(Product.id.in_(product_ids))
-        
     if selected_filters:
         if 'best_sellers' in selected_filters:
             query = query.filter(Product.is_best_seller == True)
@@ -253,8 +268,29 @@ def shop():
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     products = pagination.items
     categories = Category.query.all()
-    
-    return render_template('shop.html', products=products, pagination=pagination, active_genders=selected_genders, search_query=search_query, active_filters=selected_filters, all_categories=categories, active_categories=selected_categories, active_subcategories=selected_subcategories)
+
+    # Build tree from flat list — avoids lazy-loading .subcategories on potentially
+    # stale cached objects, keeping sidebar and drilldown bar in sync.
+    _cat_map = {c.id: {'id': c.id, 'name': c.name, 'children': []} for c in categories}
+    _tree_roots = []
+    for c in categories:
+        if c.parent_id is None:
+            _tree_roots.append(_cat_map[c.id])
+        elif c.parent_id in _cat_map:
+            _cat_map[c.parent_id]['children'].append(_cat_map[c.id])
+    category_tree_json = json.dumps(_tree_roots)
+
+    return render_template('shop.html',
+        products=products,
+        pagination=pagination,
+        active_genders=[],
+        search_query=search_query,
+        active_filters=selected_filters,
+        all_categories=categories,
+        active_categories=selected_categories,
+        active_subcategories=selected_subcategories,
+        category_tree_json=category_tree_json,
+    )
 
 @public_bp.route('/product/<id>')
 def product_detail(id):

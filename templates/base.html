@@ -12,7 +12,13 @@
     <link rel="dns-prefetch" href="https://checkout.razorpay.com">
 
     <title>{% block title %}DADSON | Premium Jewellery{% endblock %}</title>
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
+    <!-- Favicons — all sizes for browsers, Google search, mobile home screens -->
+    <link rel="icon" type="image/x-icon"  href="{{ url_for('static', filename='images/favicons/favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='images/favicons/favicon-16x16.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicons/favicon-32x32.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180"    href="{{ url_for('static', filename='images/favicons/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='images/favicons/site.webmanifest') }}">
+    <meta name="theme-color" content="#241a14">
 
     <!-- Critical CSS first -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=6.0">
@@ -53,6 +59,59 @@
 </head>
 
 <body>
+
+<!-- Top page-progress bar — controlled via window.PageProgress.start() / .finish() -->
+<div id="page-progress-bar"></div>
+<style>
+#page-progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, #8b6914, #d4a820, #c9920a, #d4a820, #8b6914);
+    background-size: 300% 100%;
+    z-index: 999999;
+    opacity: 0;
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 8px rgba(212, 168, 32, 0.7);
+    animation: pb-shimmer 1.8s linear infinite;
+    pointer-events: none;
+}
+@keyframes pb-shimmer {
+    0%   { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+}
+</style>
+<script>
+(function () {
+    var bar = document.getElementById('page-progress-bar');
+    var t1, t2, t3;
+    window.PageProgress = {
+        start: function () {
+            clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
+            bar.style.transition = 'none';
+            bar.style.width = '0%';
+            bar.style.opacity = '1';
+            bar.getBoundingClientRect(); /* force reflow */
+            bar.style.transition = 'width 0.35s ease';
+            t1 = setTimeout(function () { bar.style.width = '25%'; }, 10);
+            t2 = setTimeout(function () { bar.style.width = '65%'; }, 350);
+            t3 = setTimeout(function () { bar.style.width = '80%'; }, 1100);
+        },
+        finish: function () {
+            clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
+            bar.style.transition = 'width 0.18s ease';
+            bar.style.width = '100%';
+            setTimeout(function () {
+                bar.style.transition = 'opacity 0.25s ease';
+                bar.style.opacity = '0';
+                setTimeout(function () { bar.style.width = '0%'; }, 300);
+            }, 180);
+        }
+    };
+})();
+</script>
+
     <nav class="navbar">
         <div class="navbar-container">
             <div class="navbar-left">

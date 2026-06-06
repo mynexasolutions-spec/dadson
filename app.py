@@ -205,29 +205,70 @@ with app.app_context():
 
     db.session.commit()
 
-    # Seed Gender attribute and its values
+    # Gender attribute — disable from Product Details (Men/Women/Unisex are now categories)
     try:
         from models import Attribute, AttributeValue
-        # Remove legacy separate Men and Women attributes if they exist
         Attribute.query.filter(Attribute.name.in_(['Men', 'Women'])).delete()
         db.session.commit()
-        
-        # Check if Gender attribute exists
         gender_attr = Attribute.query.filter_by(slug='gender').first()
-        if not gender_attr:
-            gender_attr = Attribute(name='Gender', slug='gender', type='select', is_featured=True)
-            db.session.add(gender_attr)
-            db.session.commit()
-            
-        # Ensure values exist: Men, Women, Unisex
-        for val_name in ['Men', 'Women', 'Unisex']:
-            val_exists = AttributeValue.query.filter_by(attribute_id=gender_attr.id, value=val_name).first()
-            if not val_exists:
-                db.session.add(AttributeValue(attribute_id=gender_attr.id, value=val_name))
+        if gender_attr:
+            gender_attr.is_featured = False
         db.session.commit()
     except Exception as e:
         db.session.rollback()
-        print(f"Error seeding Gender attribute: {e}")
+        print(f"Error updating Gender attribute: {e}")
+
+    # Seed Men, Women, Unisex as top-level categories
+    try:
+        for gender_name in ['Men', 'Women', 'Unisex']:
+            if not Category.query.filter_by(name=gender_name, parent_id=None).first():
+                db.session.add(Category(name=gender_name, parent_id=None))
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error seeding gender categories: {e}")
+
+    # Seed Women sub-categories + clean up duplicates + move remaining orphans under Men
+    try:
+        from models import Product as _Product
+        WOMEN_SUBS = ['Kada', 'Earrings', 'Chain Pendant Set', 'Chain', 'Rings']
+
+        women_cat = Category.query.filter_by(name='Women', parent_id=None).first()
+        men_cat   = Category.query.filter_by(name='Men',   parent_id=None).first()
+
+        # 1. Ensure Women sub-categories exist
+        if women_cat:
+            for sub_name in WOMEN_SUBS:
+                if not Category.query.filter_by(name=sub_name, parent_id=women_cat.id).first():
+                    db.session.add(Category(name=sub_name, parent_id=women_cat.id))
+            db.session.commit()
+
+        # 2. Remove Women-only categories that got wrongly placed under Men
+        #    (happened because orphan migration ran before Women seeding created them)
+        if men_cat and women_cat:
+            for sub_name in WOMEN_SUBS:
+                men_dupes = Category.query.filter_by(name=sub_name, parent_id=men_cat.id).all()
+                if men_dupes:
+                    women_ver = Category.query.filter_by(name=sub_name, parent_id=women_cat.id).first()
+                    for dupe in men_dupes:
+                        if women_ver:
+                            _Product.query.filter_by(category_id=dupe.id).update(
+                                {'category_id': women_ver.id}, synchronize_session=False)
+                        db.session.delete(dupe)
+            db.session.commit()
+
+        # 3. Move remaining orphaned top-level categories (not Men/Women/Unisex) under Men
+        if men_cat:
+            orphans = Category.query.filter(
+                Category.parent_id.is_(None),
+                ~Category.name.in_(['Men', 'Women', 'Unisex'])
+            ).all()
+            for cat in orphans:
+                cat.parent_id = men_cat.id
+            db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error seeding category hierarchy: {e}")
 
 # ---------------------------------------------------------------------------
 # Simple in-process caches — avoid DB round-trips on every page load
@@ -239,7 +280,10 @@ _ADMIN_NOTIF_TTL = 30  # seconds
 
 def get_cached_categories():
     if _category_cache['data'] is None:
-        _category_cache['data'] = Category.query.all()
+        from sqlalchemy.orm import joinedload
+        _category_cache['data'] = Category.query.options(
+            joinedload(Category.subcategories)
+        ).all()
     return _category_cache['data']
 
 def get_cached_config(key):
