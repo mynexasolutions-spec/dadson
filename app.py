@@ -19,6 +19,7 @@ from routes.admin import admin_bp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dadson-jewelry-secret-key')
+app.config['TEMPLATES_AUTO_RELOAD'] = True   # always pick up template edits without server restart
 app.config['COMPRESS_REGISTER'] = True
 app.config['COMPRESS_MIMETYPES'] = [
     'text/html', 'text/css', 'text/javascript',
@@ -218,57 +219,31 @@ with app.app_context():
         db.session.rollback()
         print(f"Error updating Gender attribute: {e}")
 
-    # Seed Men, Women, Unisex as top-level categories
+    # Ensure Watch is top-level with Men/Women/Unisex underneath it.
+    # Jewelry categories (Kada, Earrings, Chain Pendant Set, Chain, Rings) are top-level.
     try:
-        for gender_name in ['Men', 'Women', 'Unisex']:
-            if not Category.query.filter_by(name=gender_name, parent_id=None).first():
-                db.session.add(Category(name=gender_name, parent_id=None))
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error seeding gender categories: {e}")
-
-    # Seed Women sub-categories + clean up duplicates + move remaining orphans under Men
-    try:
-        from models import Product as _Product
-        WOMEN_SUBS = ['Kada', 'Earrings', 'Chain Pendant Set', 'Chain', 'Rings']
-
-        women_cat = Category.query.filter_by(name='Women', parent_id=None).first()
-        men_cat   = Category.query.filter_by(name='Men',   parent_id=None).first()
-
-        # 1. Ensure Women sub-categories exist
-        if women_cat:
-            for sub_name in WOMEN_SUBS:
-                if not Category.query.filter_by(name=sub_name, parent_id=women_cat.id).first():
-                    db.session.add(Category(name=sub_name, parent_id=women_cat.id))
+        watch_cat = Category.query.filter_by(name='Watch').first()
+        if watch_cat and watch_cat.parent_id is not None:
+            watch_cat.parent_id = None
             db.session.commit()
 
-        # 2. Remove Women-only categories that got wrongly placed under Men
-        #    (happened because orphan migration ran before Women seeding created them)
-        if men_cat and women_cat:
-            for sub_name in WOMEN_SUBS:
-                men_dupes = Category.query.filter_by(name=sub_name, parent_id=men_cat.id).all()
-                if men_dupes:
-                    women_ver = Category.query.filter_by(name=sub_name, parent_id=women_cat.id).first()
-                    for dupe in men_dupes:
-                        if women_ver:
-                            _Product.query.filter_by(category_id=dupe.id).update(
-                                {'category_id': women_ver.id}, synchronize_session=False)
-                        db.session.delete(dupe)
+        if watch_cat:
+            for gender_name in ['Men', 'Women', 'Unisex']:
+                g = Category.query.filter_by(name=gender_name).first()
+                if not g:
+                    db.session.add(Category(name=gender_name, parent_id=watch_cat.id))
+                elif g.parent_id != watch_cat.id:
+                    g.parent_id = watch_cat.id
             db.session.commit()
 
-        # 3. Move remaining orphaned top-level categories (not Men/Women/Unisex) under Men
-        if men_cat:
-            orphans = Category.query.filter(
-                Category.parent_id.is_(None),
-                ~Category.name.in_(['Men', 'Women', 'Unisex'])
-            ).all()
-            for cat in orphans:
-                cat.parent_id = men_cat.id
+        for jewelry_name in ['Kada', 'Earrings', 'Chain Pendant Set', 'Chain', 'Rings']:
+            j = Category.query.filter_by(name=jewelry_name).first()
+            if j and j.parent_id is not None:
+                j.parent_id = None
             db.session.commit()
     except Exception as e:
         db.session.rollback()
-        print(f"Error seeding category hierarchy: {e}")
+        print(f"Error ensuring category hierarchy: {e}")
 
 # ---------------------------------------------------------------------------
 # Simple in-process caches — avoid DB round-trips on every page load

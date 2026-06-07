@@ -126,12 +126,18 @@
             <p class="section-intro">Browse the collections that define DADSON, from sculpted earrings and layered
                 necklaces to statement rings and gifting favourites.</p>
             <div class="category-grid">
-                {% set seen_parent_names = [] %}
-                {% for cat in categories if not cat.parent_id %}
-                {% if cat.name not in seen_parent_names %}
-                {% set _ = seen_parent_names.append(cat.name) %}
+                {% set seen_names = [] %}
+                {% for cat in display_categories %}
+                {% if cat.name not in seen_names %}
+                {% set _ = seen_names.append(cat.name) %}
                 <div class="category-card">
+                    {% if cat.img %}
                     <img src="{{ cat.img }}" alt="{{ cat.name }} collection" loading="lazy">
+                    {% else %}
+                    <div style="width:100%;height:100%;background:linear-gradient(135deg,#241a14,#4a2c1e);display:flex;align-items:center;justify-content:center;">
+                        <span style="font-size:2.5rem;color:rgba(255,255,255,0.25);font-family:'Playfair Display',serif;">{{ cat.name[0] | upper }}</span>
+                    </div>
+                    {% endif %}
                     <div class="category-overlay">
                         <h3>{{ cat.name }}</h3>
                         <a href="{{ url_for('public.shop', category=cat.name) }}" class="btn btn-outline">Explore</a>

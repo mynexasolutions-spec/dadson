@@ -76,12 +76,16 @@ def home():
 
     featured_reviews = Review.query.filter_by(is_featured=True, status='Approved').all()
 
+    # Top-level categories for the home page grid.
+    display_categories = [c for c in categories if c.parent_id is None]
+
     return render_template('index.html',
                            new_arrivals=new_arrivals,
                            category_sections=category_sections,
                            categories=categories,
+                           display_categories=display_categories,
                            best_sellers=best_sellers,
-                           featured_products=best_sellers,  # fallback/backward compatibility
+                           featured_products=best_sellers,
                            featured_reviews=featured_reviews)
 
 @public_bp.route('/api/subscribe', methods=['POST'])

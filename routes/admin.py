@@ -557,8 +557,8 @@ def new_category():
     if request.method == 'POST':
         name = request.form.get('name')
         img_file = request.files.get('img')
-        img = save_image(img_file, 'categories') if img_file else None
-        
+        img = save_image(img_file, 'categories') if img_file and img_file.filename else None
+
         parent_id = request.form.get('parent_id')
         parent_id = int(parent_id) if parent_id and parent_id.isdigit() else None
         gender = request.form.get('gender', 'Both')
@@ -583,7 +583,7 @@ def edit_category(id):
         if img_file and img_file.filename:
             delete_image(category.img)
             category.img = save_image(img_file, 'categories')
-            
+
         parent_id = request.form.get('parent_id')
         category.parent_id = int(parent_id) if parent_id and parent_id.isdigit() else None
         category.gender = request.form.get('gender', 'Both')

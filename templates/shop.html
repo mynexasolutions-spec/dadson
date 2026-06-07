@@ -11,8 +11,8 @@
 {% block content %}
 <div class="shop-page">
 
-    {# Priority order for top-level category pills — Women first, then Men, Unisex, then any admin-added categories #}
-    {% set _priority = ['Women', 'Men', 'Unisex'] %}
+    {# Priority order for top-level category pills — Watch first, then jewelry categories #}
+    {% set _priority = ['Watch', 'Kada', 'Earrings', 'Chain Pendant Set', 'Chain', 'Rings'] %}
     {% set _top_cats = [] %}
     {% for _n in _priority %}
       {% for _c in all_categories if not _c.parent_id and _c.name == _n %}
@@ -86,8 +86,8 @@
                 <div class="filter-group">
                     <h3>Categories</h3>
                     <div class="filter-options">
-                        {# Build ordered list: Women → Men → Unisex → others #}
-                        {% set _gender_order = ['Women', 'Men', 'Unisex'] %}
+                        {# Build ordered list: Watch → jewelry → others #}
+                        {% set _gender_order = ['Watch', 'Kada', 'Earrings', 'Chain Pendant Set', 'Chain', 'Rings'] %}
                         {% set _ordered_cats = [] %}
                         {% for _g in _gender_order %}
                           {% for _c in all_categories if not _c.parent_id and _c.name == _g %}
@@ -721,9 +721,30 @@
         align-items: center;
     }
 
+    .drilldown-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .drilldown-section + .drilldown-section {
+        margin-top: 0.65rem;
+        padding-top: 0.65rem;
+        border-top: 1px solid rgba(0,0,0,0.07);
+    }
+
+    .drilldown-section-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--text-soft, #7d6b61);
+    }
+
     .drilldown-level-2 {
-        margin-top: 0.6rem;
-        padding-top: 0.6rem;
+        margin-top: 0.4rem;
+        padding-top: 0.4rem;
+        padding-left: 0.5rem;
         border-top: 1px dashed rgba(0,0,0,0.07);
     }
 
@@ -802,8 +823,8 @@
     function pillId(name) { return 'cat-' + name.replace(/\s+/g, '-'); }
 
     /* State — always derived from checkboxes, never set independently */
-    var currentParentName = null;
-    var currentSubNames   = new Set();
+    var currentParentNames = new Set();   /* multi-select: all checked top-level names */
+    var currentSubNames    = new Set();
 
     function findNode(name, nodes) {
         for (var i = 0; i < nodes.length; i++) {
@@ -816,13 +837,13 @@
         return null;
     }
 
-    /* Derive currentParentName + currentSubNames from the actual checkbox DOM state.
+    /* Derive currentParentNames + currentSubNames from the actual checkbox DOM state.
        This is the single source of truth — called after any checkbox change. */
     function syncStateFromCheckboxes() {
-        currentParentName = null;
+        currentParentNames = new Set();
         GENDERS.forEach(function (n) {
             var pill = document.getElementById(pillId(n));
-            if (pill && pill.checked) currentParentName = n;
+            if (pill && pill.checked) currentParentNames.add(n);
         });
         currentSubNames = new Set();
         document.querySelectorAll('input[name="subcategory"]:checked').forEach(function (cb) {
@@ -845,27 +866,57 @@
         });
     }
 
+    /* Collect all descendant names from a node list (used for subtree cleanup) */
+    function collectAllNames(nodes) {
+        var names = [];
+        nodes.forEach(function (n) {
+            names.push(n.name);
+            if (n.children.length) names = names.concat(collectAllNames(n.children));
+        });
+        return names;
+    }
+
     function renderDrilldown() {
         var bar   = document.getElementById('categoryDrilldown');
         var inner = document.getElementById('drilldownInner');
-        if (!currentParentName) { bar.style.display = 'none'; return; }
-        var parentNode = findNode(currentParentName, catTree);
-        if (!parentNode || !parentNode.children.length) { bar.style.display = 'none'; return; }
-        bar.style.display = '';
-        inner.innerHTML   = '';
-        inner.appendChild(makeTagRow(parentNode.children, currentSubNames));
-        /* Level 2 — children of the first selected sub that has children */
-        var shownL2 = false;
-        currentSubNames.forEach(function (subName) {
-            if (shownL2) return;
-            var subNode = findNode(subName, parentNode.children);
-            if (subNode && subNode.children.length) {
-                var l2 = makeTagRow(subNode.children, currentSubNames);
-                l2.classList.add('drilldown-level-2');
-                inner.appendChild(l2);
-                shownL2 = true;
+        inner.innerHTML = '';
+        var hasAny = false;
+
+        currentParentNames.forEach(function (parentName) {
+            var parentNode = findNode(parentName, catTree);
+            if (!parentNode || !parentNode.children.length) return;
+            hasAny = true;
+
+            var section = document.createElement('div');
+            section.className = 'drilldown-section';
+
+            /* Label shown only when more than one parent is selected */
+            if (currentParentNames.size > 1) {
+                var lbl = document.createElement('span');
+                lbl.className = 'drilldown-section-label';
+                lbl.textContent = parentName;
+                section.appendChild(lbl);
             }
+
+            section.appendChild(makeTagRow(parentNode.children, currentSubNames));
+
+            /* Level 2 — children of the first selected sub in this parent's subtree */
+            var shownL2 = false;
+            currentSubNames.forEach(function (subName) {
+                if (shownL2) return;
+                var subNode = findNode(subName, parentNode.children);
+                if (subNode && subNode.children.length) {
+                    var l2 = makeTagRow(subNode.children, currentSubNames);
+                    l2.classList.add('drilldown-level-2');
+                    section.appendChild(l2);
+                    shownL2 = true;
+                }
+            });
+
+            inner.appendChild(section);
         });
+
+        bar.style.display = hasAny ? '' : 'none';
     }
 
     function makeTagRow(cats, activeNames) {
@@ -907,22 +958,24 @@
         });
     }
 
-    /* When a gender is selected ensure the pill and sidebar checkbox both match */
-    function setGender(name, checked) {
-        if (checked) {
-            /* Enforce single selection — clear all other top-level pills and sidebar checkboxes */
-            GENDERS.forEach(function (n) {
-                var pill = document.getElementById(pillId(n));
-                if (pill) pill.checked = (n === name);
-                document.querySelectorAll('input.sidebar-gender-cb[value="' + n + '"]').forEach(function (c) {
-                    c.checked = (n === name);
+    /* Sync pill + sidebar checkbox for a top-level category toggle (multi-select). */
+    function setTopLevel(name, checked) {
+        var pill = document.getElementById(pillId(name));
+        if (pill) pill.checked = checked;
+        document.querySelectorAll('input.sidebar-gender-cb[value="' + name + '"]').forEach(function (c) {
+            c.checked = checked;
+        });
+        /* When unchecking a top-level, also clear all its sub-category selections */
+        if (!checked) {
+            var parentNode = findNode(name, catTree);
+            if (parentNode) {
+                collectAllNames(parentNode.children).forEach(function (subName) {
+                    currentSubNames.delete(subName);
+                    document.querySelectorAll('input[name="subcategory"][value="' + subName + '"]').forEach(function (c) {
+                        c.checked = false;
+                    });
                 });
-            });
-            document.querySelectorAll('input[name="subcategory"]').forEach(function (c) { c.checked = false; });
-        } else {
-            var pill = document.getElementById(pillId(name));
-            if (pill) pill.checked = false;
-            document.querySelectorAll('input.sidebar-gender-cb[value="' + name + '"]').forEach(function (c) { c.checked = false; });
+            }
         }
     }
 
@@ -1024,8 +1077,8 @@
         var isSidebarGender = changedCb && changedCb.classList.contains('sidebar-gender-cb');
 
         if (isGenderPill || isSidebarGender) {
-            /* Both pill and sidebar gender controls go through setGender() for full sync */
-            setGender(changedCb.value, changedCb.checked);
+            /* Both pill and sidebar controls go through setTopLevel() for full sync */
+            setTopLevel(changedCb.value, changedCb.checked);
         }
         /* Subcategory changes from sidebar automatically update currentSubNames
            after syncStateFromCheckboxes() below — no extra work needed */
