@@ -328,7 +328,18 @@ def product_detail(id):
         joinedload(Product.variations),
         joinedload(Product.images),
     ).filter(Product.cat_name == product.cat_name, Product.id != product.id).limit(5).all()
-    return render_template('product.html', product=product, related=related, selected_variation=selected_variation)
+
+    # Build breadcrumb: list of Category objects from root → current
+    breadcrumb = []
+    curr = product.category
+    visited = set()
+    while curr and curr.id not in visited:
+        breadcrumb.insert(0, curr)
+        visited.add(curr.id)
+        curr = curr.parent if curr.parent_id else None
+
+    return render_template('product.html', product=product, related=related,
+                           selected_variation=selected_variation, breadcrumb=breadcrumb)
 
 @public_bp.route('/blogs')
 def blogs():

@@ -823,8 +823,8 @@
     function pillId(name) { return 'cat-' + name.replace(/\s+/g, '-'); }
 
     /* State — always derived from checkboxes, never set independently */
-    var currentParentNames = new Set();   /* multi-select: all checked top-level names */
-    var currentSubNames    = new Set();
+    var currentParentName = null;   /* single top-level selection */
+    var currentSubNames   = new Set();
 
     function findNode(name, nodes) {
         for (var i = 0; i < nodes.length; i++) {
@@ -837,13 +837,13 @@
         return null;
     }
 
-    /* Derive currentParentNames + currentSubNames from the actual checkbox DOM state.
+    /* Derive currentParentName + currentSubNames from the actual checkbox DOM state.
        This is the single source of truth — called after any checkbox change. */
     function syncStateFromCheckboxes() {
-        currentParentNames = new Set();
+        currentParentName = null;
         GENDERS.forEach(function (n) {
             var pill = document.getElementById(pillId(n));
-            if (pill && pill.checked) currentParentNames.add(n);
+            if (pill && pill.checked) currentParentName = n;
         });
         currentSubNames = new Set();
         document.querySelectorAll('input[name="subcategory"]:checked').forEach(function (cb) {
@@ -879,49 +879,30 @@
     function renderDrilldown() {
         var bar   = document.getElementById('categoryDrilldown');
         var inner = document.getElementById('drilldownInner');
-        inner.innerHTML = '';
-        var hasAny = false;
-
-        currentParentNames.forEach(function (parentName) {
-            var parentNode = findNode(parentName, catTree);
-            if (!parentNode || !parentNode.children.length) return;
-            hasAny = true;
-
-            var section = document.createElement('div');
-            section.className = 'drilldown-section';
-
-            /* Label shown only when more than one parent is selected */
-            if (currentParentNames.size > 1) {
-                var lbl = document.createElement('span');
-                lbl.className = 'drilldown-section-label';
-                lbl.textContent = parentName;
-                section.appendChild(lbl);
+        if (!currentParentName) { bar.style.display = 'none'; return; }
+        var parentNode = findNode(currentParentName, catTree);
+        if (!parentNode || !parentNode.children.length) { bar.style.display = 'none'; return; }
+        bar.style.display = '';
+        inner.innerHTML   = '';
+        inner.appendChild(makeTagRow(parentNode.children, currentSubNames));
+        /* Level 2 — children of the selected sub that has children */
+        var shownL2 = false;
+        currentSubNames.forEach(function (subName) {
+            if (shownL2) return;
+            var subNode = findNode(subName, parentNode.children);
+            if (subNode && subNode.children.length) {
+                var l2 = makeTagRow(subNode.children, currentSubNames);
+                l2.classList.add('drilldown-level-2');
+                inner.appendChild(l2);
+                shownL2 = true;
             }
-
-            section.appendChild(makeTagRow(parentNode.children, currentSubNames));
-
-            /* Level 2 — children of the first selected sub in this parent's subtree */
-            var shownL2 = false;
-            currentSubNames.forEach(function (subName) {
-                if (shownL2) return;
-                var subNode = findNode(subName, parentNode.children);
-                if (subNode && subNode.children.length) {
-                    var l2 = makeTagRow(subNode.children, currentSubNames);
-                    l2.classList.add('drilldown-level-2');
-                    section.appendChild(l2);
-                    shownL2 = true;
-                }
-            });
-
-            inner.appendChild(section);
         });
-
-        bar.style.display = hasAny ? '' : 'none';
     }
 
     function makeTagRow(cats, activeNames) {
         var row = document.createElement('div');
         row.className = 'drilldown-row';
+        var siblingNames = cats.map(function (c) { return c.name; });
         cats.forEach(function (cat) {
             var btn = document.createElement('button');
             btn.type = 'button';
@@ -936,16 +917,23 @@
                 ic.className = 'fas fa-angle-right drilldown-tag-icon';
                 btn.appendChild(ic);
             }
-            btn.addEventListener('click', function (e) { e.stopPropagation(); onDrillTagClick(cat); });
+            btn.addEventListener('click', function (e) { e.stopPropagation(); onDrillTagClick(cat, siblingNames); });
             row.appendChild(btn);
         });
         return row;
     }
 
-    /* Drilldown tag click — toggle the sub, sync sidebar, re-render, filter */
-    function onDrillTagClick(cat) {
-        if (currentSubNames.has(cat.name)) currentSubNames.delete(cat.name);
-        else                               currentSubNames.add(cat.name);
+    /* Drilldown tag click — single-select per row: clear siblings + their descendants */
+    function onDrillTagClick(cat, siblingNames) {
+        var wasActive = currentSubNames.has(cat.name);
+        /* Clear every sibling and its subtree */
+        (siblingNames || []).forEach(function (name) {
+            currentSubNames.delete(name);
+            var node = findNode(name, catTree);
+            if (node) collectAllNames(node.children).forEach(function (d) { currentSubNames.delete(d); });
+        });
+        /* Toggle: re-add only if it wasn't already active */
+        if (!wasActive) currentSubNames.add(cat.name);
         syncSubCheckboxes();
         renderDrilldown();
         applyFilters();
@@ -958,22 +946,27 @@
         });
     }
 
-    /* Sync pill + sidebar checkbox for a top-level category toggle (multi-select). */
-    function setTopLevel(name, checked) {
-        var pill = document.getElementById(pillId(name));
-        if (pill) pill.checked = checked;
-        document.querySelectorAll('input.sidebar-gender-cb[value="' + name + '"]').forEach(function (c) {
-            c.checked = checked;
-        });
-        /* When unchecking a top-level, also clear all its sub-category selections */
-        if (!checked) {
+    /* Top-level pill/sidebar change — single-select: checking one clears all others */
+    function setGender(name, checked) {
+        if (checked) {
+            GENDERS.forEach(function (n) {
+                var pill = document.getElementById(pillId(n));
+                if (pill) pill.checked = (n === name);
+                document.querySelectorAll('input.sidebar-gender-cb[value="' + n + '"]').forEach(function (c) {
+                    c.checked = (n === name);
+                });
+            });
+            /* Clear all sub-selections when switching top-level */
+            document.querySelectorAll('input[name="subcategory"]').forEach(function (c) { c.checked = false; });
+        } else {
+            var pill = document.getElementById(pillId(name));
+            if (pill) pill.checked = false;
+            document.querySelectorAll('input.sidebar-gender-cb[value="' + name + '"]').forEach(function (c) { c.checked = false; });
             var parentNode = findNode(name, catTree);
             if (parentNode) {
                 collectAllNames(parentNode.children).forEach(function (subName) {
                     currentSubNames.delete(subName);
-                    document.querySelectorAll('input[name="subcategory"][value="' + subName + '"]').forEach(function (c) {
-                        c.checked = false;
-                    });
+                    document.querySelectorAll('input[name="subcategory"][value="' + subName + '"]').forEach(function (c) { c.checked = false; });
                 });
             }
         }
@@ -1077,11 +1070,24 @@
         var isSidebarGender = changedCb && changedCb.classList.contains('sidebar-gender-cb');
 
         if (isGenderPill || isSidebarGender) {
-            /* Both pill and sidebar controls go through setTopLevel() for full sync */
-            setTopLevel(changedCb.value, changedCb.checked);
+            setGender(changedCb.value, changedCb.checked);
         }
-        /* Subcategory changes from sidebar automatically update currentSubNames
-           after syncStateFromCheckboxes() below — no extra work needed */
+
+        /* Single-select within each sidebar subcategory group */
+        var isSubCb = changedCb && changedCb.name === 'subcategory';
+        if (isSubCb && changedCb.checked) {
+            var grp = changedCb.closest('.subcategory-group');
+            if (grp) {
+                Array.from(grp.children).forEach(function (child) {
+                    var sib = child.querySelector(':scope > .subcategory-item-row input[name="subcategory"]');
+                    if (sib && sib !== changedCb) {
+                        sib.checked = false;
+                        /* also clear any deeper selections inside that sibling */
+                        child.querySelectorAll('input[name="subcategory"]').forEach(function (d) { d.checked = false; });
+                    }
+                });
+            }
+        }
 
         /* Re-derive state from all checkboxes — single source of truth */
         syncStateFromCheckboxes();

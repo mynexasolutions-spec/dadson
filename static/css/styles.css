@@ -2607,10 +2607,27 @@ section:nth-of-type(even) {
 .detail-container {
     display: grid;
     grid-template-columns: 1.1fr 0.9fr;
-    gap: 4rem;
+    grid-template-rows: auto 1fr;
+    gap: 0.75rem 4rem;
     max-width: 1400px;
     margin: 0 auto;
     padding: 0 4rem;
+}
+
+/* Desktop explicit placement — breadcrumb above gallery (left), info spans full right */
+.product-meta-top {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.product-gallery {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.product-info-sect {
+    grid-column: 2;
+    grid-row: 1 / 3;
 }
 
 /* Gallery Styles */
@@ -2986,8 +3003,14 @@ section:nth-of-type(even) {
 @media (max-width: 1024px) {
     .detail-container {
         grid-template-columns: 1fr;
-        gap: 3rem;
+        grid-template-rows: auto;
+        gap: 1.5rem;
     }
+
+    /* Mobile order: breadcrumb/stock → gallery → info */
+    .product-meta-top { grid-column: 1; grid-row: 1; }
+    .product-gallery  { grid-column: 1; grid-row: 2; }
+    .product-info-sect { grid-column: 1; grid-row: 3; }
 
     .related-grid {
         grid-template-columns: repeat(3, 1fr);
@@ -3006,6 +3029,21 @@ section:nth-of-type(even) {
         max-height: none !important;
         overflow-x: auto !important;
         overflow-y: visible !important;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        gap: 0.6rem !important;
+    }
+
+    .gallery-thumbnails::-webkit-scrollbar {
+        display: none;
+    }
+
+    .gallery-thumbnails .thumb {
+        scroll-snap-align: start;
+        flex: 0 0 64px;
+        width: 64px;
+        height: 64px;
     }
 
     .product-info-sect {
@@ -3020,7 +3058,7 @@ section:nth-of-type(even) {
 
 @media (max-width: 768px) {
     .product-detail-page {
-        padding-top: 2.5rem;
+        padding-top: 1rem;
         padding-bottom: 120px;
     }
 
@@ -3039,9 +3077,9 @@ section:nth-of-type(even) {
     }
 
     .gallery-thumbnails {
-        padding: 0.25rem 0;
+        padding: 0.5rem 0;
         background: transparent;
-        margin-bottom: -30px;
+        margin-bottom: 0;
     }
 
     .product-info-sect {

@@ -11,6 +11,29 @@
 {% block content %}
 <div class="product-detail-page">
     <div class="detail-container">
+        <!-- BREADCRUMB + STOCK — col 1 row 1 on desktop (above gallery), row 1 on mobile -->
+        <div class="product-meta-top">
+            <span class="cat-tag">
+                {% if breadcrumb %}
+                    {% for cat in breadcrumb %}
+                        <a href="{{ url_for('public.shop', category=cat.name) if not cat.parent_id else url_for('public.shop', subcategory=cat.name) }}"
+                           class="breadcrumb-link {% if loop.last %}breadcrumb-current{% endif %}">{{ cat.name }}</a>
+                        {% if not loop.last %}<span class="breadcrumb-sep"> &rsaquo; </span>{% endif %}
+                    {% endfor %}
+                {% else %}
+                    {{ product.cat_name }}
+                {% endif %}
+            </span>
+            <div id="displayStock"
+                class="stock-status-new {{ selected_variation.stock_status if selected_variation else product.stock_status }}">
+                {% if (selected_variation.stock_status if selected_variation else product.stock_status) == 'instock' %}
+                <span class="stock-dot"></span> In Stock
+                {% else %}
+                <span class="stock-dot out"></span> Out of Stock
+                {% endif %}
+            </div>
+        </div>
+
         <!-- LEFT: GALLERY -->
         <div class="product-gallery">
             <div class="main-img">
@@ -47,19 +70,6 @@
 
         <!-- RIGHT: PRODUCT INFO -->
         <div class="product-info-sect">
-            <div class="product-meta-top">
-                <span class="cat-tag">{{ product.category.get_full_path() if product.category else product.cat_name }}</span>
-                <div id="displayStock"
-                    class="stock-status-new {{ selected_variation.stock_status if selected_variation else product.stock_status }}">
-                    {% if (selected_variation.stock_status if selected_variation else product.stock_status) == 'instock'
-                    %}
-                    <span class="stock-dot"></span> In Stock
-                    {% else %}
-                    <span class="stock-dot out"></span> Out of Stock
-                    {% endif %}
-                </div>
-            </div>
-
             <h1 class="product-main-title">{{ product.name }}</h1>
 
             <div class="product-price-box">
@@ -341,6 +351,36 @@
         color: #b88a44;
         text-transform: uppercase;
         letter-spacing: 1.5px;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.1rem;
+    }
+
+    .breadcrumb-link {
+        color: #b88a44;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .breadcrumb-link:hover {
+        color: #241914;
+        text-decoration: underline;
+    }
+
+    .breadcrumb-sep {
+        color: #b88a44;
+        opacity: 0.6;
+    }
+
+    .breadcrumb-current {
+        color: #241914;
+        text-decoration: none;
+    }
+
+    .breadcrumb-current:hover {
+        color: #241914;
+        text-decoration: underline;
     }
 
     .stock-status-new {
