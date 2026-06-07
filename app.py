@@ -185,12 +185,21 @@ with app.app_context():
         except OSError:
             pass
 
-    # Seed Admin
-    admin_email = os.getenv('ADMIN_EMAIL')
-    if not User.query.filter_by(email=admin_email).first():
-        admin = User(email=admin_email, is_admin=True)
-        admin.set_password(os.getenv('ADMIN_PASSWORD'))
-        db.session.add(admin)
+    # Seed / sync Admin — credentials come exclusively from .env
+    _admin_email    = os.getenv('ADMIN_EMAIL')
+    _admin_password = os.getenv('ADMIN_PASSWORD')
+    _admin = User.query.filter_by(is_admin=True).first()
+    if _admin:
+        # Always sync email and password to .env values on startup
+        if _admin_email:
+            _admin.email = _admin_email
+        if _admin_password:
+            _admin.set_password(_admin_password)
+    else:
+        _admin = User(email=_admin_email, is_admin=True)
+        if _admin_password:
+            _admin.set_password(_admin_password)
+        db.session.add(_admin)
 
     # Seed default configs
     default_configs = {
