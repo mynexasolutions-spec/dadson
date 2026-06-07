@@ -220,6 +220,27 @@
 
     <script src="{{ url_for('static', filename='js/script.js') }}?v=6.0" defer></script>
     {% block scripts %}{% endblock %}
+    <script>
+    /* Prefetch shop links on hover — makes navigation feel instant */
+    (function () {
+        var prefetched = new Set();
+        function prefetch(url) {
+            if (prefetched.has(url)) return;
+            prefetched.add(url);
+            var l = document.createElement('link');
+            l.rel = 'prefetch'; l.href = url;
+            document.head.appendChild(l);
+        }
+        document.addEventListener('mouseover', function (e) {
+            var a = e.target.closest('a[href]');
+            if (!a) return;
+            var href = a.getAttribute('href');
+            if (href && href.indexOf('/shop') !== -1 && href.indexOf('://') === -1) {
+                prefetch(href);
+            }
+        }, { passive: true });
+    })();
+    </script>
 </body>
 
 </html>

@@ -1,5 +1,5 @@
 import json
-from flask import Blueprint, render_template, request, abort, session, jsonify
+from flask import Blueprint, render_template, request, abort, session, jsonify, current_app
 from models import db, Category, Product, SubCategory, Review, Subscriber
 from sqlalchemy.orm import joinedload
 
@@ -112,18 +112,32 @@ def subscribe():
 def shop():
     selected_filters = request.args.getlist('filter')
     selected_categories = [c for c in request.args.getlist('category') if c]
-    selected_subcategories = [s for s in request.args.getlist('subcategory') if s]
+    # subcategory_id is the canonical param (unique per category, avoids same-name collisions)
+    # subcategory (name) kept for backward-compat with external links
+    selected_subcategory_ids = [int(s) for s in request.args.getlist('subcategory_id') if s.isdigit()]
+    selected_subcategories   = [s for s in request.args.getlist('subcategory') if s]
     search_query = request.args.get('search', '').strip()
     page = request.args.get('page', 1, type=int)
     per_page = 12
 
-    query = Product.query
-    if selected_subcategories or selected_categories:
-        # Build parent_id → [child_ids] map in one flat query (no lazy-loading)
-        _all_rows = db.session.query(Category.id, Category.parent_id).all()
-        _children_map = {}
-        for _cid, _pid in _all_rows:
-            _children_map.setdefault(_pid, []).append(_cid)
+    from models import ProductVariation, VariationOption, AttributeValue, Attribute, ProductImage
+    _var_opts = joinedload(Product.variations).joinedload(
+        ProductVariation.options).joinedload(
+        VariationOption.attribute_value).joinedload(
+        AttributeValue.attribute)
+    query = Product.query.options(
+        _var_opts,
+        joinedload(Product.images),
+        joinedload(Product.category),
+        joinedload(Product.subcategory),
+    )
+    # Fetch categories from cache — avoids a round-trip to Supabase on every request.
+    _all_cats = current_app.get_cached_categories()
+    if selected_subcategory_ids or selected_subcategories or selected_categories:
+        # Build parent_id → [child_ids] map from cached data (no DB query)
+        _children_map: dict = {}
+        for _c in _all_cats:
+            _children_map.setdefault(_c.parent_id, []).append(_c.id)
 
         def _all_descendants(cat_id):
             """Return the set of ALL descendant IDs (iterative BFS, no recursion limit)."""
@@ -134,11 +148,13 @@ def shop():
                 stack.extend(_children_map.get(cid, []))
             return result
 
-        # Merge category + subcategory params — both resolve to Category rows.
-        # Keeping them separate caused parents to override more-specific children.
-        _all_names = list(set(selected_subcategories + selected_categories))
-        _sel_cats  = Category.query.filter(Category.name.in_(_all_names)).all()
-        _sel_ids   = {c.id for c in _sel_cats}
+        # Resolve selected categories from cache (no DB query)
+        _id_set   = set(selected_subcategory_ids)
+        _name_set = set(selected_subcategories + selected_categories)
+        _by_id    = [c for c in _all_cats if c.id in _id_set]
+        _by_name  = [c for c in _all_cats if c.name in _name_set] if _name_set else []
+        _sel_cats = list({c.id: c for c in _by_id + _by_name}.values())
+        _sel_ids  = {c.id for c in _sel_cats}
 
         # Intersection rule: skip any selected category that has a selected descendant
         # (the descendant is more specific and takes precedence).  Only "leaf"
@@ -218,7 +234,7 @@ def shop():
             
         if clean_query:
             matched_cat_ids = []
-            for c in Category.query.all():
+            for c in _all_cats:
                 c_name_lower = c.name.lower()
                 if c_name_lower in clean_query or clean_query in c_name_lower:
                     matched_cat_ids.append(c.id)
@@ -246,7 +262,8 @@ def shop():
             query = strict_query
         else:
             # Fallback to broader OR search across the full raw search query
-            matched_cat_ids = [c.id for c in Category.query.filter(Category.name.ilike(f'%{search_query}%')).all()]
+            sq_lower_full = search_query.lower()
+            matched_cat_ids = [c.id for c in _all_cats if sq_lower_full in c.name.lower()]
             matched_subcat_ids = [s.id for s in SubCategory.query.filter(SubCategory.name.ilike(f'%{search_query}%')).all()]
             
             fallback_filters = [
@@ -271,10 +288,10 @@ def shop():
 
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     products = pagination.items
-    categories = Category.query.all()
+    categories = _all_cats  # already fetched (or from cache)
 
-    # Build tree from flat list — avoids lazy-loading .subcategories on potentially
-    # stale cached objects, keeping sidebar and drilldown bar in sync.
+    # Build tree from cached flat list — avoids lazy-loading .subcategories on
+    # stale objects, keeping sidebar and drilldown bar in sync.
     _cat_map = {c.id: {'id': c.id, 'name': c.name, 'children': []} for c in categories}
     _tree_roots = []
     for c in categories:
@@ -293,6 +310,7 @@ def shop():
         all_categories=categories,
         active_categories=selected_categories,
         active_subcategories=selected_subcategories,
+        active_subcategory_ids=set(selected_subcategory_ids),
         category_tree_json=category_tree_json,
     )
 

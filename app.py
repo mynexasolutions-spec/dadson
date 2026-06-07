@@ -248,17 +248,30 @@ with app.app_context():
 # ---------------------------------------------------------------------------
 # Simple in-process caches — avoid DB round-trips on every page load
 # ---------------------------------------------------------------------------
-_category_cache = {'data': None}
+_category_cache = {'data': None, 'ts': 0.0}
 _config_cache = {}
 _admin_notif_cache = {'data': None, 'ts': 0}
-_ADMIN_NOTIF_TTL = 30  # seconds
+_ADMIN_NOTIF_TTL = 30   # seconds
+_CATEGORY_CACHE_TTL = 30  # seconds
 
 def get_cached_categories():
-    if _category_cache['data'] is None:
-        from sqlalchemy.orm import joinedload
-        _category_cache['data'] = Category.query.options(
-            joinedload(Category.subcategories)
+    """Return a cached list of SimpleNamespace objects (id, name, parent_id, img).
+
+    Using SimpleNamespace instead of SQLAlchemy ORM objects means these are safe
+    to share across requests — ORM objects are session-bound and would raise
+    DetachedInstanceError after the originating request ends.
+    """
+    now = time.time()
+    if _category_cache['data'] is None or now - _category_cache['ts'] > _CATEGORY_CACHE_TTL:
+        from types import SimpleNamespace
+        rows = db.session.query(
+            Category.id, Category.name, Category.parent_id, Category.img
         ).all()
+        _category_cache['data'] = [
+            SimpleNamespace(id=r[0], name=r[1], parent_id=r[2], img=r[3])
+            for r in rows
+        ]
+        _category_cache['ts'] = now
     return _category_cache['data']
 
 def get_cached_config(key):
@@ -285,6 +298,7 @@ def get_cached_admin_notifications():
 
 def invalidate_category_cache():
     _category_cache['data'] = None
+    _category_cache['ts'] = 0.0
 
 def invalidate_config_cache(key=None):
     if key:
@@ -293,6 +307,7 @@ def invalidate_config_cache(key=None):
         _config_cache.clear()
 
 # Expose so admin routes can call these
+app.get_cached_categories = get_cached_categories
 app.invalidate_category_cache = invalidate_category_cache
 app.invalidate_config_cache = invalidate_config_cache
 

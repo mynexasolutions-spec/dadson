@@ -121,15 +121,15 @@
                             <div class="subcategory-group"
                                 style="display: none; flex-direction: column; gap: 0.4rem; padding-left: 1.5rem; margin-top: 0.3rem; border-left: 1px solid rgba(0,0,0,0.1);">
                                 {% macro render_filter_subcategories(sub_list) %}
-                                {% set seen_sub_names = [] %}
+                                {% set seen_sub_ids = [] %}
                                 {% for sub in sub_list %}
-                                {% if sub.name not in seen_sub_names %}
-                                {% set _ = seen_sub_names.append(sub.name) %}
+                                {% if sub.id not in seen_sub_ids %}
+                                {% set _ = seen_sub_ids.append(sub.id) %}
                                 <div>
                                     <div class="subcategory-item-row">
                                         <label class="subcategory-item">
-                                            <input type="checkbox" name="subcategory" value="{{ sub.name }}"
-                                                {% if sub.name in active_subcategories %}checked{% endif %}
+                                            <input type="checkbox" name="subcategory" value="{{ sub.id }}"
+                                                {% if sub.id in active_subcategory_ids %}checked{% endif %}
                                                 style="width: 16px; height: 16px; accent-color: var(--crimson); flex-shrink: 0; cursor: pointer;">
                                             <span class="subcategory-name">{{ sub.name }}</span>
                                         </label>
@@ -824,7 +824,7 @@
 
     /* State — always derived from checkboxes, never set independently */
     var currentParentName = null;   /* single top-level selection */
-    var currentSubNames   = new Set();
+    var currentSubIds     = new Set();  /* Set of category IDs (integers) — unique across same-named sub-cats */
 
     function findNode(name, nodes) {
         for (var i = 0; i < nodes.length; i++) {
@@ -837,7 +837,28 @@
         return null;
     }
 
-    /* Derive currentParentName + currentSubNames from the actual checkbox DOM state.
+    function findNodeById(id, nodes) {
+        for (var i = 0; i < nodes.length; i++) {
+            if (nodes[i].id === id) return nodes[i];
+            if (nodes[i].children.length) {
+                var f = findNodeById(id, nodes[i].children);
+                if (f) return f;
+            }
+        }
+        return null;
+    }
+
+    /* Collect all descendant IDs from a node list */
+    function collectAllIds(nodes) {
+        var ids = [];
+        nodes.forEach(function (n) {
+            ids.push(n.id);
+            if (n.children.length) ids = ids.concat(collectAllIds(n.children));
+        });
+        return ids;
+    }
+
+    /* Derive currentParentName + currentSubIds from the actual checkbox DOM state.
        This is the single source of truth — called after any checkbox change. */
     function syncStateFromCheckboxes() {
         currentParentName = null;
@@ -845,9 +866,9 @@
             var pill = document.getElementById(pillId(n));
             if (pill && pill.checked) currentParentName = n;
         });
-        currentSubNames = new Set();
+        currentSubIds = new Set();
         document.querySelectorAll('input[name="subcategory"]:checked').forEach(function (cb) {
-            currentSubNames.add(cb.value);
+            currentSubIds.add(+cb.value);  /* + coerces string → number */
         });
     }
 
@@ -866,16 +887,6 @@
         });
     }
 
-    /* Collect all descendant names from a node list (used for subtree cleanup) */
-    function collectAllNames(nodes) {
-        var names = [];
-        nodes.forEach(function (n) {
-            names.push(n.name);
-            if (n.children.length) names = names.concat(collectAllNames(n.children));
-        });
-        return names;
-    }
-
     function renderDrilldown() {
         var bar   = document.getElementById('categoryDrilldown');
         var inner = document.getElementById('drilldownInner');
@@ -884,14 +895,14 @@
         if (!parentNode || !parentNode.children.length) { bar.style.display = 'none'; return; }
         bar.style.display = '';
         inner.innerHTML   = '';
-        inner.appendChild(makeTagRow(parentNode.children, currentSubNames));
-        /* Level 2 — children of the selected sub that has children */
+        inner.appendChild(makeTagRow(parentNode.children, currentSubIds));
+        /* Level 2 — children of the selected sub (matched by ID) that has children */
         var shownL2 = false;
-        currentSubNames.forEach(function (subName) {
+        currentSubIds.forEach(function (subId) {
             if (shownL2) return;
-            var subNode = findNode(subName, parentNode.children);
+            var subNode = findNodeById(subId, parentNode.children);
             if (subNode && subNode.children.length) {
-                var l2 = makeTagRow(subNode.children, currentSubNames);
+                var l2 = makeTagRow(subNode.children, currentSubIds);
                 l2.classList.add('drilldown-level-2');
                 inner.appendChild(l2);
                 shownL2 = true;
@@ -899,16 +910,16 @@
         });
     }
 
-    function makeTagRow(cats, activeNames) {
+    function makeTagRow(cats, activeIds) {
         var row = document.createElement('div');
         row.className = 'drilldown-row';
-        var siblingNames = cats.map(function (c) { return c.name; });
+        var siblingIds = cats.map(function (c) { return c.id; });
         cats.forEach(function (cat) {
             var btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'drilldown-tag' +
-                (activeNames.has(cat.name) ? ' active'  : '') +
-                (cat.children.length       ? ' has-sub' : '');
+                (activeIds.has(cat.id)   ? ' active'  : '') +
+                (cat.children.length     ? ' has-sub' : '');
             var sp = document.createElement('span');
             sp.textContent = cat.name;
             btn.appendChild(sp);
@@ -917,32 +928,32 @@
                 ic.className = 'fas fa-angle-right drilldown-tag-icon';
                 btn.appendChild(ic);
             }
-            btn.addEventListener('click', function (e) { e.stopPropagation(); onDrillTagClick(cat, siblingNames); });
+            btn.addEventListener('click', function (e) { e.stopPropagation(); onDrillTagClick(cat, siblingIds); });
             row.appendChild(btn);
         });
         return row;
     }
 
-    /* Drilldown tag click — single-select per row: clear siblings + their descendants */
-    function onDrillTagClick(cat, siblingNames) {
-        var wasActive = currentSubNames.has(cat.name);
-        /* Clear every sibling and its subtree */
-        (siblingNames || []).forEach(function (name) {
-            currentSubNames.delete(name);
-            var node = findNode(name, catTree);
-            if (node) collectAllNames(node.children).forEach(function (d) { currentSubNames.delete(d); });
+    /* Drilldown tag click — single-select per row, matched by ID */
+    function onDrillTagClick(cat, siblingIds) {
+        var wasActive = currentSubIds.has(cat.id);
+        /* Clear every sibling and its entire subtree */
+        (siblingIds || []).forEach(function (id) {
+            currentSubIds.delete(id);
+            var node = findNodeById(id, catTree);
+            if (node) collectAllIds(node.children).forEach(function (d) { currentSubIds.delete(d); });
         });
         /* Toggle: re-add only if it wasn't already active */
-        if (!wasActive) currentSubNames.add(cat.name);
+        if (!wasActive) currentSubIds.add(cat.id);
         syncSubCheckboxes();
         renderDrilldown();
-        applyFilters();
+        debouncedApplyFilters();
     }
 
-    /* Write drilldown Set state into sidebar subcategory checkboxes */
+    /* Write drilldown Set state into sidebar subcategory checkboxes (matched by numeric ID) */
     function syncSubCheckboxes() {
         document.querySelectorAll('input[name="subcategory"]').forEach(function (cb) {
-            cb.checked = currentSubNames.has(cb.value);
+            cb.checked = currentSubIds.has(+cb.value);
         });
     }
 
@@ -957,16 +968,18 @@
                 });
             });
             /* Clear all sub-selections when switching top-level */
+            currentSubIds.clear();
             document.querySelectorAll('input[name="subcategory"]').forEach(function (c) { c.checked = false; });
         } else {
             var pill = document.getElementById(pillId(name));
             if (pill) pill.checked = false;
             document.querySelectorAll('input.sidebar-gender-cb[value="' + name + '"]').forEach(function (c) { c.checked = false; });
+            /* Also clear this parent's subcategory IDs */
             var parentNode = findNode(name, catTree);
             if (parentNode) {
-                collectAllNames(parentNode.children).forEach(function (subName) {
-                    currentSubNames.delete(subName);
-                    document.querySelectorAll('input[name="subcategory"][value="' + subName + '"]').forEach(function (c) { c.checked = false; });
+                collectAllIds(parentNode.children).forEach(function (subId) {
+                    currentSubIds.delete(subId);
+                    document.querySelectorAll('input[name="subcategory"][value="' + subId + '"]').forEach(function (c) { c.checked = false; });
                 });
             }
         }
@@ -999,12 +1012,8 @@
         document.querySelectorAll('input[name="category"]:checked').forEach(function (cb) {
             if (!addedCats.has(cb.value)) { addedCats.add(cb.value); p.append('category', cb.value); }
         });
-        /* Subcategory — read from currentSubNames, NOT DOM checkboxes.
-           Drilldown selections update currentSubNames directly; sidebar checkbox DOM
-           may not exist when the accordion group was never rendered (cache/detach issue).
-           This makes the drilldown the authoritative source and avoids the filter falling
-           back silently to the parent-category-only path. */
-        currentSubNames.forEach(function (name) { p.append('subcategory', name); });
+        /* Subcategory — send IDs so same-named sub-cats under different parents stay distinct */
+        currentSubIds.forEach(function (id) { p.append('subcategory_id', id); });
         document.querySelectorAll('input[name="filter"]:checked').forEach(function (cb) { p.append('filter', cb.value); });
         var sq = document.querySelector('input[name="search"]');
         if (sq && sq.value.trim()) p.set('search', sq.value.trim());
@@ -1016,6 +1025,13 @@
        ═══════════════════════════════════════════ */
     var shopResults = document.getElementById('shop-results');
     var busy = false;
+    var _filterDebounceTimer = null;
+
+    /* Debounced wrapper — coalesces rapid filter changes into one request */
+    function debouncedApplyFilters() {
+        clearTimeout(_filterDebounceTimer);
+        _filterDebounceTimer = setTimeout(applyFilters, 350);
+    }
 
     function applyFilters(targetUrl) {
         if (busy) return;
@@ -1073,7 +1089,7 @@
             setGender(changedCb.value, changedCb.checked);
         }
 
-        /* Single-select within each sidebar subcategory group */
+        /* Single-select within each sidebar subcategory group (DOM-proximity, works for any depth) */
         var isSubCb = changedCb && changedCb.name === 'subcategory';
         if (isSubCb && changedCb.checked) {
             var grp = changedCb.closest('.subcategory-group');
@@ -1082,8 +1098,11 @@
                     var sib = child.querySelector(':scope > .subcategory-item-row input[name="subcategory"]');
                     if (sib && sib !== changedCb) {
                         sib.checked = false;
-                        /* also clear any deeper selections inside that sibling */
-                        child.querySelectorAll('input[name="subcategory"]').forEach(function (d) { d.checked = false; });
+                        currentSubIds.delete(+sib.value);
+                        child.querySelectorAll('input[name="subcategory"]').forEach(function (d) {
+                            d.checked = false;
+                            currentSubIds.delete(+d.value);
+                        });
                     }
                 });
             }
@@ -1095,7 +1114,7 @@
         renderDrilldown();
 
         if (window.innerWidth > 768) toggleSidebar(false);
-        applyFilters();
+        debouncedApplyFilters();
     }
 
     if (allCb) {
@@ -1107,7 +1126,7 @@
             updateGenderCardActive();
             renderDrilldown();
             if (window.innerWidth > 768) toggleSidebar(false);
-            applyFilters();
+            debouncedApplyFilters();
         });
     }
 
