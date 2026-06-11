@@ -2339,7 +2339,34 @@ section:nth-of-type(even) {
     box-shadow: 0 12px 20px rgba(184, 138, 68, 0.25) !important;
 }
 
+.product-buy-now-btn {
+    width: 100%;
+    padding: 0.85rem;
+    background: var(--crimson-dark);
+    color: #fff;
+    border: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: 999px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
+.product-buy-now-btn:hover {
+    background: #5a2745;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(62, 27, 47, 0.3);
+}
+
+.product-buy-now-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
 
 /* Card Mobile styling */
 @media (max-width: 768px) {
@@ -2380,9 +2407,17 @@ section:nth-of-type(even) {
         border-radius: 999px;
         margin-top: auto !important;
         width: 100% !important;
-        display: block !important;
-        text-align: center !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         border: 1px solid transparent !important;
+    }
+
+    .product-buy-now-btn {
+        padding: 0.7rem;
+        font-size: 0.82rem;
+        width: 100%;
+        margin-top: 0.4rem;
     }
 }
 

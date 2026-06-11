@@ -84,6 +84,45 @@ document.addEventListener('click', function(e) {
     }
 });
 
+// ==================== BUY NOW ====================
+document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.buy-now-ajax');
+    if (!btn) return;
+    e.preventDefault();
+
+    var productId = btn.getAttribute('data-id');
+    if (!productId) return;
+
+    var originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:6px;font-size:0.85em;"></i>Please wait...';
+
+    fetch('/add-to-cart/' + productId, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (data.success) {
+            // Update cart badge then go straight to checkout
+            var badge = document.getElementById('cartBadge') || document.querySelector('.cart-count');
+            if (badge) badge.textContent = data.cart_count;
+            window.location.href = '/checkout';
+        } else if (data.redirect) {
+            // Variable product — needs variant selection on product page
+            window.location.href = data.redirect;
+        } else {
+            alert(data.message || 'Could not process. Please try again.');
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        }
+    })
+    .catch(function() {
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+    });
+});
+
 // ==================== WISHLIST MANAGEMENT ====================
 window.toggleWishlist = function(e, productId) {
     if (e) {

@@ -95,7 +95,12 @@
             {% endif %}
         </div>
         {% endif %}
-        <button class="product-add-btn add-to-cart-ajax" data-id="{{ product.id }}">Add to Cart</button>
+        <button class="product-add-btn add-to-cart-ajax" data-id="{{ product.id }}">
+            <i class="fas fa-shopping-cart" style="margin-right:6px;font-size:0.85em;"></i>Add to Cart
+        </button>
+        <button class="product-buy-now-btn buy-now-ajax" data-id="{{ product.id }}">
+            <i class="fas fa-bolt" style="margin-right:6px;font-size:0.85em;"></i>Buy Now
+        </button>
     </div>
 </div>
 {% endmacro %}

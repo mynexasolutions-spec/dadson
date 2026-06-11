@@ -86,6 +86,16 @@
                 <div class="filter-group">
                     <h3>Categories</h3>
                     <div class="filter-options">
+                        {# Build parent_id → [children] map from flat SimpleNamespace list #}
+                        {% set subcats_of = {} %}
+                        {% for _c in all_categories %}
+                            {% if _c.parent_id %}
+                                {% if _c.parent_id not in subcats_of %}
+                                    {% do subcats_of.update({_c.parent_id: []}) %}
+                                {% endif %}
+                                {% do subcats_of[_c.parent_id].append(_c) %}
+                            {% endif %}
+                        {% endfor %}
                         {# Build ordered list: Watch → jewelry → others #}
                         {% set _gender_order = ['Watch', 'Kada', 'Earrings', 'Chain Pendant Set', 'Chain', 'Rings'] %}
                         {% set _ordered_cats = [] %}
@@ -111,13 +121,13 @@
                                         style="width: 16px; height: 16px; accent-color: var(--crimson); flex-shrink: 0; cursor: pointer;">
                                     <span class="category-name">{{ cat.name }}</span>
                                 </label>
-                                {% if cat.subcategories %}
+                                {% if subcats_of.get(cat.id) %}
                                 <button type="button" class="subcategory-toggle-btn" style="background: none; border: 1px solid rgba(0,0,0,0.12); border-radius: 6px; cursor: pointer; padding: 3px 7px; color: var(--text-soft); transition: transform 0.2s, border-color 0.2s;">
                                     <i class="fas fa-chevron-down" style="font-size: 0.75rem;"></i>
                                 </button>
                                 {% endif %}
                             </div>
-                            {% if cat.subcategories %}
+                            {% if subcats_of.get(cat.id) %}
                             <div class="subcategory-group"
                                 style="display: none; flex-direction: column; gap: 0.4rem; padding-left: 1.5rem; margin-top: 0.3rem; border-left: 1px solid rgba(0,0,0,0.1);">
                                 {% macro render_filter_subcategories(sub_list) %}
@@ -133,22 +143,22 @@
                                                 style="width: 16px; height: 16px; accent-color: var(--crimson); flex-shrink: 0; cursor: pointer;">
                                             <span class="subcategory-name">{{ sub.name }}</span>
                                         </label>
-                                        {% if sub.subcategories %}
+                                        {% if subcats_of.get(sub.id) %}
                                         <button type="button" class="subcategory-toggle-btn" style="background: none; border: 1px solid rgba(0,0,0,0.12); border-radius: 6px; cursor: pointer; padding: 3px 7px; color: var(--text-soft); transition: transform 0.2s, border-color 0.2s; flex-shrink: 0; line-height: 1;">
                                             <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i>
                                         </button>
                                         {% endif %}
                                     </div>
-                                    {% if sub.subcategories %}
+                                    {% if subcats_of.get(sub.id) %}
                                     <div class="subcategory-group" style="display: none; flex-direction: column; gap: 0.3rem; padding-left: 1.2rem; margin-top: 0.25rem; border-left: 1px solid rgba(0,0,0,0.08);">
-                                        {{ render_filter_subcategories(sub.subcategories) }}
+                                        {{ render_filter_subcategories(subcats_of.get(sub.id, [])) }}
                                     </div>
                                     {% endif %}
                                 </div>
                                 {% endif %}
                                 {% endfor %}
                                 {% endmacro %}
-                                {{ render_filter_subcategories(cat.subcategories) }}
+                                {{ render_filter_subcategories(subcats_of.get(cat.id, [])) }}
                             </div>
                             {% endif %}
                         </div>
