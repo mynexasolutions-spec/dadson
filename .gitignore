@@ -23,3 +23,5 @@ Thumbs.db
 # Keys
 *.pem
 firebase_service_account.json
+*firebase-adminsdk*.json
+*.json.key
