@@ -134,10 +134,16 @@
             </div>
 
             <div class="main-actions-row">
-                <button id="addToCartBtn" class="btn-add-bag-premium" data-id="{{ product.id }}"
-                    onclick="addToCart(this)" {{ 'disabled' if product.product_type=='variable' }}>
-                    Add to Bag
-                </button>
+                <div class="main-btns-group">
+                    <button id="addToCartBtn" class="btn-add-bag-premium" data-id="{{ product.id }}"
+                        onclick="addToCart(this)" {{ 'disabled' if product.product_type=='variable' }}>
+                        Add to Bag
+                    </button>
+                    <button id="buyNowBtn" class="btn-buy-now-premium" data-id="{{ product.id }}"
+                        onclick="buyNow(this)" {{ 'disabled' if product.product_type=='variable' }}>
+                        <i class="fas fa-bolt" style="font-size:0.85em;"></i> Buy Now
+                    </button>
+                </div>
                 {% set in_wishlist = product.id in session.get('wishlist', []) %}
                 <button class="btn-wish-circle-premium {{ 'active' if in_wishlist }}" onclick="toggleWishlist()"
                     title="Add to Wishlist">
@@ -549,32 +555,82 @@
         display: flex;
         gap: 15px;
         margin: 40px 0;
+        align-items: center;
+    }
+
+    .main-btns-group {
+        flex: 1;
+        display: flex;
+        flex-direction: row;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    @media (max-width: 600px) {
+        .main-btns-group {
+            flex-direction: column;
+            gap: 8px;
+        }
     }
 
     .btn-add-bag-premium {
         flex: 1;
-        height: 60px;
+        width: 100%;
+        padding: 0.85rem;
         background: linear-gradient(135deg, var(--gold-primary), var(--gold-accent));
         color: #fff;
-        border: none;
-        border-radius: 30px;
-        font-size: 1rem;
-        font-weight: 700;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        font-size: 0.95rem;
+        font-weight: 600;
         cursor: pointer;
-        transition: all 0.3s ease;
-        letter-spacing: 0.5px;
-        box-shadow: 0 6px 20px rgba(184, 138, 68, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+        box-shadow: 0 8px 16px rgba(184, 138, 68, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .btn-add-bag-premium:hover {
         background: linear-gradient(135deg, var(--gold-accent), var(--gold-primary));
-        transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(184, 138, 68, 0.22);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 20px rgba(184, 138, 68, 0.25);
     }
 
     .btn-add-bag-premium:disabled {
         background: #cbd5e1;
         color: #64748b;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .btn-buy-now-premium {
+        flex: 1;
+        width: 100%;
+        padding: 0.85rem;
+        background: var(--crimson-dark);
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .btn-buy-now-premium:hover {
+        background: #5a2745;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(62, 27, 47, 0.3);
+    }
+
+    .btn-buy-now-premium:disabled {
+        opacity: 0.65;
         cursor: not-allowed;
         transform: none;
         box-shadow: none;
@@ -1082,6 +1138,8 @@
 
             addToCartBtn.disabled = true;
             addToCartBtn.innerText = 'Add to Bag';
+            const _buyNowBtn1 = document.getElementById('buyNowBtn');
+            if (_buyNowBtn1) _buyNowBtn1.disabled = true;
             updateWishlistIcon();
             return;
         }
@@ -1125,11 +1183,15 @@
                 stockSect.innerHTML = '<span class="stock-dot"></span> In Stock';
                 addToCartBtn.disabled = false;
                 addToCartBtn.innerText = 'Add to Bag';
+                const _buyNowBtn2 = document.getElementById('buyNowBtn');
+                if (_buyNowBtn2) _buyNowBtn2.disabled = false;
             } else {
                 stockSect.className = 'stock-status-new outofstock';
                 stockSect.innerHTML = '<span class="stock-dot out"></span> Out of Stock';
                 addToCartBtn.disabled = true;
                 addToCartBtn.innerText = 'Out of Stock';
+                const _buyNowBtn3 = document.getElementById('buyNowBtn');
+                if (_buyNowBtn3) _buyNowBtn3.disabled = true;
             }
 
             if (match.img && match.img !== 'None' && match.img !== '') {
@@ -1142,6 +1204,8 @@
             console.log("Selection Debug - Selected:", selected, "Variations Array:", variations);
             addToCartBtn.disabled = true;
             addToCartBtn.innerText = variations.length === 0 ? 'Out of Stock' : 'Unavailable';
+            const _buyNowBtn4 = document.getElementById('buyNowBtn');
+            if (_buyNowBtn4) _buyNowBtn4.disabled = true;
         }
         updateWishlistIcon();
     }
@@ -1169,6 +1233,62 @@
         } else {
             performAddToCart(btn, productId, null);
         }
+    }
+
+    function buyNow(btn) {
+        const productId = btn.getAttribute('data-id');
+        const isVariable = variations.length > 0;
+        const selected = {};
+
+        if (isVariable) {
+            document.querySelectorAll('.premium-swatch.active').forEach(s => {
+                selected[s.getAttribute('data-attr-id')] = s.getAttribute('data-val-id');
+            });
+
+            const match = variations.find(v => {
+                return Object.keys(v.options).every(attrId => v.options[attrId] == selected[attrId]);
+            });
+
+            if (!match) {
+                alert("Please select all options before buying.");
+                return;
+            }
+
+            performBuyNow(btn, productId, match.id);
+        } else {
+            performBuyNow(btn, productId, null);
+        }
+    }
+
+    function performBuyNow(btn, productId, variationId) {
+        const originalText = btn.innerText;
+        btn.innerText = 'Adding...';
+        btn.disabled = true;
+
+        const formData = new FormData();
+        if (variationId) formData.append('variation_id', variationId);
+
+        fetch(`/add-to-cart/${productId}`, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const badge = document.getElementById('cartBadge');
+                if (badge) badge.innerText = data.cart_count;
+                window.location.href = '/checkout';
+            } else {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            btn.innerText = originalText;
+            btn.disabled = false;
+        });
     }
 
     function performAddToCart(btn, productId, variationId) {

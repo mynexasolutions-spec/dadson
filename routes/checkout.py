@@ -53,10 +53,8 @@ def get_shipping_config():
 @checkout_bp.route('/checkout')
 def checkout():
     user_id = session.get('user_id')
-    if not user_id:
-        return redirect(url_for('auth.login', next='/checkout'))
-        
-    user = User.query.get(user_id)
+    user = User.query.get(user_id) if user_id else None
+
     cart = session.get('cart', {})
     if not cart:
         return redirect(url_for('cart.view_cart'))
@@ -173,10 +171,10 @@ def checkout():
     is_cod_enabled = (cod_cfg.value == 'on') if cod_cfg else True
     is_razorpay_enabled = (razorpay_cfg.value == 'on') if razorpay_cfg else True
         
-    return render_template('checkout.html', 
-                           cart_items=cart_items, 
-                           subtotal=subtotal, 
-                           subtotal_str=f"₹{subtotal:,}", 
+    return render_template('checkout.html',
+                           cart_items=cart_items,
+                           subtotal=subtotal,
+                           subtotal_str=f"₹{subtotal:,}",
                            shipping_charge=actual_shipping,
                            shipping_charge_str="FREE" if actual_shipping == 0 else f"₹{actual_shipping:,}",
                            discount_amount=discount_amount,
@@ -185,9 +183,15 @@ def checkout():
                            total=total,
                            total_str=f"₹{total:,}",
                            user=user,
+                           logged_in=user is not None,
                            razorpay_key_id=razorpay_key_id,
                            is_cod_enabled=is_cod_enabled,
-                           is_razorpay_enabled=is_razorpay_enabled)
+                           is_razorpay_enabled=is_razorpay_enabled,
+                           firebase_api_key=os.getenv('FIREBASE_API_KEY', ''),
+                           firebase_auth_domain=os.getenv('FIREBASE_AUTH_DOMAIN', ''),
+                           firebase_project_id=os.getenv('FIREBASE_PROJECT_ID', ''),
+                           firebase_messaging_sender_id=os.getenv('FIREBASE_MESSAGING_SENDER_ID', ''),
+                           firebase_app_id=os.getenv('FIREBASE_APP_ID', ''))
 
 @checkout_bp.route('/checkout/create-order', methods=['POST'])
 def create_order():
@@ -203,18 +207,20 @@ def create_order():
     data = request.get_json() or request.form
     name = data.get('name')
     phone = data.get('phone')
+    alt_phone = data.get('alt_phone', '')
     address = data.get('address')
     city = data.get('city')
     state = data.get('state')
     zipcode = data.get('zipcode')
     payment_method = data.get('payment_method', 'online')
-    
+
     if not all([name, phone, address, city, state, zipcode]):
         return jsonify({'success': False, 'message': 'All fields are required.'}), 400
-        
-    # Update user details - Combine City and State into user.city
+
+    # Update user details
+    user.full_name = name
     user.username = name
-    user.phone = phone
+    user.alt_phone = alt_phone
     user.address = address
     user.city = f"{city}, {state}" if state else city
     user.zipcode = zipcode

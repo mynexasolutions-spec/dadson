@@ -10,6 +10,13 @@ import cloudinary.api
 
 load_dotenv()
 
+# Firebase Admin SDK — only initialise once
+import firebase_admin
+from firebase_admin import credentials as _fb_creds
+_fb_sa_path = os.getenv('FIREBASE_SERVICE_ACCOUNT', 'firebase_service_account.json')
+if not firebase_admin._apps and os.path.exists(_fb_sa_path):
+    firebase_admin.initialize_app(_fb_creds.Certificate(_fb_sa_path))
+
 # Import blueprints
 from routes.public import public_bp
 from routes.auth import auth_bp
@@ -19,6 +26,8 @@ from routes.admin import admin_bp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dadson-jewelry-secret-key')
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True   # always pick up template edits without server restart
 app.config['COMPRESS_REGISTER'] = True
 app.config['COMPRESS_MIMETYPES'] = [
@@ -72,6 +81,14 @@ app.register_blueprint(admin_bp)
 # Bootstrap on startup
 with app.app_context():
     db.create_all()
+
+    # Migration for new user fields
+    for col, col_type in [('full_name', 'VARCHAR(120)'), ('alt_phone', 'VARCHAR(20)')]:
+        try:
+            db.session.execute(db.text(f'ALTER TABLE "user" ADD COLUMN {col} {col_type}'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
 
     # Migration for new product fields
     try:

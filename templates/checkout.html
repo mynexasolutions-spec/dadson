@@ -10,7 +10,7 @@
 {# Parse combined city and state if saved as comma-separated string #}
 {% set city_val = '' %}
 {% set state_val = '' %}
-{% if user.city %}
+{% if user and user.city %}
 {% if ',' in user.city %}
 {% set parts = user.city.split(',') %}
 {% set city_val = parts[0]|trim %}
@@ -24,7 +24,46 @@
     <div class="checkout-grid-row">
         <!-- LEFT: SHIPPING FORM -->
         <div class="checkout-left-sect">
-            <div class="checkout-card-box">
+
+            {% if not logged_in %}
+            <!-- OTP VERIFICATION STEP -->
+            <div class="checkout-card-box" id="otpSection">
+                <h2>Verify Your Number</h2>
+                <p class="subtitle-text">Enter your mobile number to continue with your order.</p>
+
+                <div id="otpStep1">
+                    <div class="form-group-box">
+                        <label>Mobile Number</label>
+                        <div style="display:flex;gap:0.5rem;align-items:center;">
+                            <span style="padding:0.9rem 0.75rem;border:1.5px solid #e2e8f0;border-radius:12px;background:#f9f9f9;font-size:0.95rem;white-space:nowrap;flex-shrink:0;">🇮🇳 +91</span>
+                            <input type="tel" id="otpPhone" placeholder="9876543210" maxlength="10" inputmode="numeric"
+                                style="flex:1;min-width:0;background:#fdfaf6;border:1.5px solid #e2e8f0;border-radius:12px;padding:0.9rem 1.2rem;font-size:0.95rem;color:#241914;font-family:inherit;box-sizing:border-box;">
+                            <button type="button" id="otpSendBtn" style="flex-shrink:0;padding:0.9rem 1.4rem;background:linear-gradient(135deg,#b88a44,#d2b276);color:#fff;border:none;border-radius:12px;font-weight:600;font-size:0.95rem;cursor:pointer;white-space:nowrap;">Send OTP</button>
+                        </div>
+                    </div>
+                    <div id="otpPhoneStatus" style="font-size:0.85rem;min-height:1.2em;margin-bottom:0.8rem;text-align:center;"></div>
+                    <div id="recaptcha-container"></div>
+                </div>
+
+                <div id="otpStep2" style="display:none;">
+                    <div class="form-group-box">
+                        <label>Enter OTP sent to +91 <span id="otpDisplayNum"></span></label>
+                        <div style="display:flex;gap:0.5rem;align-items:center;">
+                            <input type="tel" id="otpCode" placeholder="6-digit OTP" maxlength="6" inputmode="numeric"
+                                style="flex:1;min-width:0;background:#fdfaf6;border:1.5px solid #e2e8f0;border-radius:12px;padding:0.9rem 1.2rem;font-size:0.95rem;color:#241914;font-family:inherit;box-sizing:border-box;">
+                            <button type="button" id="otpVerifyBtn" style="flex-shrink:0;padding:0.9rem 1.4rem;background:linear-gradient(135deg,#b88a44,#d2b276);color:#fff;border:none;border-radius:12px;font-weight:600;font-size:0.95rem;cursor:pointer;white-space:nowrap;">Verify & Continue</button>
+                        </div>
+                    </div>
+                    <div id="otpCodeStatus" style="font-size:0.85rem;min-height:1.2em;margin-bottom:0.8rem;text-align:center;"></div>
+                    <p style="font-size:0.85rem;text-align:center;margin-top:0.8rem;color:#888;">
+                        Didn't receive it? <a id="otpResend" style="color:#b88a44;cursor:pointer;font-weight:600;">Resend OTP</a>
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ADDRESS FORM -->
+            <div class="checkout-card-box" id="addressSection" {% if not logged_in %}style="display:none;"{% endif %}>
                 <h2>Shipping & Delivery</h2>
                 <p class="subtitle-text">Please enter your shipping address where you'd like your handcrafted pieces
                     delivered.</p>
@@ -33,20 +72,25 @@
                     <div class="form-row-double">
                         <div class="form-group-box">
                             <label for="shippingName">Full Name</label>
-                            <input type="text" id="shippingName" name="name" value="{{ user.username or '' }}"
+                            <input type="text" id="shippingName" name="name" value="{{ user.full_name or user.username if user else '' }}"
                                 placeholder="Enter full name" required>
                         </div>
                         <div class="form-group-box">
                             <label for="shippingPhone">Phone Number</label>
-                            <input type="tel" id="shippingPhone" name="phone" value="{{ user.phone or '' }}"
-                                placeholder="Enter 10-digit mobile number" required>
+                            <input type="tel" id="shippingPhone" name="phone" value="{{ user.phone if user else '' }}"
+                                placeholder="10-digit mobile number" required readonly style="background:#f9f9f9;">
                         </div>
+                    </div>
+                    <div class="form-group-box">
+                        <label for="shippingAltPhone">Alternate Phone <span style="font-weight:400;color:#999;">(optional)</span></label>
+                        <input type="tel" id="shippingAltPhone" name="alt_phone" value="{{ user.alt_phone if user else '' }}"
+                            placeholder="Alternate mobile number">
                     </div>
 
                     <div class="form-group-box">
                         <label for="shippingAddress">Street Address</label>
                         <textarea id="shippingAddress" name="address" rows="3"
-                            placeholder="House No, Building, Street, Area" required>{{ user.address or '' }}</textarea>
+                            placeholder="House No, Building, Street, Area" required>{{ user.address if user else '' }}</textarea>
                     </div>
 
                     <div class="form-row-triple">
@@ -62,7 +106,7 @@
                         </div>
                         <div class="form-group-box">
                             <label for="shippingZipcode">Postal Code (PIN)</label>
-                            <input type="text" id="shippingZipcode" name="zipcode" value="{{ user.zipcode or '' }}"
+                            <input type="text" id="shippingZipcode" name="zipcode" value="{{ user.zipcode if user else '' }}"
                                 placeholder="6-digit PIN" required>
                         </div>
                     </div>
@@ -101,7 +145,7 @@
                             Initializing Order...</span>
                     </button>
                 </form>
-            </div>
+            </div><!-- end addressSection -->
         </div>
 
         <!-- RIGHT: ORDER SUMMARY -->
@@ -199,6 +243,131 @@
 
 <!-- RAZORPAY SCRIPT -->
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+{% if not logged_in %}
+<!-- Firebase OTP for checkout -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script>
+(function() {
+    if (!firebase.apps.length) {
+        firebase.initializeApp({
+            apiKey: "{{ firebase_api_key }}",
+            authDomain: "{{ firebase_auth_domain }}",
+            projectId: "{{ firebase_project_id }}",
+            messagingSenderId: "{{ firebase_messaging_sender_id }}",
+            appId: "{{ firebase_app_id }}"
+        });
+    }
+
+    var auth = firebase.auth();
+    var confirmationResult = null;
+    var recaptchaVerifier = null;
+    var verifiedPhone = '';
+
+    function setStatus(id, msg, color) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = msg;
+        el.style.color = color || '#888';
+    }
+
+    function initRecaptcha() {
+        if (recaptchaVerifier) {
+            try { recaptchaVerifier.clear(); } catch(e) {}
+            recaptchaVerifier = null;
+        }
+        recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { size: 'invisible' });
+    }
+
+    initRecaptcha();
+
+    document.getElementById('otpSendBtn').addEventListener('click', function() {
+        var num = document.getElementById('otpPhone').value.trim().replace(/\D/g, '');
+        if (num.length !== 10) {
+            setStatus('otpPhoneStatus', 'Enter a valid 10-digit number.', '#ef4444');
+            return;
+        }
+        var btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Sending…';
+        setStatus('otpPhoneStatus', '', '');
+
+        auth.signInWithPhoneNumber('+91' + num, recaptchaVerifier)
+        .then(function(result) {
+            confirmationResult = result;
+            verifiedPhone = '+91' + num;
+            document.getElementById('otpStep1').style.display = 'none';
+            document.getElementById('otpDisplayNum').textContent = num;
+            document.getElementById('otpStep2').style.display = 'block';
+            setStatus('otpCodeStatus', 'OTP sent to +91 ' + num, '#10b981');
+        })
+        .catch(function(err) {
+            btn.disabled = false;
+            btn.textContent = 'Send OTP';
+            setStatus('otpPhoneStatus', err.message || 'Failed to send OTP.', '#ef4444');
+            initRecaptcha();
+        });
+    });
+
+    document.getElementById('otpVerifyBtn').addEventListener('click', function() {
+        var code = document.getElementById('otpCode').value.trim();
+        if (code.length < 4) { setStatus('otpCodeStatus', 'Enter the OTP.', '#ef4444'); return; }
+        var btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Verifying…';
+
+        confirmationResult.confirm(code)
+        .then(function(result) { return result.user.getIdToken(); })
+        .then(function(idToken) {
+            return fetch('/auth/phone-login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                credentials: 'include',
+                body: JSON.stringify({id_token: idToken})
+            });
+        })
+        .then(function(r) {
+            if (!r.ok) { console.error('phone-login HTTP error', r.status); }
+            return r.json();
+        })
+        .then(function(data) {
+            if (data.success) {
+                document.getElementById('otpSection').style.display = 'none';
+                document.getElementById('shippingPhone').value = verifiedPhone;
+                document.getElementById('addressSection').style.display = 'block';
+                document.getElementById('addressSection').scrollIntoView({behavior: 'smooth'});
+            } else {
+                btn.disabled = false;
+                btn.textContent = 'Verify & Continue';
+                setStatus('otpCodeStatus', data.message || 'Verification failed.', '#ef4444');
+                console.error('phone-login failed:', data.message);
+            }
+        })
+        .catch(function(err) {
+            btn.disabled = false;
+            btn.textContent = 'Verify & Continue';
+            setStatus('otpCodeStatus', err.message || 'Wrong OTP.', '#ef4444');
+            console.error('OTP verify error:', err);
+        });
+    });
+
+    document.getElementById('otpResend').addEventListener('click', function() {
+        document.getElementById('otpStep2').style.display = 'none';
+        document.getElementById('otpStep1').style.display = 'block';
+        document.getElementById('otpCode').value = '';
+        document.getElementById('otpSendBtn').disabled = false;
+        document.getElementById('otpSendBtn').textContent = 'Send OTP';
+        setStatus('otpPhoneStatus', '', '');
+        initRecaptcha();
+    });
+
+    document.getElementById('otpCode').addEventListener('input', function() {
+        if (this.value.length === 6) document.getElementById('otpVerifyBtn').click();
+    });
+})();
+</script>
+{% endif %}
 
 <style>
     .checkout-page-container {
@@ -683,6 +852,7 @@
                 'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
             },
+            credentials: 'include',
             body: JSON.stringify({ name, phone, address, city, state, zipcode, payment_method })
         })
             .then(res => res.json())

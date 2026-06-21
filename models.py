@@ -13,7 +13,9 @@ class User(db.Model):
     
     # Profile Details
     username = db.Column(db.String(80))
+    full_name = db.Column(db.String(120))
     phone = db.Column(db.String(20))
+    alt_phone = db.Column(db.String(20))
     address = db.Column(db.Text)
     city = db.Column(db.String(100))
     zipcode = db.Column(db.String(10))

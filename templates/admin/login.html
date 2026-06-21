@@ -120,7 +120,7 @@
           {% endif %}
         {% endwith %}
 
-        <form action="{{ url_for('auth.login') }}" method="POST">
+        <form action="{{ url_for('auth.admin_access') }}" method="POST">
             <div class="form-group">
                 <label for="email">Email Address</label>
                 <input type="email" id="email" name="email" placeholder="admin@dadson.com" required>

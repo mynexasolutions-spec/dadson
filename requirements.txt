@@ -8,3 +8,5 @@ Jinja2
 gunicorn
 flask-cors
 flask-compress
+firebase-admin
+twilio
