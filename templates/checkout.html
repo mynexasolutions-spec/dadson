@@ -277,10 +277,10 @@
             try { recaptchaVerifier.clear(); } catch(e) {}
             recaptchaVerifier = null;
         }
+        var container = document.getElementById('recaptcha-container');
+        container.innerHTML = '';
         recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { size: 'invisible' });
     }
-
-    initRecaptcha();
 
     document.getElementById('otpSendBtn').addEventListener('click', function() {
         var num = document.getElementById('otpPhone').value.trim().replace(/\D/g, '');
@@ -293,6 +293,7 @@
         btn.textContent = 'Sending…';
         setStatus('otpPhoneStatus', '', '');
 
+        initRecaptcha();
         auth.signInWithPhoneNumber('+91' + num, recaptchaVerifier)
         .then(function(result) {
             confirmationResult = result;
