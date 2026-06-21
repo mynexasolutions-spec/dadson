@@ -439,6 +439,74 @@ def contact():
         
     return render_template('contact.html')
 
+@public_bp.route('/sitemap.xml')
+def sitemap():
+    from flask import Response
+    from datetime import date
+    today = date.today().isoformat()
+    base = 'https://www.dadsonjewelry.com'
+
+    static_urls = [
+        ('/', '1.0', 'daily'),
+        ('/shop', '0.9', 'daily'),
+        ('/about', '0.7', 'monthly'),
+        ('/contact', '0.7', 'monthly'),
+        ('/faq', '0.6', 'monthly'),
+        ('/privacy-policy', '0.4', 'yearly'),
+        ('/terms-conditions', '0.4', 'yearly'),
+        ('/shipping-policy', '0.4', 'yearly'),
+        ('/cancellation-refund', '0.4', 'yearly'),
+    ]
+
+    urls = []
+    for path, priority, freq in static_urls:
+        urls.append(f"""  <url>
+    <loc>{base}{path}</loc>
+    <lastmod>{today}</lastmod>
+    <changefreq>{freq}</changefreq>
+    <priority>{priority}</priority>
+  </url>""")
+
+    products = Product.query.filter_by(stock_status='instock').all()
+    for p in products:
+        urls.append(f"""  <url>
+    <loc>{base}/product/{p.id}</loc>
+    <lastmod>{today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>""")
+
+    categories = Category.query.filter_by(parent_id=None).all()
+    for c in categories:
+        urls.append(f"""  <url>
+    <loc>{base}/shop?category={c.name}</loc>
+    <lastmod>{today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>""")
+
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    xml += '\n'.join(urls)
+    xml += '\n</urlset>'
+
+    return Response(xml, mimetype='application/xml')
+
+
+@public_bp.route('/robots.txt')
+def robots():
+    from flask import Response
+    content = """User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /admin-access
+Disallow: /checkout
+Disallow: /auth/
+
+Sitemap: https://www.dadsonjewelry.com/sitemap.xml"""
+    return Response(content, mimetype='text/plain')
+
+
 @public_bp.route('/toggle-wishlist/<id>', methods=['POST'])
 def toggle_wishlist(id):
     wishlist = session.get('wishlist', [])
