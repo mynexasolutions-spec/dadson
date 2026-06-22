@@ -379,7 +379,7 @@ function openViewModal(orderId) {
                 row.innerHTML = `
                     <img src="${item.img}" class="modal-item-img" alt="${item.name}">
                     <div class="modal-item-details">
-                        <h5>${item.name}</h5>
+                        <h5><a href="/product/${item.product_id}" target="_blank" style="color:inherit;text-decoration:none;border-bottom:1px dashed #b88a44;" onmouseover="this.style.color='#b88a44'" onmouseout="this.style.color='inherit'">${item.name}</a></h5>
                         ${attrsHtml ? `<div class="order-attr-chips">${attrsHtml}</div>` : ''}
                         <span>Quantity: ${item.quantity} × ${item.price_at_time}</span>
                     </div>

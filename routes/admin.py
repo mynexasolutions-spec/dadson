@@ -747,6 +747,7 @@ def get_order_details(order_id):
 
         items.append({
             'name': item.product.name,
+            'product_id': item.product.id,
             'img': img,
             'quantity': item.quantity,
             'price_at_time': item.price_at_time,
