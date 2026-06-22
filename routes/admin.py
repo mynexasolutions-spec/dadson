@@ -785,9 +785,11 @@ def update_order_status(order_id):
 @admin_required
 def delete_order(order_id):
     order = Order.query.get_or_404(order_id)
+    order_number = order.order_number
+    OrderItem.query.filter_by(order_id=order.id).delete()
     db.session.delete(order)
     db.session.commit()
-    flash(f'Order {order.order_number} deleted successfully!', 'success')
+    flash(f'Order {order_number} deleted successfully!', 'success')
     return redirect(url_for('admin.orders'))
 
 # --- ATTRIBUTE ROUTES ---
