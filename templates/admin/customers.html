@@ -6,12 +6,17 @@
         <h1>Customers</h1>
         <p>View and manage your registered customers.</p>
     </div>
+    <div class="header-right">
+        <button onclick="exportToExcel()" class="btn-primary" style="display:flex;align-items:center;gap:8px;padding:0.6rem 1.2rem;background:linear-gradient(135deg,#b88a44,#d2b276);color:#fff;border:none;border-radius:10px;font-weight:600;cursor:pointer;font-size:0.9rem;">
+            <i class="fas fa-file-excel"></i> Export to Excel
+        </button>
+    </div>
 </div>
 
 <div class="section-card">
     <div class="table-filters">
         <div class="search-input">
-            <input type="text" id="customerSearch" placeholder="Search customers by email or name...">
+            <input type="text" id="customerSearch" placeholder="Search customers by name, email or phone...">
         </div>
     </div>
 
@@ -22,6 +27,7 @@
                     <th>Customer ID</th>
                     <th>Customer</th>
                     <th>Email</th>
+                    <th>Phone</th>
                     <th>Joined Date</th>
                     <th>Total Orders</th>
                     <th>Actions</th>
@@ -29,22 +35,26 @@
             </thead>
             <tbody>
                 {% for user in users %}
+                {% set is_phone_user = user.email and '@dadson.internal' in user.email %}
+                {% set display_name = user.full_name or user.username or (user.phone if is_phone_user else user.email.split('@')[0]) %}
+                {% set avatar_letters = display_name[0:2].upper() if display_name else 'U?' %}
                 <tr>
                     <td><strong style="color: #8e6a34;">#{{ user.id }}</strong></td>
                     <td>
                         <div class="user-cell">
                             <div class="avatar-circle" style="background: {{ ['#f59e0b', '#4f46e5', '#10b981', '#ef4444'] | random }};">
-                                {{ user.email[0:2].upper() }}
+                                {{ avatar_letters }}
                             </div>
                             <div class="user-meta">
-                                <strong>{{ user.username or user.email.split('@')[0] }}</strong>
+                                <strong>{{ display_name }}</strong>
                                 {% if user.is_admin %}
                                 <span class="badge-tag" style="background: rgba(184, 138, 68, 0.15); color: #8e6a34; font-size: 0.75rem; padding: 2px 8px; margin-left: 6px; border: 1px solid rgba(184, 138, 68, 0.25); display: inline-block; vertical-align: middle;">Admin</span>
                                 {% endif %}
                             </div>
                         </div>
                     </td>
-                    <td>{{ user.email }}</td>
+                    <td>{{ '' if is_phone_user else user.email }}</td>
+                    <td>{{ user.phone or '—' }}</td>
                     <td>{{ user.join_date.strftime('%b %Y') if user.join_date else 'Oct 2023' }}</td>
                     <td><span class="badge-tag">{{ user.orders|length }}</span></td>
                     <td>
@@ -67,6 +77,13 @@
 </div>
 
 <style>
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
     .user-cell {
         display: flex;
         align-items: center;
@@ -82,6 +99,7 @@
         color: #fff;
         font-weight: 700;
         font-size: 0.85rem;
+        flex-shrink: 0;
     }
     .user-meta strong {
         color: #1e293b;
@@ -104,20 +122,36 @@
     }
 </style>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
     document.getElementById('customerSearch').addEventListener('keyup', function() {
         const query = this.value.toLowerCase();
         const rows = document.querySelectorAll('#customersTable tbody tr');
-        
         rows.forEach(row => {
-            const name = row.querySelector('.user-meta strong').textContent.toLowerCase();
-            const email = row.cells[1].textContent.toLowerCase();
-            if (name.includes(query) || email.includes(query)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
         });
     });
+
+    function exportToExcel() {
+        const rows = document.querySelectorAll('#customersTable tbody tr');
+        const data = [['Customer ID', 'Name', 'Email', 'Phone', 'Joined Date', 'Total Orders']];
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            data.push([
+                cells[0].innerText.replace('#', '').trim(),
+                cells[1].querySelector('.user-meta strong').innerText.trim(),
+                cells[2].innerText.trim(),
+                cells[3].innerText.trim(),
+                cells[4].innerText.trim(),
+                cells[5].innerText.trim(),
+            ]);
+        });
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        ws['!cols'] = [{ wch: 12 }, { wch: 25 }, { wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 12 }];
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Customers');
+        XLSX.writeFile(wb, 'dadson_customers.xlsx');
+    }
 </script>
 {% endblock %}
