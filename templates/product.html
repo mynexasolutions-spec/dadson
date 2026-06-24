@@ -1047,10 +1047,12 @@
             const valId = btn.getAttribute('data-val-id');
             const attrId = btn.getAttribute('data-attr-id');
 
-            // Instant Image Update for colors
+            // Instant Image Update for variation image
             const firstMatch = variations.find(v => v.options[attrId] == valId);
             if (firstMatch && firstMatch.img && firstMatch.img !== 'None' && firstMatch.img !== '') {
                 document.getElementById('mainProductImg').src = firstMatch.img;
+                // Mark all thumbs inactive and set active on the first thumb
+                document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
             }
 
             // Check if it's a color selection to filter gallery

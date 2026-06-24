@@ -1186,7 +1186,7 @@
         document.getElementById('attributePicker').value = '';
     }
 
-    function removeAttribute(attrId) {
+    function removeProductAttr(attrId) {
         delete selectedAttrMap[attrId];
         renderSelectedAttributes();
     }
@@ -1223,7 +1223,7 @@
                         <input type="hidden" name="product_attributes[]" value="${attrId}">
                         ${selectedAttrMap[attrId].map(vId => `<input type="hidden" name="attr_val_${attrId}[]" value="${vId}">`).join('')}
                     </div>
-                    <div class="remove-var-btn" onclick="removeAttribute('${attrId}')" style="width: 24px; height: 24px; border-radius: 6px;">
+                    <div class="remove-var-btn" onclick="removeProductAttr('${attrId}')" style="width: 24px; height: 24px; border-radius: 6px;">
                         <i class="fas fa-times" style="font-size: 0.7rem;"></i>
                     </div>
                 </div>
@@ -1322,9 +1322,13 @@
     function previewVarImage(input, idx) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
-            reader.onload = function (e) {
+            reader.onload = function(e) {
                 const box = input.parentElement;
-                box.innerHTML = `<img src="${e.target.result}"><input type="file" id="var_img_input_${idx}" name="var_img_${idx}" style="display: none;" onchange="previewVarImage(this, '${idx}')">`;
+                // Remove existing preview elements but keep the file input intact
+                box.querySelectorAll('img, i').forEach(el => el.remove());
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                box.insertBefore(img, input);
             };
             reader.readAsDataURL(input.files[0]);
         }
