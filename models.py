@@ -114,6 +114,7 @@ class ProductVariation(db.Model):
     orig_price = db.Column(db.String(20))
     img_url = db.Column(db.String(512))
     stock_status = db.Column(db.String(20), default='instock')
+    is_default = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
         return f"<Variation for {self.product_id}>"

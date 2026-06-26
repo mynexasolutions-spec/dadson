@@ -28,11 +28,14 @@ document.addEventListener('click', function(e) {
                 category = catEl ? catEl.textContent.trim() : '';
             }
 
+            const variationId = btn.getAttribute('data-variation-id');
+            const formData = new FormData();
+            if (variationId) formData.append('variation_id', variationId);
+
             fetch(`/add-to-cart/${productId}`, {
                 method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: variationId ? formData : null
             })
             .then(res => res.json())
             .then(data => {
@@ -97,9 +100,14 @@ document.addEventListener('click', function(e) {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:6px;font-size:0.85em;"></i>Please wait...';
 
+    var variationId = btn.getAttribute('data-variation-id');
+    var formData = new FormData();
+    if (variationId) formData.append('variation_id', variationId);
+
     fetch('/add-to-cart/' + productId, {
         method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: variationId ? formData : null
     })
     .then(function(res) { return res.json(); })
     .then(function(data) {

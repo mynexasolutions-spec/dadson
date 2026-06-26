@@ -95,12 +95,24 @@
             {% endif %}
         </div>
         {% endif %}
+        {% if product.product_type == 'variable' %}
+            {% set default_var = None %}
+            {% for v in product.variations if v.is_default %}{% set default_var = v %}{% endfor %}
+            {% if not default_var and product.variations %}{% set default_var = product.variations[0] %}{% endif %}
+            <button class="product-add-btn add-to-cart-ajax" data-id="{{ product.id }}" {% if default_var %}data-variation-id="{{ default_var.id }}"{% endif %}>
+                <i class="fas fa-shopping-cart" style="margin-right:6px;font-size:0.85em;"></i>Add to Cart
+            </button>
+            <button class="product-buy-now-btn buy-now-ajax" data-id="{{ product.id }}" {% if default_var %}data-variation-id="{{ default_var.id }}"{% endif %}>
+                <i class="fas fa-bolt" style="margin-right:6px;font-size:0.85em;"></i>Buy Now
+            </button>
+        {% else %}
         <button class="product-add-btn add-to-cart-ajax" data-id="{{ product.id }}">
             <i class="fas fa-shopping-cart" style="margin-right:6px;font-size:0.85em;"></i>Add to Cart
         </button>
         <button class="product-buy-now-btn buy-now-ajax" data-id="{{ product.id }}">
             <i class="fas fa-bolt" style="margin-right:6px;font-size:0.85em;"></i>Buy Now
         </button>
+        {% endif %}
     </div>
 </div>
 {% endmacro %}

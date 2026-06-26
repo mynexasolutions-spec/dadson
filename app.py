@@ -128,6 +128,29 @@ with app.app_context():
         except Exception:
             db.session.rollback()
 
+    # Migration for default variation flag
+    try:
+        db.session.execute(db.text('ALTER TABLE product_variation ADD COLUMN is_default BOOLEAN DEFAULT FALSE'))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
+    # Set first variation as default for existing variable products that have none set
+    try:
+        from models import ProductVariation as PV
+        from sqlalchemy import func
+        products_needing_default = db.session.execute(db.text(
+            "SELECT DISTINCT product_id FROM product_variation WHERE product_id NOT IN "
+            "(SELECT product_id FROM product_variation WHERE is_default = TRUE)"
+        )).fetchall()
+        for row in products_needing_default:
+            first_var = PV.query.filter_by(product_id=row[0]).order_by(PV.id.asc()).first()
+            if first_var:
+                first_var.is_default = True
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
     # Migration for Category recursive hierarchy and gender attributes
     for col, col_type in [
         ('parent_id', 'INTEGER'),

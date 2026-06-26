@@ -265,27 +265,29 @@ def new_product():
 
         # Handle Variations
         if product_type == 'variable':
+            default_idx = request.form.get('var_default')
             for idx in var_indices:
                 var_price_raw = request.form.getlist('var_price[]')[var_indices.index(idx)].replace('₹', '').replace(',', '').strip()
                 var_price = f"₹{int(var_price_raw):,}" if var_price_raw and var_price_raw.isdigit() else product.price
-                
+
                 var_orig_raw = request.form.getlist('var_orig[]')[var_indices.index(idx)].replace('₹', '').replace(',', '').strip()
                 var_orig = f"₹{int(var_orig_raw):,}" if var_orig_raw and var_orig_raw.isdigit() else None
-                
+
                 var_stock = request.form.getlist('var_stock[]')[var_indices.index(idx)]
-                
                 var_img_url = _image_urls.get(f'var_{idx}')
-                
+                is_default = (idx == default_idx) or (default_idx is None and var_indices.index(idx) == 0)
+
                 variation = ProductVariation(
                     product_id=product.id,
                     price=var_price,
                     orig_price=var_orig,
                     stock_status=var_stock,
-                    img_url=var_img_url
+                    img_url=var_img_url,
+                    is_default=is_default
                 )
                 db.session.add(variation)
                 db.session.flush()
-                
+
                 for a_id in attr_ids:
                     v_val_id = request.form.get(f'var_attr_{idx}_{a_id}')
                     if v_val_id:
@@ -433,6 +435,7 @@ def edit_product(id):
             var_origs = request.form.getlist('var_orig[]')
             var_stocks = request.form.getlist('var_stock[]')
             var_existing_imgs = request.form.getlist('var_existing_img[]')
+            default_idx = request.form.get('var_default')
 
             for i, idx in enumerate(var_indices):
                 # Robust price parsing
@@ -451,17 +454,19 @@ def edit_product(id):
                 var_stock = var_stocks[i] if i < len(var_stocks) else 'instock'
                 existing_img = var_existing_imgs[i] if i < len(var_existing_imgs) else ""
                 var_img_url = _image_urls.get(f'var_{idx}') or existing_img
-                
+                is_default = (idx == default_idx) or (default_idx is None and i == 0)
+
                 variation = ProductVariation(
                     product_id=product.id,
                     price=var_price,
                     orig_price=var_orig,
                     stock_status=var_stock,
-                    img_url=var_img_url
+                    img_url=var_img_url,
+                    is_default=is_default
                 )
                 db.session.add(variation)
                 db.session.flush()
-                
+
                 for a_id in attr_ids:
                     v_val_id = request.form.get(f'var_attr_{idx}_{a_id}')
                     if v_val_id:

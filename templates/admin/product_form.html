@@ -1311,6 +1311,10 @@
                     <input type="file" id="var_img_input_${idx}" name="var_img_${idx}" style="display: none;" onchange="previewVarImage(this, '${idx}')">
                 </div>
                 <input type="hidden" name="var_existing_img[]" value="${data ? data.img_url : ''}">
+                <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;font-weight:600;color:#b88a44;cursor:pointer;white-space:nowrap;" title="Set as default variation shown on shop page">
+                    <input type="radio" name="var_default" value="${idx}" ${data && data.is_default ? 'checked' : ''} style="accent-color:#b88a44;">
+                    Default
+                </label>
                 <button type="button" class="remove-var-btn" onclick="this.closest('.variation-card').remove()" title="Remove Variation">
                     <i class="fas fa-trash-alt"></i>
                 </button>
