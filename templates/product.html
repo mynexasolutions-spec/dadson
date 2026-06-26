@@ -958,6 +958,7 @@
             "orig_price": "{{ var.orig_price or '' }}",
             "stock": "{{ var.stock_status }}",
             "img": "{{ var.img_url or '' }}",
+            "is_default": {{ 'true' if var.is_default else 'false' }},
             "options": {
                 {% for opt in var.options %}
                 "{{ opt.attribute_value.attribute_id }}": "{{ opt.attribute_value_id }}",
@@ -1490,6 +1491,9 @@
         let targetVar = null;
         if (initialVariationId) {
             targetVar = variations.find(v => v.id == initialVariationId);
+        }
+        if (!targetVar && variations.length > 0) {
+            targetVar = variations.find(v => v.is_default) || variations[0];
         }
 
         if (targetVar) {
