@@ -11,11 +11,25 @@ import cloudinary.api
 load_dotenv()
 
 # Firebase Admin SDK — only initialise once
+# Supports two methods:
+#   1. FIREBASE_SERVICE_ACCOUNT_JSON env var (full JSON string) — best for cloud/production
+#   2. FIREBASE_SERVICE_ACCOUNT env var pointing to a .json file — for local dev
 import firebase_admin
 from firebase_admin import credentials as _fb_creds
-_fb_sa_path = os.getenv('FIREBASE_SERVICE_ACCOUNT', 'firebase_service_account.json')
-if not firebase_admin._apps and os.path.exists(_fb_sa_path):
-    firebase_admin.initialize_app(_fb_creds.Certificate(_fb_sa_path))
+
+if not firebase_admin._apps:
+    _fb_json_str = os.getenv('FIREBASE_SERVICE_ACCOUNT_JSON')  # full JSON string
+    _fb_sa_path  = os.getenv('FIREBASE_SERVICE_ACCOUNT', 'firebase_service_account.json')
+
+    if _fb_json_str:
+        # Production: credentials stored as JSON string in env var
+        import json as _json
+        _fb_cert = _fb_creds.Certificate(_json.loads(_fb_json_str))
+        firebase_admin.initialize_app(_fb_cert)
+    elif os.path.exists(_fb_sa_path):
+        # Local dev: credentials stored in a JSON file
+        firebase_admin.initialize_app(_fb_creds.Certificate(_fb_sa_path))
+    # else: Firebase Admin not initialized — JWT fallback used in auth.py
 
 # Import blueprints
 from routes.public import public_bp

@@ -1,5 +1,6 @@
 Flask
-Flask-SQLAlchemy
+Flask-SQLAlchemy==3.0.5
+SQLAlchemy==1.4.52
 psycopg2-binary
 python-dotenv
 cloudinary

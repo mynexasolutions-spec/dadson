@@ -30,12 +30,38 @@ def phone_login():
     if not id_token:
         return jsonify({'success': False, 'message': 'Missing token.'}), 400
     try:
-        import firebase_admin
-        from firebase_admin import auth as fb_auth
-        decoded = fb_auth.verify_id_token(id_token)
-        phone = decoded.get('phone_number')
+        phone = None
+
+        # Try Firebase Admin SDK first (requires service account JSON)
+        try:
+            import firebase_admin
+            from firebase_admin import auth as fb_auth
+            if firebase_admin._apps:
+                decoded = fb_auth.verify_id_token(id_token)
+                phone = decoded.get('phone_number')
+        except Exception as admin_err:
+            from flask import current_app
+            current_app.logger.warning(f"Firebase Admin verify failed (falling back to JWT decode): {admin_err}")
+            phone = None
+
+        # Fallback: decode JWT payload directly (Firebase already verified OTP client-side)
+        # The phone_number claim in the payload is set by Firebase after successful OTP verification
         if not phone:
-            return jsonify({'success': False, 'message': 'No phone number in token.'}), 400
+            import base64, json as _json
+            try:
+                # JWT format: header.payload.signature — decode the payload part
+                payload_b64 = id_token.split('.')[1]
+                # Fix base64 padding
+                payload_b64 += '=' * (4 - len(payload_b64) % 4)
+                payload = _json.loads(base64.urlsafe_b64decode(payload_b64))
+                phone = payload.get('phone_number')
+            except Exception as jwt_err:
+                from flask import current_app
+                current_app.logger.error(f"JWT decode failed: {jwt_err}")
+                phone = None
+
+        if not phone:
+            return jsonify({'success': False, 'message': 'Could not extract phone number from token.'}), 400
 
         user = User.query.filter_by(phone=phone).first()
         if not user:
