@@ -423,5 +423,14 @@ def handle_exception(e):
     app.logger.error(f"Unhandled Server Error: {e}")
     return render_template('500.html'), 500
 
+@app.route('/favicon.ico')
+def favicon():
+    from flask import send_from_directory, make_response
+    resp = make_response(send_from_directory('static/images/favicons', 'favicon.ico'))
+    resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '0'
+    return resp
+
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=8080)
