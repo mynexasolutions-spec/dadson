@@ -2,6 +2,9 @@
 {% set product = item.product if (item.product is defined and item.product) else item %}
 {% set variation = item.variation if (item.variation is defined and item.variation) else None %}
 
+{% set stock_src = variation if variation else product %}
+{% set sold_out = (variation or product.product_type != 'variable') and stock_src.stock_status not in ('instock', 'in_stock') %}
+
 {# Determine image: Use variation color image if available #}
 {% set display_img = product.img %}
 {% if variation %}
@@ -31,7 +34,9 @@
                 <div class="na-mobile-price">{{ variation.price if variation else product.price }}</div>
             </div>
         </a>
-        {% if product.badge %}
+        {% if sold_out %}
+        <span class="product-badge soldout" style="background:#991b1b;color:#fff;">Sold Out</span>
+        {% elif product.badge %}
         <span class="product-badge {{ product.badge.lower() }}">
             {{ product.badge }}
         </span>
@@ -101,17 +106,17 @@
                 {% if v.is_default %}{% set ns.default_var = v %}{% endif %}
             {% endfor %}
             {% if not ns.default_var and product.variations %}{% set ns.default_var = product.variations[0] %}{% endif %}
-            <button class="product-add-btn add-to-cart-ajax" data-id="{{ product.id }}" {% if ns.default_var %}data-variation-id="{{ ns.default_var.id }}"{% endif %}>
-                <i class="fas fa-shopping-cart" style="margin-right:6px;font-size:0.85em;"></i>Add to Cart
+            {% set var_sold_out = sold_out or (ns.default_var and ns.default_var.stock_status not in ('instock', 'in_stock')) %}            <button class="product-add-btn add-to-cart-ajax" data-id="{{ product.id }}" {% if ns.default_var %}data-variation-id="{{ ns.default_var.id }}"{% endif %} {{ 'disabled' if var_sold_out }}>
+                <i class="fas fa-shopping-cart" style="margin-right:6px;font-size:0.85em;"></i>{{ 'Sold Out' if var_sold_out else 'Add to Cart' }}
             </button>
-            <button class="product-buy-now-btn buy-now-ajax" data-id="{{ product.id }}" {% if ns.default_var %}data-variation-id="{{ ns.default_var.id }}"{% endif %}>
+            <button class="product-buy-now-btn buy-now-ajax" data-id="{{ product.id }}" {% if ns.default_var %}data-variation-id="{{ ns.default_var.id }}"{% endif %} {{ 'disabled' if var_sold_out }}>
                 <i class="fas fa-bolt" style="margin-right:6px;font-size:0.85em;"></i>Buy Now
             </button>
         {% else %}
-        <button class="product-add-btn add-to-cart-ajax" data-id="{{ product.id }}">
-            <i class="fas fa-shopping-cart" style="margin-right:6px;font-size:0.85em;"></i>Add to Cart
+        <button class="product-add-btn add-to-cart-ajax" data-id="{{ product.id }}" {{ 'disabled' if sold_out }}>
+            <i class="fas fa-shopping-cart" style="margin-right:6px;font-size:0.85em;"></i>{{ 'Sold Out' if sold_out else 'Add to Cart' }}
         </button>
-        <button class="product-buy-now-btn buy-now-ajax" data-id="{{ product.id }}">
+        <button class="product-buy-now-btn buy-now-ajax" data-id="{{ product.id }}" {{ 'disabled' if sold_out }}>
             <i class="fas fa-bolt" style="margin-right:6px;font-size:0.85em;"></i>Buy Now
         </button>
         {% endif %}

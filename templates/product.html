@@ -135,12 +135,13 @@
 
             <div class="main-actions-row">
                 <div class="main-btns-group">
+                    {% set is_outofstock = product.stock_status not in ('instock', 'in_stock') %}
                     <button id="addToCartBtn" class="btn-add-bag-premium" data-id="{{ product.id }}"
-                        onclick="addToCart(this)" {{ 'disabled' if product.product_type=='variable' }}>
-                        Add to Bag
+                        onclick="addToCart(this)" {{ 'disabled' if product.product_type=='variable' or is_outofstock }}>
+                        {{ 'Out of Stock' if (product.product_type != 'variable' and is_outofstock) else 'Add to Bag' }}
                     </button>
                     <button id="buyNowBtn" class="btn-buy-now-premium" data-id="{{ product.id }}"
-                        onclick="buyNow(this)" {{ 'disabled' if product.product_type=='variable' }}>
+                        onclick="buyNow(this)" {{ 'disabled' if product.product_type=='variable' or is_outofstock }}>
                         <i class="fas fa-bolt" style="font-size:0.85em;"></i> Buy Now
                     </button>
                 </div>

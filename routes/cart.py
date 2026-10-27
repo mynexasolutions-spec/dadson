@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, session, request, jsonify, redirect, url_for
+from flask import Blueprint, render_template, session, request, jsonify, redirect, url_for, flash
 from models import Product, Coupon, Order
 from datetime import datetime
 
@@ -213,6 +213,25 @@ def remove_coupon():
 
 @cart_bp.route('/add-to-cart/<id>', methods=['POST'])
 def add_to_cart(id):
+    from models import ProductVariation
+
+    def sold_out_response():
+        msg = 'Sorry, this product is sold out.'
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'message': msg})
+        flash(msg, 'error')
+        return redirect(request.referrer or url_for('public.home'))
+
+    var_ref = id.split(':', 1)[1] if id.startswith('var:') else request.form.get('variation_id')
+    if var_ref:
+        var = ProductVariation.query.get(var_ref)
+        if var and var.stock_status not in ('instock', 'in_stock'):
+            return sold_out_response()
+    else:
+        base = Product.query.get(id)
+        if base and base.product_type != 'variable' and base.stock_status not in ('instock', 'in_stock'):
+            return sold_out_response()
+
     if id.startswith('var:'):
         cart_key = id
     else:
